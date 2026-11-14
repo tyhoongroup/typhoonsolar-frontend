@@ -50,16 +50,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-[240px] bg-typhoon-navy flex flex-col justify-between h-screen fixed left-0 top-0 text-white z-40 border-r border-white/5">
       {/* Brand Header */}
       <div>
-        <div className="p-6 border-b border-white/10 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-typhoon-gold flex items-center justify-center text-typhoon-navy">
-            <Sun className="w-5 h-5 fill-current" />
-          </div>
-          <div>
-            <span className="text-xs font-bold tracking-widest text-typhoon-gold uppercase block">
-              TYPHOON SOLAR
-            </span>
-            <span className="text-[10px] text-white/50">{roleName}</span>
-          </div>
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          <img
+            src="/images/typhoon-logo-white.png"
+            alt="Typhoon Solar"
+            className="h-8 w-auto object-contain"
+          />
+          <span className="text-[10px] text-white/50 uppercase font-semibold">{roleName}</span>
         </div>
 
         {/* Menu Navigation */}

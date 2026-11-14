@@ -39,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
       <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/10 pointer-events-none" />
 
-      {/* Top Bar with Avatar and Bell */}
+      {/* Top Bar with Avatar and Official Brand Logo */}
       <div className="relative flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <button
@@ -49,9 +49,11 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {displayInitials}
           </button>
-          <span className="text-[11px] font-semibold tracking-widest text-white/90 uppercase">
-            TYPHOON SOLAR
-          </span>
+          <img
+            src="/images/typhoon-logo-white.png"
+            alt="Typhoon Solar"
+            className="h-7 w-auto object-contain drop-shadow-sm opacity-95"
+          />
         </div>
 
         <button

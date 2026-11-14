@@ -172,26 +172,14 @@ export default function LoginPage() {
           <div className="absolute -top-12 -left-12 w-[520px] h-[520px] rounded-full border border-white/5 pointer-events-none" />
           <div className="absolute -bottom-36 -right-36 w-[600px] h-[600px] rounded-full border border-white/5 pointer-events-none" />
 
-          {/* Top Brand */}
+          {/* Top Brand Logo */}
           <div className="relative z-10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div
-                style={{ backgroundColor: activeTheme.hex.accentBg, color: activeTheme.hex.accentTextColor }}
-                className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg font-bold"
-              >
-                <Sun className="w-6 h-6 stroke-[2.5]" />
-              </div>
-              <div>
-                <span
-                  style={{ color: activeTheme.hex.accentBg }}
-                  className="text-xs font-bold tracking-widest uppercase block"
-                >
-                  TYPHOON SOLAR
-                </span>
-                <span className="text-[11px] text-white/60">
-                  Rooftop Solar ERP & Lifecycle Management
-                </span>
-              </div>
+              <img
+                src="/images/typhoon-logo-white.png"
+                alt="Typhoon Solar"
+                className="h-10 w-auto object-contain drop-shadow"
+              />
             </div>
             <BackendStatusBadge />
           </div>
@@ -233,11 +221,12 @@ export default function LoginPage() {
                   style={{ backgroundColor: activeTheme.hex.headerBg }}
                   className="rounded-2xl p-6 text-white text-center relative overflow-hidden"
                 >
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Sun style={{ color: activeTheme.hex.accentBg }} className="w-5 h-5 stroke-[2.5]" />
-                    <span style={{ color: activeTheme.hex.accentBg }} className="text-xs font-bold tracking-widest uppercase">
-                      TYPHOON SOLAR
-                    </span>
+                  <div className="flex items-center justify-center mb-3">
+                    <img
+                      src="/images/typhoon-logo-white.png"
+                      alt="Typhoon Solar"
+                      className="h-8 w-auto object-contain"
+                    />
                   </div>
                   <h2 className="text-2xl font-serif font-bold text-white">Welcome back</h2>
                   <p className="text-xs text-white/70 mt-1">Continue with your saved profile</p>
@@ -447,13 +436,11 @@ export default function LoginPage() {
 
               <div className="relative z-10 flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Sun style={{ color: activeTheme.hex.accentBg }} className="w-5 h-5 stroke-[2.5]" />
-                  <span
-                    style={{ color: activeTheme.hex.accentBg }}
-                    className="text-[11px] font-bold tracking-widest uppercase"
-                  >
-                    TYPHOON SOLAR
-                  </span>
+                  <img
+                    src="/images/typhoon-logo-white.png"
+                    alt="Typhoon Solar"
+                    className="h-8 w-auto object-contain drop-shadow"
+                  />
                 </div>
                 <BackendStatusBadge />
               </div>
@@ -567,10 +554,11 @@ export default function LoginPage() {
             <div className="bg-typhoon-navy text-white pt-12 pb-10 px-6 rounded-b-[40px] relative shadow-soft">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Sun className="w-5 h-5 text-typhoon-gold" />
-                  <span className="text-[11px] font-bold tracking-widest text-typhoon-gold uppercase">
-                    TYPHOON SOLAR
-                  </span>
+                  <img
+                    src="/images/typhoon-logo-white.png"
+                    alt="Typhoon Solar"
+                    className="h-8 w-auto object-contain drop-shadow"
+                  />
                 </div>
                 <BackendStatusBadge />
               </div>
