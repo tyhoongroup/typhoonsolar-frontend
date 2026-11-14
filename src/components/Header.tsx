@@ -31,7 +31,10 @@ export const Header: React.FC<HeaderProps> = ({
   }).format(new Date());
 
   return (
-    <header className={`relative ${theme.headerBg} text-white pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden shadow-soft transition-colors duration-300`}>
+    <header
+      style={{ backgroundColor: theme.hex.headerBg }}
+      className={`relative ${theme.headerBg} text-white pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden shadow-soft transition-colors duration-300 border-b border-white/5`}
+    >
       {/* Decorative concentric solar ripples in background */}
       <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
       <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/10 pointer-events-none" />
@@ -41,7 +44,8 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={onAvatarClick}
-            className={`w-10 h-10 rounded-full border border-white/20 bg-white/10 ${theme.accentText} font-bold flex items-center justify-center text-xs tracking-wider`}
+            style={{ color: theme.hex.accentBg }}
+            className={`w-10 h-10 rounded-full border border-white/20 bg-white/10 font-bold flex items-center justify-center text-xs tracking-wider`}
           >
             {displayInitials}
           </button>

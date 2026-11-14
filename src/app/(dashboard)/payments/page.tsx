@@ -97,12 +97,15 @@ export default function PaymentsLedgerPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft">
+      {/* Top Header with Accountant signature deep burgundy */}
+      <div
+        style={{ backgroundColor: '#3d1020' }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#571930]"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
-            <IndianRupee className="w-4 h-4 text-typhoon-gold" />
-            <span className="text-[11px] font-bold tracking-widest text-typhoon-gold uppercase">
+            <IndianRupee className="w-4 h-4 text-[#e1144a]" />
+            <span className="text-[11px] font-bold tracking-widest text-[#e1144a] uppercase">
               FINANCE & MILESTONE LEDGER (MEERA)
             </span>
           </div>
@@ -155,9 +158,14 @@ export default function PaymentsLedgerPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
+                style={
+                  activeTab === tab.id
+                    ? { backgroundColor: '#e1144a', color: '#ffffff' }
+                    : undefined
+                }
                 className={`px-3 py-1.5 rounded-xl font-bold transition ${
                   activeTab === tab.id
-                    ? 'bg-typhoon-navy text-white shadow-2xs'
+                    ? 'shadow-sm'
                     : 'bg-typhoon-sand/60 text-typhoon-navy hover:bg-typhoon-sand'
                 }`}
               >

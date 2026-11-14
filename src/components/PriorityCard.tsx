@@ -24,14 +24,21 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
     <div className="px-4 my-3">
       <div
         onClick={onClick}
-        className={`${theme.headerBg} text-white rounded-2xl p-4 shadow-soft cursor-pointer hover:opacity-95 transition-all flex items-center justify-between border ${theme.headerBorder}`}
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white rounded-2xl p-4 shadow-soft cursor-pointer hover:opacity-95 transition-all flex items-center justify-between border"
       >
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white flex-shrink-0">
             {icon}
           </div>
           <div>
-            <span className={`text-[10px] font-bold tracking-widest ${theme.accentText} uppercase block mb-0.5 opacity-90`}>
+            <span
+              style={{ color: theme.hex.accentBg }}
+              className="text-[10px] font-bold tracking-widest uppercase block mb-0.5"
+            >
               PRIORITY
             </span>
             <h3 className="text-sm font-semibold text-white tracking-tight leading-snug">
@@ -41,7 +48,13 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
           </div>
         </div>
 
-        <span className={`${theme.accentBg} ${theme.accentText} text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ml-2 shadow-xs`}>
+        <span
+          style={{
+            backgroundColor: theme.hex.accentBg,
+            color: theme.hex.accentTextColor,
+          }}
+          className="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ml-2 shadow-xs"
+        >
           {badgeText}
         </span>
       </div>

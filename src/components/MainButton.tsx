@@ -21,7 +21,11 @@ export const MainButton: React.FC<MainButtonProps> = ({
     <div className="px-4 mt-6 mb-24">
       <button
         disabled={disabled}
-        className={`w-full py-4 px-6 rounded-2xl ${theme.accentBg} ${theme.accentHoverBg} ${theme.accentText} font-bold text-sm tracking-wide shadow-soft flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        style={{
+          backgroundColor: theme.hex.accentBg,
+          color: theme.hex.accentTextColor,
+        }}
+        className={`w-full py-4 px-6 rounded-2xl font-bold text-sm tracking-wide shadow-soft flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 ${className}`}
         {...props}
       >
         {icon}

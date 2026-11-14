@@ -16,7 +16,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('inquiries');
+  const [activeTab, setActiveTab] = useState('home');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -37,6 +37,27 @@ export default function DashboardLayout({
     requestNotificationPermission().catch(console.error);
   }, [router]);
 
+  // Keep active tab in sync with current URL pathname
+  useEffect(() => {
+    if (pathname.includes('/portal')) {
+      setActiveTab('portal');
+    } else if (pathname.includes('/material')) {
+      setActiveTab('material');
+    } else if (pathname.includes('/installation')) {
+      setActiveTab('installation');
+    } else if (pathname.includes('/payments')) {
+      setActiveTab('payments');
+    } else if (pathname.includes('/inquiries')) {
+      setActiveTab('inquiries');
+    } else if (pathname.includes('/quotations')) {
+      setActiveTab('quotations');
+    } else if (pathname.includes('/team')) {
+      setActiveTab('team');
+    } else {
+      setActiveTab('home');
+    }
+  }, [pathname]);
+
   const handleSignOut = () => {
     localStorage.clear();
     router.push('/');
@@ -50,7 +71,7 @@ export default function DashboardLayout({
     );
   }
 
-  // Role-specific navigation items
+  // Role-specific navigation items matching each user type's operational responsibilities
   const getNavItems = (): { mobile: NavItem[]; desktop: any[] } => {
     const role = user.role;
 
@@ -58,14 +79,31 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'visits', label: 'Visits', iconName: 'visits', href: '/visits' },
-          { id: 'inquiries', label: 'Inquiries', iconName: 'inquiries', href: '/inquiries' },
-          { id: 'profile', label: 'Profile', iconName: 'user', href: '/profile' },
+          { id: 'inquiries', label: 'New Lead', iconName: 'inquiries', href: '/inquiries/new' },
+          { id: 'quotations', label: 'Quotes', iconName: 'quotations', href: '/quotations/new' },
+          { id: 'visits', label: 'Agenda', iconName: 'visits', href: '/dashboard' },
         ],
         desktop: [
-          { id: 'dashboard', label: 'My Visits & Agenda', iconName: 'dashboard' },
-          { id: 'inquiries', label: 'My Inquiries', iconName: 'inquiries' },
-          { id: 'quotations', label: 'Quotations', iconName: 'portal' },
+          { id: 'dashboard', label: 'My Agenda & Leads', iconName: 'dashboard' },
+          { id: 'inquiries', label: 'New Inquiry', iconName: 'inquiries' },
+          { id: 'quotations', label: 'Create Quotation', iconName: 'portal' },
+        ],
+      };
+    }
+
+    if (role === 'PORTAL_USER') {
+      return {
+        mobile: [
+          { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
+          { id: 'portal', label: 'Govt Portal', iconName: 'portal', href: '/portal' },
+          { id: 'sr', label: 'SR Queue', iconName: 'sr', href: '/portal' },
+          { id: 'subsidy', label: 'Subsidy', iconName: 'subsidy', href: '/portal' },
+        ],
+        desktop: [
+          { id: 'dashboard', label: 'Portal Overview', iconName: 'dashboard' },
+          { id: 'portal', label: 'DISCOM & National Portal Queue', iconName: 'portal' },
+          { id: 'meter', label: 'CEI & Meter Files', iconName: 'inquiries' },
+          { id: 'subsidy', label: 'Subsidy Claims', iconName: 'accounts' },
         ],
       };
     }
@@ -74,12 +112,26 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'planning', label: 'Planning', iconName: 'planning', href: '/material' },
-          { id: 'profile', label: 'Profile', iconName: 'user', href: '/profile' },
+          { id: 'material', label: 'Stock & BOM', iconName: 'material', href: '/material' },
+          { id: 'unload', label: 'Site Unloads', iconName: 'unload', href: '/material' },
         ],
         desktop: [
-          { id: 'dashboard', label: 'Material Dispatch', iconName: 'material' },
-          { id: 'planning', label: 'Rooftop Unloads', iconName: 'inquiries' },
+          { id: 'dashboard', label: 'Warehouse Stock', iconName: 'dashboard' },
+          { id: 'material', label: 'BOM Dispatch & Serials', iconName: 'material' },
+        ],
+      };
+    }
+
+    if (role === 'INSTALLATION_TEAM') {
+      return {
+        mobile: [
+          { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
+          { id: 'installation', label: 'Active Sites', iconName: 'installation', href: '/installation' },
+          { id: 'checklist', label: 'Execution', iconName: 'checklist', href: '/installation' },
+        ],
+        desktop: [
+          { id: 'dashboard', label: 'Installation Queue', iconName: 'dashboard' },
+          { id: 'installation', label: 'Structure & Inverter Jobs', iconName: 'installation' },
         ],
       };
     }
@@ -88,12 +140,26 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'payments', label: 'Payments', iconName: 'inquiries', href: '/payments' },
-          { id: 'profile', label: 'Profile', iconName: 'user', href: '/profile' },
+          { id: 'payments', label: 'Ledger', iconName: 'payments', href: '/payments' },
+          { id: 'milestones', label: '80/20 Milestones', iconName: 'stats', href: '/payments' },
         ],
         desktop: [
-          { id: 'dashboard', label: 'Financial Overview', iconName: 'accounts' },
-          { id: 'payments', label: 'Milestone Ledgers', iconName: 'inquiries' },
+          { id: 'dashboard', label: 'Cash Flow Overview', iconName: 'dashboard' },
+          { id: 'payments', label: 'Customer Payment Ledgers', iconName: 'accounts' },
+        ],
+      };
+    }
+
+    if (role === 'SERVICE_TECH') {
+      return {
+        mobile: [
+          { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
+          { id: 'tickets', label: 'Complaints', iconName: 'tickets', href: '/dashboard' },
+          { id: 'plants', label: 'Plants', iconName: 'jobs', href: '/dashboard' },
+        ],
+        desktop: [
+          { id: 'dashboard', label: 'Service & Maintenance', iconName: 'dashboard' },
+          { id: 'tickets', label: 'Active Complaints', iconName: 'complaints' },
         ],
       };
     }
@@ -102,21 +168,37 @@ export default function DashboardLayout({
     return {
       mobile: [
         { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-        { id: 'inquiries', label: 'Inquiries', iconName: 'inquiries', href: '/inquiries' },
-        { id: 'team', label: 'Team', iconName: 'team', href: '/team' },
-        { id: 'profile', label: 'Profile', iconName: 'user', href: '/profile' },
+        { id: 'pipeline', label: 'Pipeline', iconName: 'pipeline', href: '/dashboard' },
+        { id: 'team', label: 'Team SLA', iconName: 'team', href: '/team' },
+        { id: 'portal', label: 'Portal', iconName: 'portal', href: '/portal' },
+        { id: 'material', label: 'Material', iconName: 'material', href: '/material' },
+        { id: 'payments', label: 'Finance', iconName: 'payments', href: '/payments' },
       ],
       desktop: [
-        { id: 'dashboard', label: 'All Inquiries', iconName: 'inquiries' },
-        { id: 'team', label: 'Team Tracker', iconName: 'team' },
+        { id: 'dashboard', label: 'Control Tower', iconName: 'dashboard' },
+        { id: 'team', label: 'Team SLA Monitor', iconName: 'team' },
         { id: 'portal', label: 'Govt Portal', iconName: 'portal' },
-        { id: 'accounts', label: 'Accounts & Ledger', iconName: 'accounts' },
-        { id: 'service', label: 'After-Service', iconName: 'service' },
+        { id: 'material', label: 'Warehouse & BOM', iconName: 'material' },
+        { id: 'installation', label: 'Installation Queue', iconName: 'installation' },
+        { id: 'payments', label: 'Accounts & Ledger', iconName: 'accounts' },
       ],
     };
   };
 
   const nav = getNavItems();
+
+  const handleNavSelect = (id: string) => {
+    setActiveTab(id);
+    if (id === 'home' || id === 'dashboard') router.push('/dashboard');
+    else if (id === 'inquiries') router.push('/inquiries/new');
+    else if (id === 'quotations') router.push('/quotations/new');
+    else if (id === 'portal' || id === 'sr' || id === 'subsidy' || id === 'meter') router.push('/portal');
+    else if (id === 'material' || id === 'planning' || id === 'unload') router.push('/material');
+    else if (id === 'installation' || id === 'jobs' || id === 'checklist') router.push('/installation');
+    else if (id === 'payments' || id === 'milestones' || id === 'accounts') router.push('/payments');
+    else if (id === 'team') router.push('/team');
+    else router.push('/dashboard');
+  };
 
   return (
     <div className="min-h-screen bg-typhoon-sand">
@@ -126,15 +208,7 @@ export default function DashboardLayout({
           roleName={user.role}
           activeItem={activeTab}
           menuItems={nav.desktop}
-          onSelect={(id) => {
-            setActiveTab(id);
-            if (id === 'team') router.push('/team');
-            else if (id === 'portal') router.push('/portal');
-            else if (id === 'planning' || id === 'material') router.push('/material');
-            else if (id === 'installation') router.push('/installation');
-            else if (id === 'payments' || id === 'accounts') router.push('/payments');
-            else router.push('/dashboard');
-          }}
+          onSelect={handleNavSelect}
           onSignOut={handleSignOut}
         />
 
@@ -158,18 +232,9 @@ export default function DashboardLayout({
           role={user.role}
           items={nav.mobile}
           activeId={activeTab}
-          onTabChange={(id) => {
-            setActiveTab(id);
-            if (id === 'team') router.push('/team');
-            else if (id === 'portal') router.push('/portal');
-            else if (id === 'planning' || id === 'material') router.push('/material');
-            else if (id === 'installation') router.push('/installation');
-            else if (id === 'payments' || id === 'accounts') router.push('/payments');
-            else if (id === 'home') router.push('/dashboard');
-          }}
+          onTabChange={handleNavSelect}
         />
       </div>
     </div>
   );
 }
-

@@ -110,14 +110,17 @@ export default function PortalQueuePage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft">
+      {/* Top Header with Portal User signature deep petrol teal */}
+      <div
+        style={{ backgroundColor: '#063a42' }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#0a4d57]"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <ShieldCheck className="w-4 h-4 text-typhoon-gold" />
-                <span className="text-[11px] font-bold tracking-widest text-typhoon-gold uppercase">
+                <ShieldCheck className="w-4 h-4 text-[#00bfa5]" />
+                <span className="text-[11px] font-bold tracking-widest text-[#00bfa5] uppercase">
                   GOVERNMENT PORTAL LIAISON (RAHUL BHAI)
                 </span>
               </div>
@@ -159,9 +162,14 @@ export default function PortalQueuePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
+                style={
+                  activeTab === tab.id
+                    ? { backgroundColor: '#00bfa5', color: '#063a42' }
+                    : undefined
+                }
                 className={`px-3 py-1.5 rounded-xl font-bold transition ${
                   activeTab === tab.id
-                    ? 'bg-typhoon-navy text-white shadow-2xs'
+                    ? 'shadow-sm'
                     : 'bg-typhoon-sand/60 text-typhoon-navy hover:bg-typhoon-sand'
                 }`}
               >

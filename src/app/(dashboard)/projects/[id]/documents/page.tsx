@@ -169,8 +169,11 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft">
+      {/* Top Header with Salesperson signature deep royal blue */}
+      <div
+        style={{ backgroundColor: '#0a3d7c' }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#124d99]"
+      >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button
@@ -180,7 +183,10 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <span className="bg-typhoon-gold text-typhoon-navy text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+              <span
+                style={{ backgroundColor: '#00a3e0', color: '#ffffff' }}
+                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+              >
                 STAGE 3 OF 10
               </span>
               <span className="text-xs text-white/70">KYC Gathering</span>
@@ -192,7 +198,7 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 KYC Document Locker
               </h1>
-              <p className="text-xs text-typhoon-gold font-medium mt-1">
+              <p className="text-xs text-[#00a3e0] font-medium mt-1">
                 Project {projectId} · Ramesh Patel (+91 98250 12345)
               </p>
             </div>

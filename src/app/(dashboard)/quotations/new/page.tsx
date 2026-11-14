@@ -33,8 +33,11 @@ export default function NewQuotationPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Navy Header Block */}
-      <div className="bg-typhoon-navy text-white pt-8 pb-10 px-5 rounded-b-[32px] relative shadow-soft">
+      {/* Salesperson signature deep royal blue header */}
+      <div
+        style={{ backgroundColor: '#0a3d7c' }}
+        className="text-white pt-8 pb-10 px-5 rounded-b-[32px] relative shadow-soft border-b border-[#124d99]"
+      >
         <button
           onClick={() => router.back()}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-4 hover:bg-white/20 transition-colors"
@@ -45,7 +48,7 @@ export default function NewQuotationPage() {
         <h1 className="text-2xl font-serif font-bold text-white tracking-tight">
           Quotation
         </h1>
-        <p className="text-xs text-typhoon-gold font-medium mt-0.5">
+        <p className="text-xs text-[#00a3e0] font-medium mt-0.5">
           F-1022 · Nilesh Desai
         </p>
       </div>

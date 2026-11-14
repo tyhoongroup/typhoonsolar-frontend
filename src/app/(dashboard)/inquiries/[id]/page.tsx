@@ -165,9 +165,12 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
   return (
     <div className="min-h-screen bg-typhoon-sand pb-20">
       {/* ======================================================== */}
-      {/* 1. TOP HEADER                                            */}
+      {/* 1. TOP HEADER with Salesperson deep royal blue           */}
       {/* ======================================================== */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft">
+      <div
+        style={{ backgroundColor: '#0a3d7c' }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#124d99]"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <button
@@ -177,7 +180,10 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <span className="bg-typhoon-gold text-typhoon-navy text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+              <span
+                style={{ backgroundColor: '#00a3e0', color: '#ffffff' }}
+                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+              >
                 STAGE 2 OF 10
               </span>
               <span className="text-xs text-white/70">Quotation & Site Visit</span>
@@ -189,7 +195,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 Ramesh Patel
               </h1>
-              <p className="text-xs text-typhoon-gold font-medium mt-1">
+              <p className="text-xs text-[#00a3e0] font-medium mt-1">
                 Inquiry {params.id} · B-42 Shivalik Residency, Anand · +91 98250 12345
               </p>
             </div>

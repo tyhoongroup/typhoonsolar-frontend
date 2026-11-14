@@ -106,9 +106,12 @@ export default function AddInquiryPage() {
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
       {/* ======================================================== */}
-      {/* 1. TOP HEADER (Responsive for Desktop & Mobile)          */}
+      {/* 1. TOP HEADER with Salesperson deep royal blue           */}
       {/* ======================================================== */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-5 lg:px-8 rounded-b-[32px] shadow-soft">
+      <div
+        style={{ backgroundColor: '#0a3d7c' }}
+        className="text-white pt-6 pb-8 px-5 lg:px-8 rounded-b-[32px] shadow-soft border-b border-[#124d99]"
+      >
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => router.back()}
@@ -126,7 +129,10 @@ export default function AddInquiryPage() {
                 Enter rooftop solar customer details & requirement
               </p>
             </div>
-            <span className="hidden sm:inline-block bg-typhoon-gold text-typhoon-navy text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            <span
+              style={{ backgroundColor: '#00a3e0', color: '#ffffff' }}
+              className="hidden sm:inline-block text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+            >
               Stage 1: Lead Capture
             </span>
           </div>

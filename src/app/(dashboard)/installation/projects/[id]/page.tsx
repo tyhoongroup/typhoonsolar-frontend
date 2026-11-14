@@ -124,8 +124,11 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft">
+      {/* Top Header with Installation Team signature deep chocolate brown */}
+      <div
+        style={{ backgroundColor: '#3e1c0d' }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#542813]"
+      >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button
@@ -135,7 +138,10 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <span className="bg-typhoon-gold text-typhoon-navy text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+              <span
+                style={{ backgroundColor: '#f97316', color: '#ffffff' }}
+                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+              >
                 STAGE 9 · INSTALLATION
               </span>
               <span className="text-xs text-white/70">Irfan (Lead)</span>
@@ -147,7 +153,7 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 Rooftop Installation Site
               </h1>
-              <p className="text-xs text-typhoon-gold font-medium mt-1">
+              <p className="text-xs text-[#f97316] font-medium mt-1">
                 Project {projectId} · Ramesh Patel (+91 98250 12345)
               </p>
             </div>

@@ -97,12 +97,15 @@ export default function MaterialQueuePage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft">
+      {/* Top Header with Material Manager signature deep olive green */}
+      <div
+        style={{ backgroundColor: '#36451e' }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#4a5e29]"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
-            <Package className="w-4 h-4 text-typhoon-gold" />
-            <span className="text-[11px] font-bold tracking-widest text-typhoon-gold uppercase">
+            <Package className="w-4 h-4 text-[#a3e635]" />
+            <span className="text-[11px] font-bold tracking-widest text-[#a3e635] uppercase">
               STORE & LOGISTICS LEAD (SOHAIL KHAN)
             </span>
           </div>
@@ -129,9 +132,14 @@ export default function MaterialQueuePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
+                style={
+                  activeTab === tab.id
+                    ? { backgroundColor: '#a3e635', color: '#2e3b18' }
+                    : undefined
+                }
                 className={`px-3 py-1.5 rounded-xl font-bold transition ${
                   activeTab === tab.id
-                    ? 'bg-typhoon-navy text-white shadow-2xs'
+                    ? 'shadow-sm'
                     : 'bg-typhoon-sand/60 text-typhoon-navy hover:bg-typhoon-sand'
                 }`}
               >

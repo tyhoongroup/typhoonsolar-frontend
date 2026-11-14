@@ -77,8 +77,11 @@ export default function TeamTrackerPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Navy Header Block */}
-      <div className="bg-typhoon-navy text-white pt-8 pb-10 px-5 rounded-b-[32px] relative shadow-soft">
+      {/* Control Tower / Ops Manager signature midnight navy header */}
+      <div
+        style={{ backgroundColor: '#0b192c' }}
+        className="text-white pt-8 pb-10 px-5 rounded-b-[32px] relative shadow-soft border-b border-[#1b2b42]"
+      >
         <button
           onClick={() => router.back()}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-4 hover:bg-white/20 transition-colors"
@@ -86,8 +89,8 @@ export default function TeamTrackerPage() {
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        <span className="text-[10px] font-bold tracking-widest text-typhoon-gold uppercase block mb-1">
-          OPERATIONS MANAGER
+        <span className="text-[10px] font-bold tracking-widest text-[#f59e0b] uppercase block mb-1">
+          OPERATIONS MANAGER · CONTROL TOWER
         </span>
         <h1 className="text-2xl font-serif font-bold text-white tracking-tight">
           Team tracker

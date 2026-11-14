@@ -68,8 +68,11 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header */}
-      <div className="bg-typhoon-navy text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft">
+      {/* Top Header with Accountant signature deep burgundy */}
+      <div
+        style={{ backgroundColor: '#3d1020' }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#571930]"
+      >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button
@@ -79,7 +82,10 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <span className="bg-typhoon-gold text-typhoon-navy text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+              <span
+                style={{ backgroundColor: '#e1144a', color: '#ffffff' }}
+                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+              >
                 MILESTONE ACCOUNTS
               </span>
               <span className="text-xs text-white/70">Meera (Finance)</span>
@@ -91,7 +97,7 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 Record Payment & Receipt
               </h1>
-              <p className="text-xs text-typhoon-gold font-medium mt-1">
+              <p className="text-xs text-[#e1144a] font-medium mt-1">
                 Project {projectId} · Ramesh Patel (+91 98250 12345)
               </p>
             </div>
