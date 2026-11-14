@@ -4,9 +4,10 @@
   "description": "Typhoon Solar Rooftop ERP, CRM & Lifecycle Management",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAF6F0",
-  "theme_color": "#0E2038",
-  "orientation": "portrait",
+  "background_color": "#0B192C",
+  "theme_color": "#0B192C",
+  "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -22,4 +23,3 @@
     }
   ]
 }
-
