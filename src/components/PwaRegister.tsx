@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { PwaInstallModal } from './PwaInstallModal';
 
 export function PwaRegister() {
   useEffect(() => {
@@ -13,5 +14,6 @@ export function PwaRegister() {
     }
   }, []);
 
-  return null;
+  return <PwaInstallModal />;
 }
+
