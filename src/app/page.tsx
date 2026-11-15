@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { BackendStatusBadge } from '@/components/BackendStatusBadge';
 import { getRoleTheme } from '@/lib/role-theme';
+import { SplashScreen } from '@/components/SplashScreen';
 
 interface SavedProfile {
   fullName: string;
@@ -158,6 +159,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand flex flex-col justify-center">
+      {/* PWA / App Launch Splash Screen (Matches Image 2) */}
+      <SplashScreen minDuration={1800} />
+
       {/* ======================================================== */}
       {/* 1. DESKTOP VIEW (Screens >= 1024px)                     */}
       {/* ======================================================== */}
@@ -421,41 +425,41 @@ export default function LoginPage() {
       {/* ======================================================== */}
       {/* 2. MOBILE VIEW (Screens < 1024px) - Screen 2 PWA UX      */}
       {/* ======================================================== */}
-      <div className="lg:hidden min-h-screen bg-typhoon-sand flex flex-col justify-between max-w-md mx-auto relative shadow-2xl overflow-hidden">
+      <div className="lg:hidden min-h-screen bg-[#FBF8F3] flex flex-col justify-between w-full relative overflow-x-hidden">
         {savedProfile && !isSwitchingProfile ? (
           /* Mobile Screen 2 - Saved Profile Welcome Back */
           <div className="flex-1 flex flex-col justify-between">
             {/* Top Brand & Title Block with dynamic role color */}
             <div
               style={{ backgroundColor: activeTheme.hex.headerBg }}
-              className="text-white pt-12 pb-14 px-6 rounded-b-[40px] relative shadow-soft transition-colors duration-500 overflow-hidden"
+              className="text-white pt-10 pb-16 px-6 rounded-b-[40px] relative transition-colors duration-500 overflow-hidden"
             >
-              {/* Concentric ripples */}
-              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
-              <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/10 pointer-events-none" />
+              {/* Concentric ripples radiating from top right (exact match to Image 2) */}
+              <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full border border-white/10 pointer-events-none" />
+              <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full border border-white/10 pointer-events-none" />
+              <div className="absolute 0 -right-0 w-32 h-32 rounded-full border border-white/5 pointer-events-none" />
 
-              <div className="relative z-10 flex items-center justify-between mb-4">
+              {/* Brand logo row (exact match to Screen 2) */}
+              <div className="relative z-10 flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                  <img
-                    src="/images/typhoon-logo-white.png"
-                    alt="Typhoon Solar"
-                    className="h-8 w-auto object-contain drop-shadow"
-                  />
+                  <Sun className="w-5 h-5 text-[#F5A623]" />
+                  <span className="text-xs font-bold tracking-[0.2em] text-[#F5A623] uppercase">
+                    TYPHOON SOLAR
+                  </span>
                 </div>
-                <BackendStatusBadge />
               </div>
 
               <h1 className="text-3xl font-serif font-bold text-white tracking-tight relative z-10">
                 Welcome back
               </h1>
-              <p className="text-xs text-white/70 mt-1 relative z-10">
+              <p className="text-xs text-white/80 mt-1 relative z-10 font-medium">
                 Continue with your saved profile
               </p>
             </div>
 
             {/* Floating Saved Profile Card */}
-            <div className="px-5 -mt-8 relative z-20">
-              <div className="bg-white rounded-[32px] p-6 shadow-xl border border-typhoon-border text-center">
+            <div className="px-5 -mt-10 relative z-20">
+              <div className="bg-white rounded-[32px] p-6 shadow-lg border border-black/5 text-center">
                 {/* Avatar with Role Initials & Theme Colors */}
                 <div
                   style={{
@@ -463,43 +467,43 @@ export default function LoginPage() {
                     borderColor: activeTheme.hex.accentBg,
                     color: activeTheme.hex.accentBg,
                   }}
-                  className="w-20 h-20 rounded-full mx-auto flex items-center justify-center font-serif text-2xl font-bold shadow-lg border-2"
+                  className="w-24 h-24 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-bold shadow-md border-4"
                 >
                   {activeTheme.tag}
                 </div>
 
-                <h3 className="text-2xl font-serif font-bold text-typhoon-navy mt-3 tracking-tight">
+                <h3 className="text-2xl font-serif font-bold text-typhoon-navy mt-4 tracking-tight">
                   {savedProfile.fullName}
                 </h3>
 
-                <div className="mt-1">
+                <div className="mt-1.5">
                   <span
                     style={{
                       backgroundColor: activeTheme.hex.lightBg,
                       color: activeTheme.hex.lightText,
                       borderColor: activeTheme.hex.lightBorder,
                     }}
-                    className="inline-block px-3 py-0.5 rounded-full text-xs font-bold border"
+                    className="inline-block px-4 py-1 rounded-full text-xs font-semibold border"
                   >
                     {activeTheme.roleName}
                   </span>
                 </div>
 
-                <p className="text-xs font-semibold text-typhoon-navy mt-2.5">
+                <p className="text-sm font-semibold text-gray-700 mt-2.5 tracking-wide">
                   {formatMaskedPhone(savedProfile.phone)}
                 </p>
 
-                <div className="flex items-center justify-center gap-1.5 text-[11px] text-typhoon-muted mt-1">
+                <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mt-1">
                   <Clock className="w-3.5 h-3.5" />
                   <span>Last login: {savedProfile.lastLoginText}</span>
                 </div>
 
-                <div className="border-t border-typhoon-border/60 my-4" />
+                <div className="border-t border-gray-100 my-4" />
 
                 <button
                   type="button"
                   onClick={() => setIsSwitchingProfile(true)}
-                  className="text-xs font-bold text-typhoon-navy underline decoration-typhoon-navy/40 hover:text-black transition"
+                  className="text-xs font-bold text-gray-800 underline hover:text-black transition cursor-pointer"
                 >
                   Switch profile
                 </button>
@@ -522,7 +526,7 @@ export default function LoginPage() {
                     backgroundColor: activeTheme.hex.accentBg,
                     color: activeTheme.hex.accentTextColor,
                   }}
-                  className="w-full py-4 px-6 rounded-2xl font-bold text-sm tracking-wide shadow-soft flex items-center justify-center gap-2 transition hover:opacity-95 disabled:opacity-50"
+                  className="w-full py-4 px-6 rounded-2xl font-bold text-sm tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:opacity-95 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                 >
                   <Lock className="w-4 h-4" />
                   <span>{loading ? 'Logging in...' : 'Login'}</span>
@@ -531,7 +535,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setIsSwitchingProfile(true)}
-                  className="w-full py-3.5 px-6 rounded-2xl font-bold text-xs text-typhoon-navy border border-typhoon-navy/40 bg-transparent hover:bg-white/40 transition"
+                  className="w-full py-3.5 px-6 rounded-2xl font-bold text-xs text-gray-800 border-2 border-gray-300 bg-transparent hover:bg-black/5 active:scale-[0.98] transition cursor-pointer text-center"
                 >
                   Use another number
                 </button>
@@ -540,7 +544,7 @@ export default function LoginPage() {
 
             {/* Footer notice matching Screen 2 */}
             <div className="px-6 py-6 text-center">
-              <p className="text-[11px] text-typhoon-muted leading-relaxed">
+              <p className="text-[11px] text-gray-500 leading-relaxed">
                 Your own screens open automatically after login.
                 <br />
                 Not you? Switch profile or remove it from this phone.
@@ -551,16 +555,12 @@ export default function LoginPage() {
           /* Mobile Regular Sign-in Form */
           <div className="flex-1 flex flex-col justify-between">
             {/* Header */}
-            <div className="bg-typhoon-navy text-white pt-12 pb-10 px-6 rounded-b-[40px] relative shadow-soft">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <img
-                    src="/images/typhoon-logo-white.png"
-                    alt="Typhoon Solar"
-                    className="h-8 w-auto object-contain drop-shadow"
-                  />
-                </div>
-                <BackendStatusBadge />
+            <div className="bg-[#0B192C] text-white pt-10 pb-10 px-6 rounded-b-[40px] relative shadow-soft">
+              <div className="flex items-center gap-2 mb-4">
+                <Sun className="w-5 h-5 text-[#F5A623]" />
+                <span className="text-xs font-bold tracking-[0.2em] text-[#F5A623] uppercase">
+                  TYPHOON SOLAR
+                </span>
               </div>
 
               <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
