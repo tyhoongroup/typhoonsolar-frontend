@@ -44,34 +44,49 @@ export function SplashScreen({ onFinish, minDuration = 1800 }: SplashScreenProps
 
       {/* Center Branding Block (exact match to Image 2) */}
       <div className="relative z-10 flex flex-col items-center text-center px-6">
-        {/* Circular Gold Ring with Official Logo / Solar Icon */}
-        <div className="relative mb-6">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-[#F5A623] bg-[#0B192C] p-4 flex items-center justify-center shadow-[0_0_40px_rgba(245,166,35,0.25)] relative">
-            <img
-              src="/icons/icon-192x192.png"
-              alt="Typhoon Solar"
-              className="w-full h-full object-contain drop-shadow"
-            />
+        {/* Large Circular Gold Ring with Big Radiant Solar Emblem (Image 2) */}
+        <div className="relative mb-8">
+          <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full border-2 sm:border-[2.5px] border-[#F5A623] bg-[#0B192C] flex items-center justify-center shadow-[0_0_60px_rgba(245,166,35,0.35)] relative">
+            {/* Big Radiant Sun Emblem matching Image 2 */}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#F5A623"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-20 h-20 sm:w-24 sm:h-24 text-[#F5A623] drop-shadow-[0_0_20px_rgba(245,166,35,0.7)]"
+            >
+              <circle cx="12" cy="12" r="4.5" stroke="#F5A623" strokeWidth="2" />
+              <path d="M12 2v2.5" strokeWidth="2.5" />
+              <path d="M12 19.5v2.5" strokeWidth="2.5" />
+              <path d="m4.93 4.93 1.77 1.77" strokeWidth="2.5" />
+              <path d="m17.3 17.3 1.77 1.77" strokeWidth="2.5" />
+              <path d="M2 12h2.5" strokeWidth="2.5" />
+              <path d="M19.5 12h2.5" strokeWidth="2.5" />
+              <path d="m6.7 17.3-1.77 1.77" strokeWidth="2.5" />
+              <path d="m19.07 4.93-1.77 1.77" strokeWidth="2.5" />
+            </svg>
           </div>
           {/* Subtle outer radiating pulse ring */}
           <div className="absolute inset-0 rounded-full border border-[#F5A623]/30 animate-ping duration-1000 pointer-events-none" />
         </div>
 
-        {/* Brand Name in elegant serif */}
+        {/* Brand Name in elegant serif (Image 2) */}
         <h1 className="text-4xl sm:text-5xl font-serif font-bold text-white tracking-tight drop-shadow-md">
           Typhoon Solar
         </h1>
 
-        {/* Subtitle in tracked gold uppercase */}
-        <p className="text-xs sm:text-sm font-bold tracking-[0.3em] text-[#F5A623] uppercase mt-3">
+        {/* Subtitle in tracked gold uppercase (Image 2) */}
+        <p className="text-xs sm:text-sm font-bold tracking-[0.35em] text-[#F5A623] uppercase mt-3">
           TEAM APP
         </p>
 
         {/* Small subtle loading spinner at bottom */}
-        <div className="mt-12 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623] animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623] animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623] animate-bounce" style={{ animationDelay: '300ms' }} />
+        <div className="mt-12 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#F5A623] animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-2 h-2 rounded-full bg-[#F5A623] animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-2 h-2 rounded-full bg-[#F5A623] animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
     </div>
