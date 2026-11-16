@@ -17,9 +17,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function PortalProjectProcessingPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { theme } = useCurrentUser();
   const [inquiry, setInquiry] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const projectId = params.id.startsWith('TYP-') ? params.id : `TYP-2026-${params.id.replace('F-', '')}`;
@@ -196,10 +198,13 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Portal User signature deep petrol teal */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#063a42' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#0a4d57]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-3">
@@ -211,7 +216,10 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
             </button>
             <div className="flex items-center gap-2">
               <span
-                style={{ backgroundColor: '#00bfa5', color: '#063a42' }}
+                style={{
+                  backgroundColor: theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                }}
                 className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
               >
                 GOVT PORTAL FILING
@@ -225,7 +233,10 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 Government Portal Workspace
               </h1>
-              <p className="text-xs text-[#00bfa5] font-medium mt-1">
+              <p
+                style={{ color: theme.hex.accentBg }}
+                className="text-xs font-medium mt-1"
+              >
                 Project {projectId} · Ramesh Patel (6.0 kW Single Phase · Anand)
               </p>
             </div>

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 interface DocItem {
   id: string;
@@ -28,6 +29,7 @@ interface DocItem {
 
 export default function KycDocumentLockerPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { theme } = useCurrentUser();
   const [loading, setLoading] = useState(false);
   const [inquiry, setInquiry] = useState<any>(null);
   const projectId = params.id.startsWith('TYP-') ? params.id : `TYP-2026-${params.id.replace('F-', '')}`;
@@ -169,10 +171,13 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Salesperson signature deep royal blue */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#0a3d7c' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#124d99]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-3">
@@ -184,7 +189,10 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
             </button>
             <div className="flex items-center gap-2">
               <span
-                style={{ backgroundColor: '#00a3e0', color: '#ffffff' }}
+                style={{
+                  backgroundColor: theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                }}
                 className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
               >
                 STAGE 3 OF 10
@@ -198,7 +206,10 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 KYC Document Locker
               </h1>
-              <p className="text-xs text-[#00a3e0] font-medium mt-1">
+              <p
+                style={{ color: theme.hex.accentBg }}
+                className="text-xs font-medium mt-1"
+              >
                 Project {projectId} · Ramesh Patel (+91 98250 12345)
               </p>
             </div>

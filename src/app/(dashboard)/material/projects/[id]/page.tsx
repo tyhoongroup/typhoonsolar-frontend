@@ -20,9 +20,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function MaterialProjectDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { theme } = useCurrentUser();
   const [inquiry, setInquiry] = useState<any>(null);
   const projectId = params.id.startsWith('TYP-') ? params.id : `TYP-2026-${params.id.replace('F-', '')}`;
 
@@ -150,10 +152,13 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Material Manager signature deep olive green */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#36451e' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#4a5e29]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-3">
@@ -165,7 +170,10 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
             </button>
             <div className="flex items-center gap-2">
               <span
-                style={{ backgroundColor: '#a3e635', color: '#2e3b18' }}
+                style={{
+                  backgroundColor: theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                }}
                 className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
               >
                 STAGE 7 & 8 · MATERIAL
@@ -179,14 +187,21 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 Material Planning & Unload
               </h1>
-              <p className="text-xs text-[#a3e635] font-medium mt-1">
+              <p
+                style={{ color: theme.hex.accentBg }}
+                className="text-xs font-semibold mt-1"
+              >
                 Project {projectId} · Ramesh Patel (+91 98250 12345) · DISCOM SR: SR-GUJ-2026-98124
               </p>
             </div>
 
             <a
               href="tel:+919825012345"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition shadow-soft self-start md:self-auto"
+              style={{
+                backgroundColor: theme.hex.accentBg,
+                color: theme.hex.accentTextColor,
+              }}
+              className="font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition shadow-soft self-start md:self-auto hover:opacity-90"
             >
               <Phone className="w-4 h-4" />
               <span>Call Customer for Delivery</span>

@@ -18,9 +18,11 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function RecordPaymentPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { theme } = useCurrentUser();
   const projectId = params.id.startsWith('TYP-') ? params.id : `TYP-2026-${params.id.replace('F-', '')}`;
 
   // Follow-up logger
@@ -68,10 +70,13 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Accountant signature deep burgundy */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#3d1020' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#571930]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-3">
@@ -83,7 +88,10 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
             </button>
             <div className="flex items-center gap-2">
               <span
-                style={{ backgroundColor: '#e1144a', color: '#ffffff' }}
+                style={{
+                  backgroundColor: theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                }}
                 className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
               >
                 MILESTONE ACCOUNTS
@@ -97,7 +105,10 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 Record Payment & Receipt
               </h1>
-              <p className="text-xs text-[#e1144a] font-medium mt-1">
+              <p
+                style={{ color: theme.hex.accentBg }}
+                className="text-xs font-medium mt-1"
+              >
                 Project {projectId} · Ramesh Patel (+91 98250 12345)
               </p>
             </div>
