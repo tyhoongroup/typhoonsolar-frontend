@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Sparkles,
   ExternalLink,
+  ListFilter,
 } from 'lucide-react';
 import { getRoleTheme } from '@/lib/role-theme';
 import { toast } from 'sonner';
@@ -93,6 +94,13 @@ export function MoreMenuModal({
     {
       title: 'Sales & Inquiries',
       items: [
+        {
+          label: 'All Inquiries & Pipeline',
+          desc: 'Filter by no-quote, no-visit, dates & view 10-stage follow-ups',
+          icon: <ListFilter className="w-5 h-5 text-amber-600" />,
+          path: '/inquiries',
+          badge: '14 Active',
+        },
         {
           label: 'Add New Solar Inquiry',
           desc: 'Register customer, KW requirement & meter phase',

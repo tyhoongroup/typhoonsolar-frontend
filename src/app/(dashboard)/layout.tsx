@@ -49,6 +49,8 @@ export default function DashboardLayout({
       setActiveTab('installation');
     } else if (pathname.includes('/payments')) {
       setActiveTab('payments');
+    } else if (pathname === '/inquiries') {
+      setActiveTab('pipeline');
     } else if (pathname.includes('/inquiries')) {
       setActiveTab('inquiries');
     } else if (pathname.includes('/quotations')) {
@@ -174,12 +176,13 @@ export default function DashboardLayout({
     return {
       mobile: [
         { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-        { id: 'pipeline', label: 'Pipeline', iconName: 'pipeline', href: '/dashboard' },
+        { id: 'pipeline', label: 'Pipeline', iconName: 'pipeline', href: '/inquiries' },
         { id: 'team', label: 'Team SLA', iconName: 'team', href: '/team' },
         { id: 'more', label: 'More', iconName: 'more', href: '#more' },
       ],
       desktop: [
         { id: 'dashboard', label: 'Control Tower', iconName: 'dashboard' },
+        { id: 'pipeline', label: 'All Inquiries & Pipeline', iconName: 'inquiries' },
         { id: 'team', label: 'Team SLA Monitor', iconName: 'team' },
         { id: 'portal', label: 'Govt Portal', iconName: 'portal' },
         { id: 'material', label: 'Warehouse & BOM', iconName: 'material' },
@@ -197,8 +200,9 @@ export default function DashboardLayout({
       return;
     }
     setActiveTab(id);
-    if (id === 'home' || id === 'dashboard' || id === 'pipeline') router.push('/dashboard');
-    else if (id === 'inquiries') router.push('/inquiries/new');
+    if (id === 'home' || id === 'dashboard') router.push('/dashboard');
+    else if (id === 'pipeline') router.push('/inquiries');
+    else if (id === 'inquiries') router.push('/inquiries');
     else if (id === 'quotations') router.push('/quotations/new');
     else if (id === 'portal' || id === 'sr' || id === 'subsidy' || id === 'meter') router.push('/portal');
     else if (id === 'material' || id === 'planning' || id === 'unload') router.push('/material');
