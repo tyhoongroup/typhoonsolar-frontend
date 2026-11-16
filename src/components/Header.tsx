@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { getRoleTheme } from '@/lib/role-theme';
 import { ProfileModal } from './ProfileModal';
+import { toast } from 'sonner';
+import { requestNotificationPermission } from '@/lib/fcm-client';
 
 interface HeaderProps {
   initials?: string;
@@ -44,6 +46,40 @@ export const Header: React.FC<HeaderProps> = ({
     setIsProfileOpen(true);
   };
 
+  const handleBellClick = async () => {
+    if (onBellClick) {
+      onBellClick();
+      return;
+    }
+
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      toast.error('This browser does not support push notifications.');
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      toast.success('Push notifications are active!');
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      toast.error('Notifications are blocked in your browser settings. Please allow notifications in site permissions.');
+      return;
+    }
+
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        toast.success('Push notifications enabled successfully!');
+        requestNotificationPermission().catch(console.error);
+      } else {
+        toast.info('Notifications were not enabled.');
+      }
+    } catch {
+      toast.error('Could not request notification permission.');
+    }
+  };
+
   const todayStr = new Intl.DateTimeFormat('en-IN', {
     weekday: 'long',
     day: 'numeric',
@@ -66,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={handleAvatarClick}
               style={{ color: theme.hex.accentBg }}
-              className="w-10 h-10 rounded-full border border-white/20 bg-white/10 font-bold flex items-center justify-center text-xs tracking-wider hover:ring-2 hover:ring-white/40 active:scale-95 transition cursor-pointer"
+              className="w-11 h-11 rounded-full border border-white/20 bg-white/10 font-bold flex items-center justify-center text-sm tracking-wider hover:ring-2 hover:ring-white/40 active:scale-95 transition cursor-pointer"
               title="Click for Profile & Logout"
             >
               {displayInitials}
@@ -79,21 +115,22 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <button
-            onClick={onBellClick}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-            aria-label="Notifications"
+            onClick={handleBellClick}
+            className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+            aria-label="Enable / Check Notifications"
+            title="Enable Notifications"
           >
             <Bell className="w-5 h-5 text-white/90" />
           </button>
         </div>
 
-        {/* Role Title and Subtitle */}
+        {/* Role Title and Subtitle with clear readable typography */}
         <div className="relative">
-          <p className="text-xs text-white/60 mb-1">{todayStr}</p>
-          <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+          <p className="text-xs sm:text-sm text-white/70 font-medium mb-1">{todayStr}</p>
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
             {displayTitle}
           </h1>
-          <p className="text-xs text-white/70 mt-1">{displaySubtitle}</p>
+          <p className="text-sm sm:text-base text-white/85 font-medium mt-1">{displaySubtitle}</p>
         </div>
       </header>
 

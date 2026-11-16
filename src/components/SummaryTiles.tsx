@@ -22,10 +22,10 @@ export const SummaryTiles: React.FC<SummaryTilesProps> = ({ tiles }) => {
             {tile.icon}
           </div>
           <div>
-            <span className="text-2xl font-bold font-serif text-typhoon-navy tracking-tight block">
+            <span className="text-3xl sm:text-4xl font-bold font-serif text-typhoon-navy tracking-tight block">
               {tile.value}
             </span>
-            <span className="text-xs text-typhoon-muted font-medium">
+            <span className="text-sm font-semibold text-typhoon-muted block mt-0.5">
               {tile.label}
             </span>
           </div>

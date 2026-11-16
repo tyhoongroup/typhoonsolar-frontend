@@ -40,7 +40,7 @@ export const UpNextList: React.FC<UpNextListProps> = ({
   return (
     <div className="px-4 my-3">
       <div className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border">
-        <h4 className="text-[11px] font-bold tracking-widest text-typhoon-muted uppercase mb-3">
+        <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
           {title}
         </h4>
 
@@ -52,14 +52,14 @@ export const UpNextList: React.FC<UpNextListProps> = ({
               className="py-3 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-typhoon-sand flex items-center justify-center text-typhoon-navy flex-shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy flex-shrink-0">
                   {item.icon}
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-semibold text-typhoon-navy truncate">
+                  <p className="text-sm font-bold text-typhoon-navy truncate">
                     {item.title}
                   </p>
-                  <p className="text-[11px] text-typhoon-muted truncate">
+                  <p className="text-xs text-typhoon-muted truncate mt-0.5">
                     {item.subtitle}
                   </p>
                 </div>
@@ -67,7 +67,7 @@ export const UpNextList: React.FC<UpNextListProps> = ({
 
               <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                 <span
-                  className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border ${getBadgeStyle(
+                  className={`text-xs font-semibold px-3 py-1 rounded-full border ${getBadgeStyle(
                     item.badgeType,
                   )}`}
                 >

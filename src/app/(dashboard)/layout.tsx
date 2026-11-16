@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar } from '../../components/desktop/Sidebar';
 import { TopBar } from '../../components/desktop/TopBar';
 import { BottomNav, NavItem } from '../../components/BottomNav';
+import { MoreMenuModal } from '../../components/MoreMenuModal';
 import { requestNotificationPermission } from '@/lib/fcm-client';
 
 export default function DashboardLayout({
@@ -17,6 +18,7 @@ export default function DashboardLayout({
   const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('home');
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -81,7 +83,7 @@ export default function DashboardLayout({
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
           { id: 'inquiries', label: 'New Lead', iconName: 'inquiries', href: '/inquiries/new' },
           { id: 'quotations', label: 'Quotes', iconName: 'quotations', href: '/quotations/new' },
-          { id: 'visits', label: 'Agenda', iconName: 'visits', href: '/dashboard' },
+          { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
           { id: 'dashboard', label: 'My Agenda & Leads', iconName: 'dashboard' },
@@ -97,7 +99,7 @@ export default function DashboardLayout({
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
           { id: 'portal', label: 'Govt Portal', iconName: 'portal', href: '/portal' },
           { id: 'sr', label: 'SR Queue', iconName: 'sr', href: '/portal' },
-          { id: 'subsidy', label: 'Subsidy', iconName: 'subsidy', href: '/portal' },
+          { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
           { id: 'dashboard', label: 'Portal Overview', iconName: 'dashboard' },
@@ -114,6 +116,7 @@ export default function DashboardLayout({
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
           { id: 'material', label: 'Stock & BOM', iconName: 'material', href: '/material' },
           { id: 'unload', label: 'Site Unloads', iconName: 'unload', href: '/material' },
+          { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
           { id: 'dashboard', label: 'Warehouse Stock', iconName: 'dashboard' },
@@ -127,7 +130,8 @@ export default function DashboardLayout({
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
           { id: 'installation', label: 'Active Sites', iconName: 'installation', href: '/installation' },
-          { id: 'checklist', label: 'Execution', iconName: 'checklist', href: '/installation' },
+          { id: 'checklist', label: 'Fitting Jobs', iconName: 'checklist', href: '/installation' },
+          { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
           { id: 'dashboard', label: 'Installation Queue', iconName: 'dashboard' },
@@ -141,7 +145,8 @@ export default function DashboardLayout({
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
           { id: 'payments', label: 'Ledger', iconName: 'payments', href: '/payments' },
-          { id: 'milestones', label: '80/20 Milestones', iconName: 'stats', href: '/payments' },
+          { id: 'milestones', label: '80/20 Terms', iconName: 'stats', href: '/payments' },
+          { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
           { id: 'dashboard', label: 'Cash Flow Overview', iconName: 'dashboard' },
@@ -156,6 +161,7 @@ export default function DashboardLayout({
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
           { id: 'tickets', label: 'Complaints', iconName: 'tickets', href: '/dashboard' },
           { id: 'plants', label: 'Plants', iconName: 'jobs', href: '/dashboard' },
+          { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
           { id: 'dashboard', label: 'Service & Maintenance', iconName: 'dashboard' },
@@ -170,9 +176,7 @@ export default function DashboardLayout({
         { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
         { id: 'pipeline', label: 'Pipeline', iconName: 'pipeline', href: '/dashboard' },
         { id: 'team', label: 'Team SLA', iconName: 'team', href: '/team' },
-        { id: 'portal', label: 'Portal', iconName: 'portal', href: '/portal' },
-        { id: 'material', label: 'Material', iconName: 'material', href: '/material' },
-        { id: 'payments', label: 'Finance', iconName: 'payments', href: '/payments' },
+        { id: 'more', label: 'More', iconName: 'more', href: '#more' },
       ],
       desktop: [
         { id: 'dashboard', label: 'Control Tower', iconName: 'dashboard' },
@@ -188,8 +192,12 @@ export default function DashboardLayout({
   const nav = getNavItems();
 
   const handleNavSelect = (id: string) => {
+    if (id === 'more') {
+      setIsMoreOpen(true);
+      return;
+    }
     setActiveTab(id);
-    if (id === 'home' || id === 'dashboard') router.push('/dashboard');
+    if (id === 'home' || id === 'dashboard' || id === 'pipeline') router.push('/dashboard');
     else if (id === 'inquiries') router.push('/inquiries/new');
     else if (id === 'quotations') router.push('/quotations/new');
     else if (id === 'portal' || id === 'sr' || id === 'subsidy' || id === 'meter') router.push('/portal');
@@ -233,6 +241,12 @@ export default function DashboardLayout({
           items={nav.mobile}
           activeId={activeTab}
           onTabChange={handleNavSelect}
+          onMoreClick={() => setIsMoreOpen(true)}
+        />
+        <MoreMenuModal
+          isOpen={isMoreOpen}
+          onClose={() => setIsMoreOpen(false)}
+          user={user}
         />
       </div>
     </div>

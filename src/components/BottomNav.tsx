@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   PlusCircle,
   FileSpreadsheet,
+  MoreHorizontal,
 } from 'lucide-react';
 import { getRoleTheme } from '@/lib/role-theme';
 
@@ -34,6 +35,7 @@ interface BottomNavProps {
   items: NavItem[];
   activeId: string;
   onTabChange: (id: string) => void;
+  onMoreClick?: () => void;
   role?: string;
 }
 
@@ -41,6 +43,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   items,
   activeId,
   onTabChange,
+  onMoreClick,
   role,
 }) => {
   const theme = getRoleTheme(role);
@@ -97,6 +100,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       case 'tickets':
       case 'complaints':
         return <ShieldAlert className={className} />;
+      case 'more':
+      case 'menu':
+        return <MoreHorizontal className={className} />;
       default:
         return <User className={className} />;
     }
@@ -117,7 +123,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => {
+                if (item.id === 'more' && onMoreClick) {
+                  onMoreClick();
+                } else {
+                  onTabChange(item.id);
+                }
+              }}
               style={
                 isActive
                   ? {
@@ -128,7 +140,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                       color: 'rgba(255, 255, 255, 0.75)',
                     }
               }
-              className={`flex items-center gap-1.5 transition-all text-xs font-semibold ${
+              className={`flex items-center gap-1.5 transition-all text-xs sm:text-sm font-semibold cursor-pointer ${
                 isActive
                   ? 'px-4 py-2 rounded-full shadow-md font-bold'
                   : 'p-2.5 rounded-full hover:text-white hover:bg-white/10 active:scale-95'
@@ -136,7 +148,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               title={item.label}
             >
               {renderIcon(item.iconName, isActive)}
-              {isActive && <span className="tracking-wide text-xs">{item.label}</span>}
+              {isActive && <span className="tracking-wide text-xs sm:text-sm font-bold">{item.label}</span>}
             </button>
           );
         })}

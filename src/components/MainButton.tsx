@@ -25,7 +25,7 @@ export const MainButton: React.FC<MainButtonProps> = ({
           backgroundColor: theme.hex.accentBg,
           color: theme.hex.accentTextColor,
         }}
-        className={`w-full py-4 px-6 rounded-2xl font-bold text-sm tracking-wide shadow-soft flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 ${className}`}
+        className={`w-full py-4 px-6 rounded-2xl font-bold text-base tracking-wide shadow-soft flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-98 cursor-pointer ${className}`}
         {...props}
       >
         {icon}

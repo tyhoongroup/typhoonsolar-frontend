@@ -37,14 +37,14 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
           <div>
             <span
               style={{ color: theme.hex.accentBg }}
-              className="text-[10px] font-bold tracking-widest uppercase block mb-0.5"
+              className="text-xs font-bold tracking-widest uppercase block mb-1"
             >
               PRIORITY
             </span>
-            <h3 className="text-sm font-semibold text-white tracking-tight leading-snug">
+            <h3 className="text-base font-bold text-white tracking-tight leading-snug">
               {title}
             </h3>
-            <p className="text-xs text-white/70 mt-0.5">{subtitle}</p>
+            <p className="text-sm text-white/80 mt-0.5">{subtitle}</p>
           </div>
         </div>
 
