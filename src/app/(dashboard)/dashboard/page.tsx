@@ -43,8 +43,9 @@ export default function DashboardPage() {
       })
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            setLiveInquiries(data);
+          const list = Array.isArray(data) ? data : (data?.data || []);
+          if (Array.isArray(list) && list.length > 0) {
+            setLiveInquiries(list);
           }
         })
         .catch(() => {});
@@ -57,8 +58,8 @@ export default function DashboardPage() {
   // 1. OPERATIONS MANAGER / ADMIN
   // =========================================================================
   if (user.role === 'OPS_MANAGER' || user.role === 'ADMIN') {
-    // Mobile Up Next Items
-    const mobileUpNext: UpNextItem[] = [
+    // Default Mobile Up Next Items
+    const defaultMobileUpNext: UpNextItem[] = [
       {
         id: '1',
         icon: <FileText className="w-4 h-4" />,
@@ -88,8 +89,27 @@ export default function DashboardPage() {
       },
     ];
 
+    const liveMobileUpNext: UpNextItem[] = liveInquiries.slice(0, 3).map((inq: any, idx: number) => ({
+      id: String(idx + 1),
+      icon: inq.isUrgent ? (
+        <PhoneCall className="w-4 h-4 text-rose-600" />
+      ) : (
+        <FileText className="w-4 h-4 text-amber-600" />
+      ),
+      title: `${inq.followupId || inq.id} · ${inq.customerName}`,
+      subtitle: `${inq.requestedKw} kW · ${inq.city || 'Vadodara'} · ${
+        inq.assignedSalesperson?.fullName ? `Assigned to ${inq.assignedSalesperson.fullName}` : 'Lead Captured'
+      }`,
+      badgeText: inq.isUrgent ? 'Urgent' : (inq.currentStage?.replace(/_/g, ' ') || 'New Lead'),
+      badgeType: inq.isUrgent ? 'due' : 'active',
+      onClick: () => router.push(`/inquiries/${inq.followupId || inq.id}`),
+    }));
+
+    const mobileUpNext: UpNextItem[] =
+      liveMobileUpNext.length > 0 ? liveMobileUpNext : defaultMobileUpNext;
+
     // Desktop Data Table Rows (Web Screen Layout #5)
-    const desktopTableRows: DataRowItem[] = [
+    const defaultDesktopTableRows: DataRowItem[] = [
       {
         id: 'F-1024',
         icon: <PhoneCall className="w-4 h-4 text-rose-600" />,
@@ -131,6 +151,24 @@ export default function DashboardPage() {
         badgeStyle: 'bg-indigo-50 text-indigo-700 border-indigo-200',
       },
     ];
+
+    const liveDesktopRows: DataRowItem[] = liveInquiries.map((inq: any) => ({
+      id: inq.followupId || inq.id,
+      icon: inq.isUrgent ? (
+        <PhoneCall className="w-4 h-4 text-rose-600" />
+      ) : (
+        <FileText className="w-4 h-4 text-emerald-600" />
+      ),
+      title: `${inq.followupId || inq.id} · ${inq.customerName}`,
+      subtitle: `${inq.requestedKw} kW · ${inq.meterPhase || 'Single Phase'} · ${inq.city || inq.address} · Assigned to ${inq.assignedSalesperson?.fullName || 'Amit'}`,
+      badgeText: inq.isUrgent ? 'Urgent' : (inq.currentStage?.replace(/_/g, ' ') || 'Active'),
+      badgeStyle: inq.isUrgent
+        ? 'bg-rose-50 text-rose-700 border-rose-200'
+        : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    }));
+
+    const desktopTableRows: DataRowItem[] =
+      liveDesktopRows.length > 0 ? liveDesktopRows : defaultDesktopTableRows;
 
     const filterChips = [
       { id: 'all', label: 'All Inquiries (14)' },

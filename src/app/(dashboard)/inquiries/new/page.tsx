@@ -46,9 +46,10 @@ export default function AddInquiryPage() {
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSalespersons(data);
-          setAssignedSalespersonId(data[0].id);
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list) && list.length > 0) {
+          setSalespersons(list);
+          setAssignedSalespersonId(list[0].id);
         }
       })
       .catch(() => {});

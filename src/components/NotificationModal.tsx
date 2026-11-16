@@ -61,8 +61,9 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
     })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setNotifications(data);
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list) && list.length > 0) {
+          setNotifications(list);
         } else {
           // Default fallbacks for fresh session
           setNotifications([

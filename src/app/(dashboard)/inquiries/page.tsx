@@ -438,8 +438,9 @@ export default function AllInquiriesPage() {
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped: InquiryItem[] = data.map((d: any) => {
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list) && list.length > 0) {
+          const mapped: InquiryItem[] = list.map((d: any) => {
             const rawId = d.followupId || d.id;
             const numeric = rawId.replace(/\D/g, '') || '1025';
             const stageMapping: Record<string, { num: number; name: string }> = {
