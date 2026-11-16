@@ -57,13 +57,24 @@ export const Header: React.FC<HeaderProps> = ({
       return;
     }
 
+    if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      toast.error(
+        'Push notifications require a secure connection (HTTPS) or localhost. Accessing via plain HTTP IP blocks browser notifications.',
+        { duration: 7000 }
+      );
+      return;
+    }
+
     if (Notification.permission === 'granted') {
       toast.success('Push notifications are active!');
       return;
     }
 
     if (Notification.permission === 'denied') {
-      toast.error('Notifications are blocked in your browser settings. Please allow notifications in site permissions.');
+      toast.error(
+        'Notifications are blocked in Chrome. Tap the lock/tune icon next to the address bar -> Permissions -> Notifications -> Allow.',
+        { duration: 8000 }
+      );
       return;
     }
 
@@ -73,7 +84,10 @@ export const Header: React.FC<HeaderProps> = ({
         toast.success('Push notifications enabled successfully!');
         requestNotificationPermission().catch(console.error);
       } else {
-        toast.info('Notifications were not enabled.');
+        toast.error(
+          'Notifications were not allowed. Tap the tune/lock icon in Chrome address bar -> Permissions -> Notifications -> Allow.',
+          { duration: 8000 }
+        );
       }
     } catch {
       toast.error('Could not request notification permission.');

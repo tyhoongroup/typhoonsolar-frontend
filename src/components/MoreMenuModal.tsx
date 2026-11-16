@@ -49,20 +49,45 @@ export function MoreMenuModal({
   };
 
   const handleNotificationRequest = async () => {
-    if (!('Notification' in window)) {
-      toast.error('This browser does not support notifications.');
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      toast.error('This browser does not support push notifications.');
       return;
     }
+
+    // 1. Insecure Context Check (HTTP vs HTTPS)
+    if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      toast.error(
+        'Push notifications require a secure connection (HTTPS) or localhost. Accessing via plain HTTP IP blocks browser notifications.',
+        { duration: 7000 }
+      );
+      return;
+    }
+
+    // 2. Already active
     if (Notification.permission === 'granted') {
       toast.success('Push notifications are already active!');
       return;
     }
+
+    // 3. Previously blocked / denied
+    if (Notification.permission === 'denied') {
+      toast.error(
+        'Notifications are blocked in Chrome. Tap the lock/tune icon next to the address bar -> Permissions -> Notifications -> Allow.',
+        { duration: 8000 }
+      );
+      return;
+    }
+
+    // 4. Request browser permission
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         toast.success('Push notifications enabled successfully!');
       } else {
-        toast.info('Notifications were not allowed.');
+        toast.error(
+          'Notifications were not allowed. Tap the tune/lock icon in Chrome address bar -> Permissions -> Notifications -> Allow.',
+          { duration: 8000 }
+        );
       }
     } catch {
       toast.error('Could not request notification permission.');
