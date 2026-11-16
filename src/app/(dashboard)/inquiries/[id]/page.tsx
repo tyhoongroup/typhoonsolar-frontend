@@ -21,6 +21,7 @@ import {
   Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 interface FollowupRecord {
   id: string;
@@ -38,6 +39,7 @@ interface FollowupRecord {
 
 export default function InquiryDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { theme } = useCurrentUser();
   const [isLogCallOpen, setIsLogCallOpen] = useState(false);
   const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
   const [isDealClosedOpen, setIsDealClosedOpen] = useState(false);
@@ -165,24 +167,30 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
   return (
     <div className="min-h-screen bg-typhoon-sand pb-20">
       {/* ======================================================== */}
-      {/* 1. TOP HEADER with Salesperson deep royal blue           */}
+      {/* 1. TOP HEADER with dynamic active user role theme        */}
       {/* ======================================================== */}
       <div
-        style={{ backgroundColor: '#0a3d7c' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#124d99]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
               <span
-                style={{ backgroundColor: '#00a3e0', color: '#ffffff' }}
-                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                }}
+                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm"
               >
                 STAGE 2 OF 10
               </span>
@@ -195,7 +203,10 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
                 Ramesh Patel
               </h1>
-              <p className="text-xs text-[#00a3e0] font-medium mt-1">
+              <p
+                style={{ color: theme.hex.accentBg }}
+                className="text-xs font-semibold mt-1"
+              >
                 Inquiry {params.id} · B-42 Shivalik Residency, Anand · +91 98250 12345
               </p>
             </div>
@@ -205,12 +216,16 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                 href="tel:+919825012345"
                 className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition"
               >
-                <Phone className="w-3.5 h-3.5 text-typhoon-gold" />
+                <Phone className="w-3.5 h-3.5 text-white/80" />
                 <span>Call Customer</span>
               </a>
               <button
                 onClick={() => setIsLogCallOpen(true)}
-                className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-soft transition"
+                style={{
+                  backgroundColor: theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                }}
+                className="font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-soft transition hover:opacity-90 active:scale-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Log New Follow-Up</span>

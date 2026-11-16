@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Check, Sun, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function AddInquiryPage() {
   const router = useRouter();
+  const { theme } = useCurrentUser();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -106,16 +108,19 @@ export default function AddInquiryPage() {
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
       {/* ======================================================== */}
-      {/* 1. TOP HEADER with Salesperson deep royal blue           */}
+      {/* 1. TOP HEADER with dynamic active user role theme        */}
       {/* ======================================================== */}
       <div
-        style={{ backgroundColor: '#0a3d7c' }}
-        className="text-white pt-6 pb-8 px-5 lg:px-8 rounded-b-[32px] shadow-soft border-b border-[#124d99]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-5 lg:px-8 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => router.back()}
-            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-3 hover:bg-white/20 transition-colors"
+            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-3 hover:bg-white/20 transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -130,8 +135,11 @@ export default function AddInquiryPage() {
               </p>
             </div>
             <span
-              style={{ backgroundColor: '#00a3e0', color: '#ffffff' }}
-              className="hidden sm:inline-block text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+              style={{
+                backgroundColor: theme.hex.accentBg,
+                color: theme.hex.accentTextColor,
+              }}
+              className="hidden sm:inline-block text-[11px] font-bold px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm"
             >
               Stage 1: Lead Capture
             </span>
@@ -323,7 +331,11 @@ export default function AddInquiryPage() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold px-6 py-3 rounded-xl text-xs shadow-soft transition flex items-center gap-2 disabled:opacity-50"
+              style={{
+                backgroundColor: theme.hex.accentBg,
+                color: theme.hex.accentTextColor,
+              }}
+              className="font-bold px-6 py-3 rounded-xl text-xs shadow-soft transition flex items-center gap-2 hover:opacity-90 active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Check className="w-4 h-4 stroke-[2.5]" />
               <span>{loading ? 'Creating Inquiry...' : 'Save & Create Inquiry'}</span>

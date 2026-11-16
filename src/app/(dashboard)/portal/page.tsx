@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ShieldCheck,
 } from 'lucide-react';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 interface PortalProjectItem {
   id: string;
@@ -33,6 +34,7 @@ interface PortalProjectItem {
 
 export default function PortalQueuePage() {
   const router = useRouter();
+  const { user, theme } = useCurrentUser();
   const [activeTab, setActiveTab] = useState<'all' | 'docs' | 'sr' | 'meter' | 'subsidy'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -110,18 +112,29 @@ export default function PortalQueuePage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Portal User signature deep petrol teal */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#063a42' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#0a4d57]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <ShieldCheck className="w-4 h-4 text-[#00bfa5]" />
-                <span className="text-[11px] font-bold tracking-widest text-[#00bfa5] uppercase">
-                  GOVERNMENT PORTAL LIAISON (RAHUL BHAI)
+                <ShieldCheck
+                  style={{ color: theme.hex.accentBg }}
+                  className="w-4 h-4"
+                />
+                <span
+                  style={{ color: theme.hex.accentBg }}
+                  className="text-[11px] font-bold tracking-widest uppercase"
+                >
+                  {user?.role === 'PORTAL_USER'
+                    ? 'GOVERNMENT PORTAL LIAISON (RAHUL BHAI)'
+                    : `${theme.roleName.toUpperCase()} · GOVT PORTAL OVERVIEW`}
                 </span>
               </div>
               <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">

@@ -13,6 +13,7 @@ import {
   Calendar,
   Layers,
 } from 'lucide-react';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 interface MaterialProjectItem {
   id: string;
@@ -32,6 +33,7 @@ interface MaterialProjectItem {
 
 export default function MaterialQueuePage() {
   const router = useRouter();
+  const { user, theme } = useCurrentUser();
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'scheduled' | 'unloaded'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -97,16 +99,27 @@ export default function MaterialQueuePage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Material Manager signature deep olive green */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#36451e' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#4a5e29]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
-            <Package className="w-4 h-4 text-[#a3e635]" />
-            <span className="text-[11px] font-bold tracking-widest text-[#a3e635] uppercase">
-              STORE & LOGISTICS LEAD (SOHAIL KHAN)
+            <Package
+              style={{ color: theme.hex.accentBg }}
+              className="w-4 h-4"
+            />
+            <span
+              style={{ color: theme.hex.accentBg }}
+              className="text-[11px] font-bold tracking-widest uppercase"
+            >
+              {user?.role === 'MATERIAL_MANAGER'
+                ? 'STORE & LOGISTICS LEAD (SOHAIL KHAN)'
+                : `${theme.roleName.toUpperCase()} · WAREHOUSE & DISPATCH OVERVIEW`}
             </span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">

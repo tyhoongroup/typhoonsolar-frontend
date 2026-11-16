@@ -13,6 +13,7 @@ import {
   Receipt,
   CreditCard,
 } from 'lucide-react';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 interface PaymentProjectItem {
   id: string;
@@ -32,6 +33,7 @@ interface PaymentProjectItem {
 
 export default function PaymentsLedgerPage() {
   const router = useRouter();
+  const { user, theme } = useCurrentUser();
   const [activeTab, setActiveTab] = useState<'all' | 'due' | 'paid'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -97,16 +99,27 @@ export default function PaymentsLedgerPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Accountant signature deep burgundy */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#3d1020' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#571930]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
-            <IndianRupee className="w-4 h-4 text-[#e1144a]" />
-            <span className="text-[11px] font-bold tracking-widest text-[#e1144a] uppercase">
-              FINANCE & MILESTONE LEDGER (MEERA)
+            <IndianRupee
+              style={{ color: theme.hex.accentBg }}
+              className="w-4 h-4"
+            />
+            <span
+              style={{ color: theme.hex.accentBg }}
+              className="text-[11px] font-bold tracking-widest uppercase"
+            >
+              {user?.role === 'ACCOUNTANT'
+                ? 'FINANCE & MILESTONE LEDGER (MEERA)'
+                : `${theme.roleName.toUpperCase()} · FINANCE & CASH FLOW`}
             </span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">

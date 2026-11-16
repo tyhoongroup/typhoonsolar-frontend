@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, Send, Check } from 'lucide-react';
 import { SolarCalculator } from '@/shared';
 import { toast } from 'sonner';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function NewQuotationPage() {
   const router = useRouter();
+  const { theme } = useCurrentUser();
   const [selectedKw, setSelectedKw] = useState(6);
   const [phase, setPhase] = useState<'Single Phase' | 'Three Phase'>('Three Phase');
   const [panelTech, setPanelTech] = useState<'Topcon' | 'Bi-facial'>('Topcon');
@@ -33,14 +35,17 @@ export default function NewQuotationPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Salesperson signature deep royal blue header */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#0a3d7c' }}
-        className="text-white pt-8 pb-10 px-5 rounded-b-[32px] relative shadow-soft border-b border-[#124d99]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-8 pb-10 px-5 rounded-b-[32px] relative shadow-soft border-b transition-colors duration-300"
       >
         <button
           onClick={() => router.back()}
-          className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-4 hover:bg-white/20 transition-colors"
+          className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-4 hover:bg-white/20 transition-colors cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -48,7 +53,10 @@ export default function NewQuotationPage() {
         <h1 className="text-2xl font-serif font-bold text-white tracking-tight">
           Quotation
         </h1>
-        <p className="text-xs text-[#00a3e0] font-medium mt-0.5">
+        <p
+          style={{ color: theme.hex.accentBg }}
+          className="text-xs font-semibold mt-0.5"
+        >
           F-1022 · Nilesh Desai
         </p>
       </div>
@@ -155,7 +163,11 @@ export default function NewQuotationPage() {
               toast.success('Quotation generated successfully!');
               router.push('/dashboard');
             }}
-            className="w-full py-4 bg-typhoon-gold hover:bg-typhoon-gold-light text-typhoon-navy font-bold text-sm rounded-2xl shadow-soft flex items-center justify-center gap-2 transition-all"
+            style={{
+              backgroundColor: theme.hex.accentBg,
+              color: theme.hex.accentTextColor,
+            }}
+            className="w-full py-4 font-bold text-sm rounded-2xl shadow-soft flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-98 cursor-pointer"
           >
             <Send className="w-4 h-4" />
             <span>Next: review quotation</span>

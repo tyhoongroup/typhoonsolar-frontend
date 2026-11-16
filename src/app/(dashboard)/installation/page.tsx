@@ -13,6 +13,7 @@ import {
   Sun,
   ShieldCheck,
 } from 'lucide-react';
+import { useCurrentUser } from '@/lib/use-current-user';
 
 interface InstallationProjectItem {
   id: string;
@@ -33,6 +34,7 @@ interface InstallationProjectItem {
 
 export default function InstallationQueuePage() {
   const router = useRouter();
+  const { user, theme } = useCurrentUser();
   const [activeTab, setActiveTab] = useState<'all' | 'ready' | 'progress' | 'done'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -86,16 +88,27 @@ export default function InstallationQueuePage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with Installation Team signature deep chocolate brown */}
+      {/* Top Header with dynamic active user role theme */}
       <div
-        style={{ backgroundColor: '#3e1c0d' }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-[#542813]"
+        style={{
+          backgroundColor: theme.hex.headerBg,
+          borderColor: theme.hex.headerBorder,
+        }}
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
       >
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
-            <Wrench className="w-4 h-4 text-[#f97316]" />
-            <span className="text-[11px] font-bold tracking-widest text-[#f97316] uppercase">
-              INSTALLATION TEAM LEAD (IRFAN)
+            <Wrench
+              style={{ color: theme.hex.accentBg }}
+              className="w-4 h-4"
+            />
+            <span
+              style={{ color: theme.hex.accentBg }}
+              className="text-[11px] font-bold tracking-widest uppercase"
+            >
+              {user?.role === 'INSTALLATION_TEAM'
+                ? 'INSTALLATION TEAM LEAD (IRFAN)'
+                : `${theme.roleName.toUpperCase()} · SITE INSTALLATION QUEUE`}
             </span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">

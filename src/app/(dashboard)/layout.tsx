@@ -226,7 +226,7 @@ export default function DashboardLayout({
       </div>
 
       {/* 2. MOBILE VIEW (Screens < 1024px) */}
-      <div className="lg:hidden max-w-md mx-auto min-h-screen pb-24 relative shadow-xl bg-typhoon-sand">
+      <div className="lg:hidden w-full min-h-screen pb-24 relative bg-typhoon-sand overflow-x-hidden">
         {children}
         <BottomNav
           role={user.role}
