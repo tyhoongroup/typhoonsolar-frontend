@@ -7,12 +7,12 @@ interface TileData {
 }
 
 interface SummaryTilesProps {
-  tiles: [TileData, TileData];
+  tiles: TileData[];
 }
 
 export const SummaryTiles: React.FC<SummaryTilesProps> = ({ tiles }) => {
   return (
-    <div className="relative -mt-10 px-4 grid grid-cols-2 gap-3 z-10">
+    <div className={`relative -mt-10 px-4 grid gap-3 z-10 ${tiles.length === 2 ? 'grid-cols-2' : tiles.length === 3 ? 'grid-cols-3' : 'grid-cols-2 lg:grid-cols-4'}`}>
       {tiles.map((tile, idx) => (
         <div
           key={idx}

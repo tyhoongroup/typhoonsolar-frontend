@@ -13,6 +13,8 @@ import {
   Calendar,
   Layers,
 } from 'lucide-react';
+import { Header } from '@/components/Header';
+import { SummaryTiles } from '@/components/SummaryTiles';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 interface MaterialProjectItem {
@@ -98,41 +100,52 @@ export default function MaterialQueuePage() {
   });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with dynamic active user role theme */}
-      <div
-        style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
-        }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-2 mb-1">
-            <Package
-              style={{ color: theme.hex.accentBg }}
-              className="w-4 h-4"
-            />
-            <span
-              style={{ color: theme.hex.accentBg }}
-              className="text-[11px] font-bold tracking-widest uppercase"
-            >
-              {user?.role === 'MATERIAL_MANAGER'
-                ? 'STORE & LOGISTICS LEAD (SOHAIL KHAN)'
-                : `${theme.roleName.toUpperCase()} · WAREHOUSE & DISPATCH OVERVIEW`}
-            </span>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
+    <div className="min-h-screen bg-typhoon-sand pb-20">
+      {/* 1. Unified Responsive Header matching Home */}
+      <Header
+        role={user?.role || 'OPS_MANAGER'}
+        initials={theme.tag}
+        roleTitle="Control tower"
+        subtitle="Warehouse BOM Logistics & Terrace Unloading"
+      />
+
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
+        {/* 2. Summary Tiles matching Home */}
+        <SummaryTiles
+          tiles={[
+            {
+              icon: <Clock className="w-4 h-4 text-amber-600" />,
+              value: '1',
+              label: 'Planning pending',
+            },
+            {
+              icon: <Truck className="w-4 h-4 text-sky-600" />,
+              value: '1',
+              label: 'Delivery scheduled',
+            },
+            {
+              icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
+              value: '1',
+              label: 'Unloaded on site',
+            },
+            {
+              icon: <Package className="w-4 h-4 text-typhoon-gold" />,
+              value: '42',
+              label: 'Panels in stock',
+            },
+          ]}
+        />
+
+        {/* Title row */}
+        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft">
+          <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
             Material Planning & Dispatch Queue
           </h1>
-          <p className="text-xs text-white/70 mt-1">
+          <p className="text-xs text-typhoon-muted mt-0.5">
             Approved DISCOM SR projects ready for BOM staging, customer delivery call, and rooftop unloading
           </p>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
         {/* Filters */}
         <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5 text-xs">
@@ -145,15 +158,10 @@ export default function MaterialQueuePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                style={
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
                   activeTab === tab.id
-                    ? { backgroundColor: '#a3e635', color: '#2e3b18' }
-                    : undefined
-                }
-                className={`px-3 py-1.5 rounded-xl font-bold transition ${
-                  activeTab === tab.id
-                    ? 'shadow-sm'
-                    : 'bg-typhoon-sand/60 text-typhoon-navy hover:bg-typhoon-sand'
+                    ? 'bg-typhoon-navy text-white shadow-soft'
+                    : 'bg-typhoon-sand/40 text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
                 }`}
               >
                 {tab.label}

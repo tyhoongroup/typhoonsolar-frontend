@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Check, Sun, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Header } from '@/components/Header';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function AddInquiryPage() {
   const router = useRouter();
-  const { theme } = useCurrentUser();
+  const { user, theme } = useCurrentUser();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -106,51 +107,47 @@ export default function AddInquiryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* ======================================================== */}
-      {/* 1. TOP HEADER with dynamic active user role theme        */}
-      {/* ======================================================== */}
-      <div
-        style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
-        }}
-        className="text-white pt-6 pb-8 px-5 lg:px-8 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
-      >
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={() => router.back()}
-            className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-3 hover:bg-white/20 transition-colors cursor-pointer"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+    <div className="min-h-screen bg-typhoon-sand pb-20">
+      {/* 1. Unified Header matching Home */}
+      <Header
+        role={user?.role || 'OPS_MANAGER'}
+        initials={theme.tag}
+        roleTitle="Control tower"
+        subtitle="Register New Customer Lead & Sizing"
+      />
 
-          <div className="flex items-center justify-between">
+      <div className="max-w-3xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
+        {/* Title row with back button */}
+        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="w-9 h-9 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark flex items-center justify-center text-typhoon-navy transition cursor-pointer"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
                 Add New Inquiry
               </h1>
-              <p className="text-xs text-white/70 mt-1">
+              <p className="text-xs text-typhoon-muted">
                 Enter rooftop solar customer details & requirement
               </p>
             </div>
-            <span
-              style={{
-                backgroundColor: theme.hex.accentBg,
-                color: theme.hex.accentTextColor,
-              }}
-              className="hidden sm:inline-block text-[11px] font-bold px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm"
-            >
-              Stage 1: Lead Capture
-            </span>
           </div>
-        </div>
-      </div>
 
-      {/* ======================================================== */}
-      {/* 2. FORM BODY (Centered card on desktop, full on mobile)  */}
-      {/* ======================================================== */}
-      <div className="max-w-3xl mx-auto px-4 lg:px-6 -mt-3">
+          <span
+            style={{
+              backgroundColor: theme.hex.accentBg,
+              color: theme.hex.accentTextColor,
+            }}
+            className="hidden sm:inline-block text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+          >
+            Stage 1: Lead Capture
+          </span>
+        </div>
+
+        {/* 2. FORM BODY */}
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl p-6 lg:p-8 border border-typhoon-border shadow-soft space-y-4"

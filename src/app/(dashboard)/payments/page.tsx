@@ -12,7 +12,10 @@ import {
   TrendingUp,
   Receipt,
   CreditCard,
+  Layers,
 } from 'lucide-react';
+import { Header } from '@/components/Header';
+import { SummaryTiles } from '@/components/SummaryTiles';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 interface PaymentProjectItem {
@@ -98,66 +101,50 @@ export default function PaymentsLedgerPage() {
   });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with dynamic active user role theme */}
-      <div
-        style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
-        }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-2 mb-1">
-            <IndianRupee
-              style={{ color: theme.hex.accentBg }}
-              className="w-4 h-4"
-            />
-            <span
-              style={{ color: theme.hex.accentBg }}
-              className="text-[11px] font-bold tracking-widest uppercase"
-            >
-              {user?.role === 'ACCOUNTANT'
-                ? 'FINANCE & MILESTONE LEDGER (MEERA)'
-                : `${theme.roleName.toUpperCase()} · FINANCE & CASH FLOW`}
-            </span>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
+    <div className="min-h-screen bg-typhoon-sand pb-20">
+      {/* 1. Unified Responsive Header matching Home */}
+      <Header
+        role={user?.role || 'OPS_MANAGER'}
+        initials={theme.tag}
+        roleTitle="Control tower"
+        subtitle="Customer Milestone Ledgers & Payment Collections"
+      />
+
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
+        {/* 2. Summary Tiles matching Home */}
+        <SummaryTiles
+          tiles={[
+            {
+              icon: <IndianRupee className="w-4 h-4 text-typhoon-gold" />,
+              value: '₹9.70L',
+              label: 'Total order book',
+            },
+            {
+              icon: <AlertCircle className="w-4 h-4 text-rose-600" />,
+              value: '₹2.20L',
+              label: '1st payment due (80%)',
+            },
+            {
+              icon: <Clock className="w-4 h-4 text-sky-600" />,
+              value: '₹1.51L',
+              label: 'Final balance (20%)',
+            },
+            {
+              icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
+              value: '₹2.34L',
+              label: 'PM Surya Ghar DBT',
+            },
+          ]}
+        />
+
+        {/* Title row */}
+        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft">
+          <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
             Accounts & Payment Collections
           </h1>
-          <p className="text-xs text-white/70 mt-1">
+          <p className="text-xs text-typhoon-muted mt-0.5">
             80/20 milestone collections on material unload & installation, payment proofs, and subsidy DBT reconciliation
           </p>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
-        {/* 4 Summary Tiles */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft">
-            <span className="text-[10px] font-bold text-typhoon-muted uppercase block">Total Order Book</span>
-            <span className="text-lg font-serif font-bold text-typhoon-navy block mt-0.5">₹9.70 Lakh</span>
-            <span className="text-[10px] text-typhoon-muted">Across 3 active projects</span>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-rose-200 shadow-soft">
-            <span className="text-[10px] font-bold text-rose-600 uppercase block">1st Payment Due (80%)</span>
-            <span className="text-lg font-serif font-bold text-rose-700 block mt-0.5">₹2.20 Lakh</span>
-            <span className="text-[10px] text-rose-600 font-semibold">1 site awaiting collection</span>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft">
-            <span className="text-[10px] font-bold text-typhoon-muted uppercase block">Final Balance (20%)</span>
-            <span className="text-lg font-serif font-bold text-typhoon-navy block mt-0.5">₹1.51 Lakh</span>
-            <span className="text-[10px] text-typhoon-muted">Due upon net meter start</span>
-          </div>
-
-          <div className="bg-white rounded-2xl p-4 border border-emerald-200 shadow-soft">
-            <span className="text-[10px] font-bold text-emerald-700 uppercase block">PM Surya Ghar DBT</span>
-            <span className="text-lg font-serif font-bold text-emerald-800 block mt-0.5">₹2.34 Lakh</span>
-            <span className="text-[10px] text-emerald-700">₹78k per rooftop direct DBT</span>
-          </div>
         </div>
 
         {/* Filters */}
@@ -171,15 +158,10 @@ export default function PaymentsLedgerPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                style={
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
                   activeTab === tab.id
-                    ? { backgroundColor: '#e1144a', color: '#ffffff' }
-                    : undefined
-                }
-                className={`px-3 py-1.5 rounded-xl font-bold transition ${
-                  activeTab === tab.id
-                    ? 'shadow-sm'
-                    : 'bg-typhoon-sand/60 text-typhoon-navy hover:bg-typhoon-sand'
+                    ? 'bg-typhoon-navy text-white shadow-soft'
+                    : 'bg-typhoon-sand/40 text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
                 }`}
               >
                 {tab.label}

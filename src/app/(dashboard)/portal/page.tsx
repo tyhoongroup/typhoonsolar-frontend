@@ -13,7 +13,10 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldCheck,
+  Wrench,
 } from 'lucide-react';
+import { Header } from '@/components/Header';
+import { SummaryTiles } from '@/components/SummaryTiles';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 interface PortalProjectItem {
@@ -111,57 +114,63 @@ export default function PortalQueuePage() {
   });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with dynamic active user role theme */}
-      <div
-        style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
-        }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <ShieldCheck
-                  style={{ color: theme.hex.accentBg }}
-                  className="w-4 h-4"
-                />
-                <span
-                  style={{ color: theme.hex.accentBg }}
-                  className="text-[11px] font-bold tracking-widest uppercase"
-                >
-                  {user?.role === 'PORTAL_USER'
-                    ? 'GOVERNMENT PORTAL LIAISON (RAHUL BHAI)'
-                    : `${theme.roleName.toUpperCase()} · GOVT PORTAL OVERVIEW`}
-                </span>
-              </div>
-              <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
-                Surya Gujarat & PM Surya Ghar Queue
-              </h1>
-              <p className="text-xs text-white/70 mt-1">
-                Manage KYC approvals, SR generation, CEI meter files & direct DBT subsidy claims
-              </p>
-            </div>
+    <div className="min-h-screen bg-typhoon-sand pb-20">
+      {/* 1. Unified Responsive Header matching Home */}
+      <Header
+        role={user?.role || 'OPS_MANAGER'}
+        initials={theme.tag}
+        roleTitle="Control tower"
+        subtitle="Surya Gujarat & National DISCOM Portal Liaison"
+      />
 
-            <div className="flex items-center gap-2">
-              <a
-                href="https://suryagujarat.guvnl.com"
-                target="_blank"
-                rel="noreferrer"
-                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition"
-              >
-                <span>Surya Gujarat Portal</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
+        {/* 2. Summary Tiles matching Home */}
+        <SummaryTiles
+          tiles={[
+            {
+              icon: <FileText className="w-4 h-4 text-typhoon-gold" />,
+              value: '1',
+              label: 'Docs ready for portal',
+            },
+            {
+              icon: <Clock className="w-4 h-4 text-amber-600" />,
+              value: '1',
+              label: 'SR pending approval',
+            },
+            {
+              icon: <Wrench className="w-4 h-4 text-sky-600" />,
+              value: '1',
+              label: 'Meter file required',
+            },
+            {
+              icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
+              value: '1',
+              label: 'Subsidy claim queue',
+            },
+          ]}
+        />
+
+        {/* Title and Portal link banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
+              Surya Gujarat & PM Surya Ghar Queue
+            </h1>
+            <p className="text-xs text-typhoon-muted mt-0.5">
+              Manage KYC approvals, SR generation, CEI meter files & direct DBT subsidy claims
+            </p>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
+          <a
+            href="https://suryagujarat.guvnl.com"
+            target="_blank"
+            rel="noreferrer"
+            className="self-start sm:self-auto bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 border border-typhoon-border transition"
+          >
+            <span>Surya Gujarat Portal</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
         {/* Filter Chips & Search Bar */}
         <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5 text-xs">

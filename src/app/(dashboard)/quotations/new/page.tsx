@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, Send, Check } from 'lucide-react';
 import { SolarCalculator } from '@/shared';
 import { toast } from 'sonner';
+import { Header } from '@/components/Header';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function NewQuotationPage() {
   const router = useRouter();
-  const { theme } = useCurrentUser();
+  const { user, theme } = useCurrentUser();
   const [selectedKw, setSelectedKw] = useState(6);
   const [phase, setPhase] = useState<'Single Phase' | 'Three Phase'>('Three Phase');
   const [panelTech, setPanelTech] = useState<'Topcon' | 'Bi-facial'>('Topcon');
@@ -34,34 +35,45 @@ export default function NewQuotationPage() {
   });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with dynamic active user role theme */}
-      <div
-        style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
-        }}
-        className="text-white pt-8 pb-10 px-5 rounded-b-[32px] relative shadow-soft border-b transition-colors duration-300"
-      >
-        <button
-          onClick={() => router.back()}
-          className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-4 hover:bg-white/20 transition-colors cursor-pointer"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+    <div className="min-h-screen bg-typhoon-sand pb-20">
+      {/* 1. Unified Header matching Home */}
+      <Header
+        role={user?.role || 'OPS_MANAGER'}
+        initials={theme.tag}
+        roleTitle="Control tower"
+        subtitle="Solar Quotation & PM Surya Ghar Subsidy Engine"
+      />
 
-        <h1 className="text-2xl font-serif font-bold text-white tracking-tight">
-          Quotation
-        </h1>
-        <p
-          style={{ color: theme.hex.accentBg }}
-          className="text-xs font-semibold mt-0.5"
-        >
-          F-1022 · Nilesh Desai
-        </p>
-      </div>
+      <div className="max-w-3xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
+        {/* Title row with back button */}
+        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="w-9 h-9 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark flex items-center justify-center text-typhoon-navy transition cursor-pointer"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
+                Solar Quotation
+              </h1>
+              <p className="text-xs text-typhoon-gold-dark font-semibold">
+                F-1022 · Nilesh Desai (Anand)
+              </p>
+            </div>
+          </div>
 
-      <div className="px-5 py-5 space-y-5">
+          <span
+            style={{
+              backgroundColor: theme.hex.accentBg,
+              color: theme.hex.accentTextColor,
+            }}
+            className="text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
+          >
+            Stage 3: Quotation
+          </span>
+        </div>
         {/* Step Progress */}
         <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft">
           <div className="flex justify-between text-xs font-bold text-typhoon-navy mb-2">

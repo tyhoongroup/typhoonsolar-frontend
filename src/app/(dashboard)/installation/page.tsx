@@ -12,7 +12,10 @@ import {
   ChevronRight,
   Sun,
   ShieldCheck,
+  Layers,
 } from 'lucide-react';
+import { Header } from '@/components/Header';
+import { SummaryTiles } from '@/components/SummaryTiles';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 interface InstallationProjectItem {
@@ -87,41 +90,52 @@ export default function InstallationQueuePage() {
   });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with dynamic active user role theme */}
-      <div
-        style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
-        }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-2 mb-1">
-            <Wrench
-              style={{ color: theme.hex.accentBg }}
-              className="w-4 h-4"
-            />
-            <span
-              style={{ color: theme.hex.accentBg }}
-              className="text-[11px] font-bold tracking-widest uppercase"
-            >
-              {user?.role === 'INSTALLATION_TEAM'
-                ? 'INSTALLATION TEAM LEAD (IRFAN)'
-                : `${theme.roleName.toUpperCase()} · SITE INSTALLATION QUEUE`}
-            </span>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
+    <div className="min-h-screen bg-typhoon-sand pb-20">
+      {/* 1. Unified Responsive Header matching Home */}
+      <Header
+        role={user?.role || 'OPS_MANAGER'}
+        initials={theme.tag}
+        roleTitle="Control tower"
+        subtitle="Rooftop Installation & Electrical Execution Queue"
+      />
+
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
+        {/* 2. Summary Tiles matching Home */}
+        <SummaryTiles
+          tiles={[
+            {
+              icon: <Wrench className="w-4 h-4 text-amber-600" />,
+              value: '1',
+              label: 'Ready to fit',
+            },
+            {
+              icon: <Clock className="w-4 h-4 text-sky-600" />,
+              value: '0',
+              label: 'In progress',
+            },
+            {
+              icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
+              value: '1',
+              label: 'Completed sites',
+            },
+            {
+              icon: <Layers className="w-4 h-4 text-typhoon-gold" />,
+              value: '2',
+              label: 'Total active sites',
+            },
+          ]}
+        />
+
+        {/* Title row */}
+        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft">
+          <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
             Rooftop Installation Jobs Queue
           </h1>
-          <p className="text-xs text-white/70 mt-1">
+          <p className="text-xs text-typhoon-muted mt-0.5">
             Sites with verified material unloads & 1st payment collected ready for structure fitting, panels & inverter wiring
           </p>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
         {/* Filters */}
         <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5 text-xs">
@@ -134,15 +148,10 @@ export default function InstallationQueuePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                style={
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
                   activeTab === tab.id
-                    ? { backgroundColor: '#f97316', color: '#ffffff' }
-                    : undefined
-                }
-                className={`px-3 py-1.5 rounded-xl font-bold transition ${
-                  activeTab === tab.id
-                    ? 'shadow-sm'
-                    : 'bg-typhoon-sand/60 text-typhoon-navy hover:bg-typhoon-sand'
+                    ? 'bg-typhoon-navy text-white shadow-soft'
+                    : 'bg-typhoon-sand/40 text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
                 }`}
               >
                 {tab.label}
