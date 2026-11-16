@@ -56,9 +56,10 @@ export function MoreMenuModal({
 
     // 1. Insecure Context Check (HTTP vs HTTPS)
     if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      toast.error(
-        'Push notifications require a secure connection (HTTPS) or localhost. Accessing via plain HTTP IP blocks browser notifications.',
-        { duration: 7000 }
+      localStorage.setItem('typhoon_inapp_notifications', 'true');
+      toast.success(
+        'In-App Notifications Enabled! Live banner alerts are active for staging. (OS-level background push requires HTTPS or Chrome Flag).',
+        { duration: 8000 }
       );
       return;
     }
