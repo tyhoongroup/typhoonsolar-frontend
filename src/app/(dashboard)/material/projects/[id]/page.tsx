@@ -138,7 +138,7 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
 
       setIsUnloaded(true);
       toast.success(
-        '🎉 Material marked UNLOADED in database! Accountant (Meera) and Installation Team (Irfan) notified.'
+        'Material marked UNLOADED in database! Accountant (Meera) and Installation Team (Irfan) notified.'
       );
       router.push(`/inquiries/${params.id}`);
     } catch (err: any) {
@@ -268,8 +268,9 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
               </p>
             </div>
             {isFollowupSaved && (
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                ✓ Call Logged
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Call Logged</span>
               </span>
             )}
           </div>
@@ -397,7 +398,7 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
                 {loading
                   ? 'Updating Status...'
                   : isUnloaded
-                  ? '✓ Material Unloaded & Confirmed on Site'
+                  ? 'Material Unloaded & Confirmed on Site'
                   : 'Mark Material Unloaded on Site (Notify Accountant & Installation)'}
               </span>
             </button>

@@ -60,7 +60,7 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
     setTimeout(() => {
       setLoading(false);
       toast.success(
-        `🎉 Payment of ₹${Number(amount).toLocaleString('en-IN')} recorded successfully! Receipt generated.`
+        `Payment of ₹${Number(amount).toLocaleString('en-IN')} recorded successfully! Receipt generated.`
       );
       router.push('/payments');
     }, 600);
@@ -166,8 +166,9 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
               </p>
             </div>
             {isFollowupSaved && (
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                ✓ Follow-up Saved
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Follow-up Saved
               </span>
             )}
           </div>

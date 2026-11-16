@@ -51,10 +51,11 @@ export function BackendStatusBadge() {
       <div 
         onClick={checkConnection}
         title={details}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition"
+        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition"
       >
-        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-        <span className="font-semibold">Backend Connected 🟢</span>
+        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+        <span className="font-semibold">Backend Connected</span>
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5"></span>
         <span className="text-[10px] text-emerald-600/80 hidden sm:inline">({details})</span>
       </div>
     );
@@ -64,10 +65,11 @@ export function BackendStatusBadge() {
     <div 
       onClick={checkConnection}
       title="Click to re-check"
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-rose-50 text-rose-800 border border-rose-200 cursor-pointer hover:bg-rose-100 transition"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200 cursor-pointer hover:bg-rose-100 transition"
     >
-      <XCircle className="w-3.5 h-3.5 text-rose-600" />
-      <span className="font-semibold">Backend Offline 🔴</span>
+      <XCircle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+      <span className="font-semibold">Backend Offline</span>
+      <span className="w-2 h-2 rounded-full bg-rose-500 ml-0.5"></span>
       <span className="text-[10px] text-rose-600/80 hidden sm:inline">(Port 4000)</span>
     </div>
   );

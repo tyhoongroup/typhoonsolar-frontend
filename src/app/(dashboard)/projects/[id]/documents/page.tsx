@@ -155,7 +155,7 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
       }
 
       toast.success(
-        `🎉 KYC Documents successfully saved! Portal User (Rahul Bhai) notified to start government portal filing.`
+        `KYC Documents successfully saved! Portal User (Rahul Bhai) notified to start government portal filing.`
       );
       router.push(`/inquiries/${params.id}`);
     } catch (err: any) {

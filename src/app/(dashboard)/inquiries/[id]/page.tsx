@@ -746,7 +746,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                 e.preventDefault();
                 setIsDealClosedOpen(false);
                 setCurrentStageText('STAGE 4 OF 10 · DEAL CLOSED');
-                toast.success(`🎉 Deal closed! Project ID ${projectId} generated!`);
+                toast.success(`Deal closed! Project ID ${projectId} generated!`);
                 const newRecord: FollowupRecord = {
                   id: `FUP-${Date.now().toString().slice(-3)}`,
                   loggedBy: 'Amit Patel (Sales)',
@@ -755,7 +755,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                   type: 'Office Meeting',
                   customerReaction: 'Very Positive',
                   reactionBadgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                  description: `🎉 Deal closed successfully at ₹${Number(dealAmount).toLocaleString('en-IN')}. Project ID ${projectId} generated. Proceeding with KYC document gathering.`,
+                  description: `Deal closed successfully at ₹${Number(dealAmount).toLocaleString('en-IN')}. Project ID ${projectId} generated. Proceeding with KYC document gathering.`,
                   nextStep: 'Collect KYC Documents (Light bill, Aadhaar, Property tax, Cheque)',
                   committedDate: '13 Nov 2026',
                   isCompleted: true,

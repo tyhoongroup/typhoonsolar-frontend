@@ -275,9 +275,9 @@ export default function AddInquiryPage() {
               onChange={(e) => setAssignedSalesperson(e.target.value)}
               className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
             >
-              <option value="Amit Patel">💼 Amit Patel (Sales Rep - Vadodara)</option>
-              <option value="Kunal Joshi">💼 Kunal Joshi (Senior Sales Rep - Anand)</option>
-              <option value="Priya Sharma">💼 Priya Sharma (Sales Engineer - Nadiad)</option>
+              <option value="Amit Patel">Amit Patel (Sales Rep - Vadodara)</option>
+              <option value="Kunal Joshi">Kunal Joshi (Senior Sales Rep - Anand)</option>
+              <option value="Priya Sharma">Priya Sharma (Sales Engineer - Nadiad)</option>
             </select>
             <p className="text-[10px] text-typhoon-muted mt-1">
               Assigned rep will get an instant push notification with a 3-day SLA timer to visit or send quotation.
@@ -293,13 +293,14 @@ export default function AddInquiryPage() {
               <button
                 type="button"
                 onClick={() => setIsUrgent(true)}
-                className={`py-2.5 rounded-xl text-xs font-bold border transition ${
+                className={`py-2.5 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
                   isUrgent
                     ? 'bg-rose-600 text-white border-rose-600 shadow-soft'
                     : 'bg-typhoon-sand/40 text-typhoon-navy border-typhoon-border'
                 }`}
               >
-                🔥 Urgent Lead
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>Urgent Lead</span>
               </button>
               <button
                 type="button"

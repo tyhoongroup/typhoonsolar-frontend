@@ -112,7 +112,7 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
 
       setIsCompleted(true);
       toast.success(
-        '🎉 Rooftop installation saved to database! Portal User (Rahul Bhai) notified to prepare CEI Meter File.'
+        'Rooftop installation saved to database! Portal User (Rahul Bhai) notified to prepare CEI Meter File.'
       );
       router.push(`/inquiries/${params.id}`);
     } catch (err: any) {
@@ -279,7 +279,10 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                   />
                 </label>
                 {structurePhotos.length > 0 && (
-                  <p className="text-[10px] text-emerald-700 font-semibold">✓ {structurePhotos[0]}</p>
+                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{structurePhotos[0]}</span>
+                  </p>
                 )}
               </div>
 
@@ -303,7 +306,10 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                   />
                 </label>
                 {panelsPhotos.length > 0 && (
-                  <p className="text-[10px] text-emerald-700 font-semibold">✓ {panelsPhotos[0]}</p>
+                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{panelsPhotos[0]}</span>
+                  </p>
                 )}
               </div>
 
@@ -327,7 +333,10 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                   />
                 </label>
                 {inverterPhotos.length > 0 && (
-                  <p className="text-[10px] text-emerald-700 font-semibold">✓ {inverterPhotos[0]}</p>
+                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{inverterPhotos[0]}</span>
+                  </p>
                 )}
               </div>
 
@@ -351,7 +360,10 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                   />
                 </label>
                 {earthingPhotos.length > 0 && (
-                  <p className="text-[10px] text-emerald-700 font-semibold">✓ {earthingPhotos[0]}</p>
+                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{earthingPhotos[0]}</span>
+                  </p>
                 )}
               </div>
             </div>
@@ -373,7 +385,7 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                 {loading
                   ? 'Finalizing Installation...'
                   : isCompleted
-                  ? '✓ Installation Complete (Portal Notified)'
+                  ? 'Installation Complete (Portal Notified)'
                   : 'Mark Installation Done (Notify Rahul for Meter File)'}
               </span>
             </button>

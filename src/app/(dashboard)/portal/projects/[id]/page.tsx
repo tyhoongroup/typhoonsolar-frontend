@@ -139,7 +139,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
       if (!res.ok) throw new Error('Failed to save SR Number');
 
       setIsSrSaved(true);
-      toast.success(`🎉 SR Number ${srNumber} saved in database! Material Manager (Sohail Bhai) notified to plan delivery.`);
+      toast.success(`SR Number ${srNumber} saved in database! Material Manager (Sohail Bhai) notified to plan delivery.`);
     } catch (err: any) {
       toast.error(err.message || 'Error saving SR Number');
     } finally {
@@ -329,7 +329,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
               <CheckCircle2 className="w-4 h-4" />
               <span>
                 {isApplicationSubmitted
-                  ? '✓ Application Submitted to Surya Gujarat Portal'
+                  ? 'Application Submitted to Surya Gujarat Portal'
                   : 'Mark Application Submitted on Govt Portal'}
               </span>
             </button>
@@ -413,9 +413,10 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
             <button
               onClick={handleSubmitMeterFile}
               disabled={loading}
-              className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition"
+              className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition inline-flex items-center gap-1.5"
             >
-              {isMeterFileSubmitted ? '✓ Meter File Submitted' : 'Submit CEI Meter File'}
+              {isMeterFileSubmitted && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+              <span>{isMeterFileSubmitted ? 'Meter File Submitted' : 'Submit CEI Meter File'}</span>
             </button>
 
             <button
@@ -439,17 +440,19 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                 }
               }}
               disabled={loading}
-              className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition"
+              className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition inline-flex items-center gap-1.5"
             >
-              {isSubsidyClaimed ? '✓ Subsidy Claim Filed' : 'File Subsidy Claim (₹78,000)'}
+              {isSubsidyClaimed && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+              <span>{isSubsidyClaimed ? 'Subsidy Claim Filed' : 'File Subsidy Claim (₹78,000)'}</span>
             </button>
 
             <button
               onClick={handleMarkSubsidyReceived}
               disabled={loading}
-              className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition"
+              className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition inline-flex items-center gap-1.5"
             >
-              {isSubsidyReceived ? '✓ Subsidy Received (DBT Verified)' : 'Mark Subsidy Received'}
+              {isSubsidyReceived && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+              <span>{isSubsidyReceived ? 'Subsidy Received (DBT Verified)' : 'Mark Subsidy Received'}</span>
             </button>
           </div>
         </div>

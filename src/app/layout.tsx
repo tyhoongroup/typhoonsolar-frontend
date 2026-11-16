@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
 import { PwaRegister } from '@/components/PwaRegister';
+import { SplashScreen } from '@/components/SplashScreen';
 
 export const metadata: Metadata = {
   title: 'Typhoon Solar - Team App',
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-typhoon-sand min-h-screen">
+        <SplashScreen />
         <PwaRegister />
         {children}
         <Toaster
