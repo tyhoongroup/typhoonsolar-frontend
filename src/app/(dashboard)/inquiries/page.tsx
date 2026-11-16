@@ -428,6 +428,88 @@ export default function AllInquiriesPage() {
   // Data State
   const [inquiries, setInquiries] = useState<InquiryItem[]>(INITIAL_INQUIRIES);
 
+  // Live Data Fetching from Backend Database
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    fetch('/api/v1/inquiries', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: InquiryItem[] = data.map((d: any) => {
+            const rawId = d.followupId || d.id;
+            const numeric = rawId.replace(/\D/g, '') || '1025';
+            const stageMapping: Record<string, { num: number; name: string }> = {
+              INQUIRY_RECEIVED: { num: 1, name: 'Lead Captured' },
+              SITE_VISIT_PLANNED: { num: 2, name: 'Terrace Site Survey' },
+              QUOTATION_SENT: { num: 3, name: 'Quotation Prepared' },
+              DEAL_CLOSED: { num: 4, name: 'Deal Closed & Token' },
+              GOVT_DOCS_SUBMITTED: { num: 5, name: 'National Portal Registration' },
+              SR_NUMBER_ISSUED: { num: 6, name: 'DISCOM SR Verification' },
+              MATERIAL_PLANNED: { num: 7, name: 'Material Matching & Dispatch' },
+              MATERIAL_UNLOADED: { num: 8, name: 'Unload & 80% Payment' },
+              INSTALLATION_DONE: { num: 9, name: 'Mechanical & Electrical Install' },
+              METER_FILE_SUBMITTED: { num: 10, name: 'Bi-directional Net Meter' },
+              METER_STARTED: { num: 10, name: 'Bi-directional Net Meter' },
+              SUBSIDY_CLAIMED: { num: 10, name: 'Subsidy Claimed' },
+              SUBSIDY_RECEIVED: { num: 10, name: 'DBT Subsidy Credited' },
+              COMPLETED: { num: 10, name: 'Commissioned & Complete' },
+            };
+            const currentStage = stageMapping[d.currentStage] || { num: 1, name: 'Lead Captured' };
+
+            return {
+              id: rawId,
+              projectId: `TYP-2026-${numeric}`,
+              customerName: d.customerName,
+              phone: d.customerPhone,
+              address: d.address || d.city || 'Gujarat',
+              city: (d.city as any) || 'Vadodara',
+              systemKw: Number(d.requestedKw) || 6.0,
+              phase: (d.meterPhase as any) || 'Single Phase',
+              terraceType: 'RCC Terrace',
+              createdAt: d.createdAt ? d.createdAt.split('T')[0] : '2026-11-16',
+              hasVisit: currentStage.num >= 2,
+              hasQuotation: currentStage.num >= 3,
+              currentStageNumber: currentStage.num,
+              currentStageName: currentStage.name,
+              assignedUser: {
+                name: d.assignedSalesperson?.fullName || 'Amit (Salesperson)',
+                role: 'Sales Representative',
+                phone: d.assignedSalesperson?.phone || '9000000002',
+              },
+              followupCount: d.followups?.length || 1,
+              lastFollowupDate: d.createdAt
+                ? new Date(d.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                : 'Today',
+              nextFollowupDate: 'Tomorrow, 5:00 PM',
+              isOverdue: d.isUrgent ?? false,
+              followups: (d.followups || []).map((f: any, idx: number) => ({
+                id: f.id || `f-${idx}`,
+                loggedBy: d.assignedSalesperson?.fullName || 'Amit (Sales)',
+                role: 'Sales Representative',
+                timestamp: f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-IN') : 'Today',
+                channel: 'Phone Call',
+                customerReaction: 'Needs Subsidy Info',
+                reactionColor: 'text-amber-700 bg-amber-50 border-amber-200',
+                notes: f.description || 'Lead assigned to representative.',
+                nextStep: f.nextStep || 'Follow-up with customer',
+                committedDate: f.committedDate ? new Date(f.committedDate).toLocaleDateString('en-IN') : 'Tomorrow',
+              })),
+            };
+          });
+
+          // Merge live items with initial templates avoiding duplicates
+          const liveIds = new Set(mapped.map((m) => m.id));
+          const rest = INITIAL_INQUIRIES.filter((init) => !liveIds.has(init.id));
+          setInquiries([...mapped, ...rest]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Filter Computation
   const filteredInquiries = inquiries.filter((item) => {
     // 1. Search filter

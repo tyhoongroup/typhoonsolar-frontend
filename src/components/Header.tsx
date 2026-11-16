@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { getRoleTheme } from '@/lib/role-theme';
 import { ProfileModal } from './ProfileModal';
+import { NotificationModal } from './NotificationModal';
 import { toast } from 'sonner';
 import { requestNotificationPermission } from '@/lib/fcm-client';
 
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   onBellClick,
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
@@ -46,53 +48,12 @@ export const Header: React.FC<HeaderProps> = ({
     setIsProfileOpen(true);
   };
 
-  const handleBellClick = async () => {
+  const handleBellClick = () => {
     if (onBellClick) {
       onBellClick();
       return;
     }
-
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      toast.error('This browser does not support push notifications.');
-      return;
-    }
-
-    if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      localStorage.setItem('typhoon_inapp_notifications', 'true');
-      toast.success(
-        'In-App Notifications Enabled! Live banner alerts are active for staging. (OS-level background push requires HTTPS or Chrome Flag).',
-        { duration: 8000 }
-      );
-      return;
-    }
-
-    if (Notification.permission === 'granted') {
-      toast.success('Push notifications are active!');
-      return;
-    }
-
-    if (Notification.permission === 'denied') {
-      toast.error(
-        'Notifications are blocked in Chrome. Tap the lock/tune icon next to the address bar -> Permissions -> Notifications -> Allow.',
-        { duration: 8000 }
-      );
-      return;
-    }
-
-    try {
-      const perm = await Notification.requestPermission();
-      if (perm === 'granted') {
-        toast.success('Push notifications enabled successfully!');
-        requestNotificationPermission().catch(console.error);
-      } else {
-        toast.error(
-          'Notifications were not allowed. Tap the tune/lock icon in Chrome address bar -> Permissions -> Notifications -> Allow.',
-          { duration: 8000 }
-        );
-      }
-    } catch {
-      toast.error('Could not request notification permission.');
-    }
+    setIsNotificationOpen(true);
   };
 
   const todayStr = new Intl.DateTimeFormat('en-IN', {
@@ -131,11 +92,15 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={handleBellClick}
-            className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
-            aria-label="Enable / Check Notifications"
-            title="Enable Notifications"
+            className="relative w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+            aria-label="Lead Alerts & Notifications"
+            title="Lead Alerts & Notifications"
           >
             <Bell className="w-5 h-5 text-white/90" />
+            <span
+              style={{ backgroundColor: theme.hex.accentBg }}
+              className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full ring-2 ring-white/40"
+            />
           </button>
         </div>
 
@@ -154,6 +119,12 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         user={currentUser || { fullName: displayTitle, role: role || 'OPS_MANAGER' }}
+      />
+
+      {/* In-App Notifications Modal */}
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
       />
     </>
   );

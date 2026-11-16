@@ -30,10 +30,25 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [liveInquiries, setLiveInquiries] = useState<any[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
     if (stored) setUser(JSON.parse(stored));
+
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      fetch('/api/v1/inquiries', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setLiveInquiries(data);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   if (!user) return null;
@@ -325,7 +340,7 @@ export default function DashboardPage() {
   // 2. SALESPERSON (Amit / Kunal - Matching Screen 2)
   // =========================================================================
   if (user.role === 'SALESPERSON') {
-    const mobileUpNext: UpNextItem[] = [
+    const defaultMobileUpNext: UpNextItem[] = [
       {
         id: '1',
         icon: <FileText className="w-4 h-4" />,
@@ -346,7 +361,19 @@ export default function DashboardPage() {
       },
     ];
 
-    const desktopSalesRows: DataRowItem[] = [
+    const liveMobileUpNext: UpNextItem[] = liveInquiries.slice(0, 3).map((inq: any, idx: number) => ({
+      id: String(idx + 1),
+      icon: inq.isUrgent ? <PhoneCall className="w-4 h-4 text-rose-600" /> : <FileText className="w-4 h-4 text-amber-600" />,
+      title: `${inq.followupId || inq.id} · ${inq.customerName}`,
+      subtitle: `${inq.requestedKw} kW · ${inq.city || 'Vadodara'} · Call customer`,
+      badgeText: inq.isUrgent ? 'Urgent' : 'New',
+      badgeType: inq.isUrgent ? 'due' : 'active',
+      onClick: () => router.push(`/inquiries/${inq.followupId || inq.id}`),
+    }));
+
+    const mobileUpNext: UpNextItem[] = liveMobileUpNext.length > 0 ? liveMobileUpNext : defaultMobileUpNext;
+
+    const defaultDesktopSalesRows: DataRowItem[] = [
       {
         id: 'F-1024',
         icon: <Camera className="w-4 h-4 text-amber-600" />,
@@ -372,6 +399,24 @@ export default function DashboardPage() {
         badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       },
     ];
+
+    const liveDesktopSalesRows: DataRowItem[] = liveInquiries.map((inq: any) => ({
+      id: inq.followupId || inq.id,
+      icon: inq.isUrgent ? (
+        <PhoneCall className="w-4 h-4 text-rose-600" />
+      ) : (
+        <Camera className="w-4 h-4 text-amber-600" />
+      ),
+      title: `${inq.followupId || inq.id} · ${inq.customerName}`,
+      subtitle: `${inq.requestedKw} kW · ${inq.meterPhase || 'Single Phase'} · ${inq.city || inq.address}`,
+      badgeText: inq.isUrgent ? 'Urgent Lead' : inq.currentStage?.replace(/_/g, ' ') || 'Assigned',
+      badgeStyle: inq.isUrgent
+        ? 'bg-rose-50 text-rose-700 border-rose-200'
+        : 'bg-sky-50 text-sky-700 border-sky-200',
+    }));
+
+    const desktopSalesRows: DataRowItem[] =
+      liveDesktopSalesRows.length > 0 ? liveDesktopSalesRows : defaultDesktopSalesRows;
 
     return (
       <div>
@@ -401,7 +446,9 @@ export default function DashboardPage() {
                 <Users className="w-6 h-6 text-typhoon-gold" />
               </div>
               <div>
-                <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">5</span>
+                <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">
+                  {liveInquiries.length > 0 ? liveInquiries.length : 5}
+                </span>
                 <span className="text-xs text-typhoon-muted font-medium mt-1 block">Assigned to Me</span>
               </div>
             </div>

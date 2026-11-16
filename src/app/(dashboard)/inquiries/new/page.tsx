@@ -16,12 +16,17 @@ export default function AddInquiryPage() {
   const [city, setCity] = useState('Vadodara');
   const [requestedKw, setRequestedKw] = useState(6.0);
   const [meterPhase, setMeterPhase] = useState<'Single Phase' | 'Three Phase'>('Single Phase');
-  const [assignedSalesperson, setAssignedSalesperson] = useState('Amit Patel');
+  const [salespersons, setSalespersons] = useState<Array<{ id: string; fullName: string; phone: string }>>([
+    { id: '9000000002', fullName: 'Amit (Salesperson)', phone: '9000000002' },
+    { id: '9000000003', fullName: 'Kunal (Salesperson)', phone: '9000000003' },
+    { id: '9000000004', fullName: 'Priya (Salesperson)', phone: '9000000004' },
+  ]);
+  const [assignedSalespersonId, setAssignedSalespersonId] = useState('9000000002');
   const [isUrgent, setIsUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // 1. Session Token Guard: Redirect immediately to '/' if not logged in
+  // 1. Session Token Guard & Load Sales Team
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     const user = localStorage.getItem('user');
@@ -34,6 +39,19 @@ export default function AddInquiryPage() {
     }
 
     setIsCheckingAuth(false);
+
+    // Fetch active sales team for lead assignment
+    fetch('/api/v1/inquiries/salespersons', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setSalespersons(data);
+          setAssignedSalespersonId(data[0].id);
+        }
+      })
+      .catch(() => {});
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,6 +90,7 @@ export default function AddInquiryPage() {
           requestedKw: Number(requestedKw),
           meterPhase,
           isUrgent,
+          assignedSalespersonId,
         }),
       });
 
@@ -268,13 +287,15 @@ export default function AddInquiryPage() {
               Assign to Salesperson <span className="text-typhoon-gold font-bold">*</span>
             </label>
             <select
-              value={assignedSalesperson}
-              onChange={(e) => setAssignedSalesperson(e.target.value)}
+              value={assignedSalespersonId}
+              onChange={(e) => setAssignedSalespersonId(e.target.value)}
               className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
             >
-              <option value="Amit Patel">Amit Patel (Sales Rep - Vadodara)</option>
-              <option value="Kunal Joshi">Kunal Joshi (Senior Sales Rep - Anand)</option>
-              <option value="Priya Sharma">Priya Sharma (Sales Engineer - Nadiad)</option>
+              {salespersons.map((sp) => (
+                <option key={sp.id} value={sp.id}>
+                  {sp.fullName} ({sp.phone})
+                </option>
+              ))}
             </select>
             <p className="text-[10px] text-typhoon-muted mt-1">
               Assigned rep will get an instant push notification with a 3-day SLA timer to visit or send quotation.

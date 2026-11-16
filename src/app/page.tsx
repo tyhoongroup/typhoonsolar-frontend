@@ -386,7 +386,7 @@ export default function LoginPage() {
                       <span className="truncate">Amit (Ops)</span>
                     </button>
                     <button
-                      onClick={() => handleQuickRoleSelect('9000000003', 'PORTAL_USER', 'Rahul Patel')}
+                      onClick={() => handleQuickRoleSelect('9000000006', 'PORTAL_USER', 'Rahul Patel')}
                       className="p-2 rounded-xl bg-[#063a42] text-white text-left font-medium flex items-center gap-2 border border-[#00bfa5]/40 shadow-xs"
                     >
                       <span className="w-5 h-5 rounded-full bg-[#00bfa5] text-[#063a42] font-bold text-[9px] flex items-center justify-center shrink-0">
@@ -404,13 +404,13 @@ export default function LoginPage() {
                       <span className="truncate">Meera (Accounts)</span>
                     </button>
                     <button
-                      onClick={() => handleQuickRoleSelect('9000000002', 'SALESPERSON', 'Rahul Sharma')}
+                      onClick={() => handleQuickRoleSelect('9000000002', 'SALESPERSON', 'Amit Patel')}
                       className="p-2 rounded-xl bg-[#0a3d7c] text-white text-left font-medium flex items-center gap-2 border border-[#00a3e0]/40 shadow-xs"
                     >
                       <span className="w-5 h-5 rounded-full bg-[#00a3e0] text-white font-bold text-[9px] flex items-center justify-center shrink-0">
-                        RS
+                        AP
                       </span>
-                      <span className="truncate">Rahul (Sales)</span>
+                      <span className="truncate">Amit (Sales)</span>
                     </button>
                   </div>
                 </div>
@@ -647,7 +647,7 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    onClick={() => handleQuickRoleSelect('9000000003', 'PORTAL_USER', 'Rahul Patel')}
+                    onClick={() => handleQuickRoleSelect('9000000006', 'PORTAL_USER', 'Rahul Patel')}
                     className="p-2.5 rounded-xl bg-[#063a42] text-white font-medium text-left truncate transition border border-[#00bfa5]/40 shadow-xs flex items-center gap-2"
                   >
                     <span className="w-5 h-5 rounded-full bg-[#00bfa5] text-[#063a42] font-bold text-[9px] flex items-center justify-center shrink-0">
@@ -669,13 +669,13 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    onClick={() => handleQuickRoleSelect('9000000002', 'SALESPERSON', 'Rahul Sharma')}
+                    onClick={() => handleQuickRoleSelect('9000000002', 'SALESPERSON', 'Amit Patel')}
                     className="p-2.5 rounded-xl bg-[#0a3d7c] text-white font-medium text-left truncate transition border border-[#00a3e0]/40 shadow-xs flex items-center gap-2"
                   >
                     <span className="w-5 h-5 rounded-full bg-[#00a3e0] text-white font-bold text-[9px] flex items-center justify-center shrink-0">
-                      RS
+                      AP
                     </span>
-                    <span className="truncate">Rahul (Sales)</span>
+                    <span className="truncate">Amit (Sales)</span>
                   </button>
 
                   <button
