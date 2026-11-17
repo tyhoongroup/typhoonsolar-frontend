@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   FileText,
@@ -41,7 +41,7 @@ export default function PortalQueuePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'docs' | 'sr' | 'meter' | 'subsidy'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const projects: PortalProjectItem[] = [
+  const [projects, setProjects] = useState<PortalProjectItem[]>([
     {
       id: 'TYP-2026-1024',
       inquiryCode: 'F-1024',
@@ -97,7 +97,60 @@ export default function PortalQueuePage() {
       docsCount: 'All Complete',
       srNumber: 'SR-2026-MGVCL-3109',
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    fetch('/api/v1/portal/applications', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list) && list.length > 0) {
+          setProjects(
+            list.map((inq: any) => {
+              let stage: PortalProjectItem['stage'] = 'DOCS_UPLOADED';
+              let stageLabel = 'Docs Ready for Portal';
+              let stageBadgeStyle = 'bg-amber-50 text-amber-700 border-amber-200';
+
+              if (inq.currentStage === 'SR_NUMBER_ISSUED') {
+                stage = 'SR_PENDING';
+                stageLabel = 'SR Number Issued';
+                stageBadgeStyle = 'bg-blue-50 text-blue-700 border-blue-200';
+              } else if (inq.currentStage === 'METER_FILE_SUBMITTED') {
+                stage = 'METER_FILE_DUE';
+                stageLabel = 'Meter File Submitted';
+                stageBadgeStyle = 'bg-purple-50 text-purple-700 border-purple-200';
+              } else if (inq.currentStage === 'SUBSIDY_CLAIMED' || inq.currentStage === 'SUBSIDY_RECEIVED') {
+                stage = 'SUBSIDY_CLAIM';
+                stageLabel = inq.currentStage === 'SUBSIDY_RECEIVED' ? 'Subsidy Received' : 'Subsidy Claimed';
+                stageBadgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+              }
+
+              return {
+                id: inq.id.startsWith('TYP-') ? inq.id : `TYP-2026-${(inq.followupId || inq.id).replace('F-', '')}`,
+                inquiryCode: inq.followupId || inq.id,
+                customerName: inq.customerName,
+                phone: inq.customerPhone,
+                capacityKw: Number(inq.requestedKw) || 6,
+                city: inq.city || 'Gujarat',
+                consumerNo: inq.portalApplication?.consumerNumber || 'MGVCL-88491029',
+                stage,
+                stageLabel,
+                stageBadgeStyle,
+                docsCount: inq.documents ? `${inq.documents.length} Uploaded` : '4/4 Collected',
+                srNumber: inq.portalApplication?.srNumber,
+                queryPending: inq.portalApplication?.subsidyStatus === 'QUERY',
+              };
+            })
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = projects.filter((p) => {
     const matchesSearch =

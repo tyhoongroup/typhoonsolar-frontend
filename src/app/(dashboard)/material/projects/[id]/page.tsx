@@ -146,9 +146,19 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
     }
   };
 
-  const handleVerifyInstall = () => {
-    setIsInstallVerified(true);
-    toast.success('Installation team proof photos verified done! Operations Manager notified.');
+  const handleVerifyInstall = async () => {
+    try {
+      setLoading(true);
+      await fetchWithAuth(`/api/v1/material/${params.id}/verify-install`, {
+        method: 'POST',
+      });
+      setIsInstallVerified(true);
+      toast.success('Installation team proof photos verified done in database! Quality check passed.');
+    } catch (err: any) {
+      toast.error(err.message || 'Error verifying installation');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMarkMaterialUnloaded = async () => {

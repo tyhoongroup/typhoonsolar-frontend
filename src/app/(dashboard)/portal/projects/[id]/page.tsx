@@ -330,10 +330,22 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
           {/* Application Submitted Button & Follow-up */}
           <div className="pt-2 flex flex-col sm:flex-row gap-2">
             <button
-              onClick={() => {
-                setIsApplicationSubmitted(true);
-                toast.success('Marked: Application uploaded to Government Portal!');
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  const res = await fetchWithAuth(`/api/v1/portal/${params.id}/docs-uploaded`, {
+                    method: 'PATCH',
+                  });
+                  if (!res.ok) throw new Error('Failed to update stage in database');
+                  setIsApplicationSubmitted(true);
+                  toast.success('Marked: Application uploaded to Government Portal!');
+                } catch (err: any) {
+                  toast.error(err.message || 'Error updating status');
+                } finally {
+                  setLoading(false);
+                }
               }}
+              disabled={loading}
               className={`flex-1 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition ${
                 isApplicationSubmitted
                   ? 'bg-emerald-600 text-white shadow-soft'

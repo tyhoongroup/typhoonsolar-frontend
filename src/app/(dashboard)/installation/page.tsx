@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Wrench,
@@ -41,7 +41,7 @@ export default function InstallationQueuePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'ready' | 'progress' | 'done'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const projects: InstallationProjectItem[] = [
+  const [projects, setProjects] = useState<InstallationProjectItem[]>([
     {
       id: 'TYP-2026-1015',
       inquiryCode: 'F-1015',
@@ -74,7 +74,59 @@ export default function InstallationQueuePage() {
       stageLabel: 'Installation Completed',
       stageBadgeStyle: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    fetch('/api/v1/jobs/today', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list) && list.length > 0) {
+          setProjects(
+            list.map((inq: any) => {
+              let stage: InstallationProjectItem['stage'] = 'READY_TO_FIT';
+              let stageLabel = 'Ready for Fitting';
+              let stageBadgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+              if (inq.currentStage === 'INSTALLATION_DONE') {
+                stage = 'COMPLETED';
+                stageLabel = 'Installation Completed';
+                stageBadgeStyle = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+              } else if (inq.installationJob?.structureDone) {
+                stage = 'IN_PROGRESS';
+                stageLabel = 'Panels & Wiring in Progress';
+                stageBadgeStyle = 'bg-amber-50 text-amber-700 border-amber-200';
+              }
+
+              return {
+                id: inq.id.startsWith('TYP-') ? inq.id : `TYP-2026-${(inq.followupId || inq.id).replace('F-', '')}`,
+                inquiryCode: inq.followupId || inq.id,
+                customerName: inq.customerName,
+                phone: inq.customerPhone,
+                capacityKw: Number(inq.requestedKw) || 6,
+                city: inq.city || 'Gujarat',
+                address: inq.address || inq.city || 'Site Address',
+                panelsCount: inq.materialDispatch?.panelSerialNumbers?.length || 12,
+                inverterModel: inq.materialDispatch?.inverterSerialNo || 'Growatt / Solis',
+                materialUnloadedDate: inq.materialDispatch?.actualUnloadedDate
+                  ? new Date(inq.materialDispatch.actualUnloadedDate).toLocaleDateString('en-IN')
+                  : 'Unloaded',
+                paymentStatus: 'PAID',
+                stage,
+                stageLabel,
+                stageBadgeStyle,
+              };
+            })
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = projects.filter((p) => {
     const matchesSearch =

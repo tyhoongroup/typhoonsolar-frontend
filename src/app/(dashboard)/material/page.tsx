@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Package,
@@ -39,7 +39,7 @@ export default function MaterialQueuePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'scheduled' | 'unloaded'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const projects: MaterialProjectItem[] = [
+  const [projects, setProjects] = useState<MaterialProjectItem[]>([
     {
       id: 'TYP-2026-1024',
       inquiryCode: 'F-1024',
@@ -84,7 +84,61 @@ export default function MaterialQueuePage() {
       panelsCount: 18,
       inverterModel: '10 kW Growatt On-Grid',
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    fetch('/api/v1/material/queue', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list) && list.length > 0) {
+          setProjects(
+            list.map((inq: any) => {
+              let stage: MaterialProjectItem['stage'] = 'PLANNING_PENDING';
+              let stageLabel = 'Planning & Call Left';
+              let stageBadgeStyle = 'bg-amber-50 text-amber-700 border-amber-200';
+
+              if (inq.currentStage === 'MATERIAL_PLANNED') {
+                stage = 'DELIVERY_SCHEDULED';
+                stageLabel = 'Delivery Scheduled';
+                stageBadgeStyle = 'bg-blue-50 text-blue-700 border-blue-200';
+              } else if (inq.currentStage === 'MATERIAL_UNLOADED' || inq.currentStage === 'INSTALLATION_DONE') {
+                stage = 'UNLOADED';
+                stageLabel = 'Material Unloaded on Site';
+                stageBadgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+              }
+
+              return {
+                id: inq.id.startsWith('TYP-') ? inq.id : `TYP-2026-${(inq.followupId || inq.id).replace('F-', '')}`,
+                inquiryCode: inq.followupId || inq.id,
+                customerName: inq.customerName,
+                phone: inq.customerPhone,
+                capacityKw: Number(inq.requestedKw) || 6,
+                city: inq.city || 'Gujarat',
+                srNumber: inq.portalApplication?.srNumber || 'SR-PENDING',
+                stage,
+                stageLabel,
+                stageBadgeStyle,
+                deliveryDate: inq.materialDispatch?.scheduledUnloadDate
+                  ? new Date(inq.materialDispatch.scheduledUnloadDate).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                    })
+                  : undefined,
+                panelsCount: inq.materialDispatch?.panelSerialNumbers?.length || 12,
+                inverterModel: inq.materialDispatch?.inverterSerialNo || '6 kW Dual MPPT',
+              };
+            })
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = projects.filter((p) => {
     const matchesSearch =

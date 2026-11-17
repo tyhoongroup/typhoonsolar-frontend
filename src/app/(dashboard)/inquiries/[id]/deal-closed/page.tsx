@@ -137,6 +137,11 @@ export default function DealClosedPage() {
         },
         body: JSON.stringify({
           dealAmount: cleanAmount,
+          milestones: paymentTerms.map((term, idx) => ({
+            title: `Term ${idx + 1} (${term.trigger})`,
+            amount: Number(term.amount.replace(/\D/g, '')),
+            actionTrigger: term.trigger,
+          })),
         }),
       });
 
@@ -151,7 +156,7 @@ export default function DealClosedPage() {
 
       // Redirect immediately to project documents upload page
       const targetId = inquiry?.followupId || inquiryId;
-      router.push(`/projects/${targetId}`);
+      router.push(`/projects/${targetId}/documents`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to mark deal closed.');
     } finally {

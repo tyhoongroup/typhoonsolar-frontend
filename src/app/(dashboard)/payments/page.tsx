@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   IndianRupee,
@@ -40,7 +40,7 @@ export default function PaymentsLedgerPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'due' | 'paid'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const projects: PaymentProjectItem[] = [
+  const [projects, setProjects] = useState<PaymentProjectItem[]>([
     {
       id: 'TYP-2026-1024',
       inquiryCode: 'F-1024',
@@ -86,7 +86,63 @@ export default function PaymentsLedgerPage() {
       subsidyAmount: 78000,
       lastFollowupNote: 'Full payment cleared. Net meter live.',
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    fetch('/api/v1/inquiries', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list)) {
+          const converted = list.filter((i: any) =>
+            [
+              'DEAL_CLOSED',
+              'GOVT_DOCS_SUBMITTED',
+              'SR_NUMBER_ISSUED',
+              'MATERIAL_PLANNED',
+              'MATERIAL_UNLOADED',
+              'INSTALLATION_DONE',
+              'METER_STARTED',
+              'COMPLETED',
+            ].includes(i.currentStage)
+          );
+
+          if (converted.length > 0) {
+            setProjects(
+              converted.map((inq: any) => {
+                const total = Number(inq.dealAmount) || (Number(inq.requestedKw) || 6) * 45000;
+                const m1 = inq.payments?.[0]?.amount ? Number(inq.payments[0].amount) : Math.round(total * 0.8);
+                const m2 = total - m1;
+                const m1Paid = inq.payments?.[0]?.status === 'PAID';
+                const m2Paid = inq.payments?.[1]?.status === 'PAID';
+
+                return {
+                  id: inq.id.startsWith('TYP-') ? inq.id : `TYP-2026-${(inq.followupId || inq.id).replace('F-', '')}`,
+                  inquiryCode: inq.followupId || inq.id,
+                  customerName: inq.customerName,
+                  phone: inq.customerPhone,
+                  capacityKw: Number(inq.requestedKw) || 6,
+                  city: inq.city || 'Gujarat',
+                  totalDealAmount: total,
+                  firstMilestoneAmount: m1,
+                  firstMilestoneStatus: m1Paid ? 'PAID' : 'DUE',
+                  finalMilestoneAmount: m2,
+                  finalMilestoneStatus: m2Paid ? 'PAID' : 'PENDING',
+                  subsidyAmount: 78000,
+                  lastFollowupNote: inq.followups?.[0]?.description || 'Milestone tracking active',
+                };
+              })
+            );
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = projects.filter((p) => {
     const matchesSearch =
