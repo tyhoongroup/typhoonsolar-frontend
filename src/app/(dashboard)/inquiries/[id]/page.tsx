@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ChevronLeft,
@@ -19,168 +19,311 @@ import {
   Share2,
   CheckCircle2,
   Send,
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/lib/use-current-user';
 
-interface FollowupRecord {
-  id: string;
-  loggedBy: string;
-  role: string;
-  timestamp: string;
-  type: 'Phone Call' | 'Terrace Visit' | 'WhatsApp' | 'Office Meeting';
-  customerReaction: 'Very Positive' | 'Negotiating' | 'Needs Subsidy Info' | 'Hesitant';
-  reactionBadgeColor: string;
-  description: string; // Follow-up description clearly visible to Operations Manager
-  nextStep: string;
-  committedDate: string;
-  isCompleted: boolean;
-}
-
 export default function InquiryDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { theme } = useCurrentUser();
-  const [isLogCallOpen, setIsLogCallOpen] = useState(false);
-  const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
-  const [isDealClosedOpen, setIsDealClosedOpen] = useState(false);
-  const [roofArea, setRoofArea] = useState('450');
-  const [roofType, setRoofType] = useState('RCC Terrace');
-  const [dealAmount, setDealAmount] = useState('275000');
-  const [currentStageText, setCurrentStageText] = useState('STAGE 2 OF 10');
-  const projectId = `TYP-2026-${params.id.replace('F-', '')}`;
+  const inquiryId = params.id;
+  const { user, theme } = useCurrentUser();
 
-  const [callType, setCallType] = useState<'Phone Call' | 'Terrace Visit' | 'WhatsApp'>('Phone Call');
-  const [customerReaction, setCustomerReaction] = useState<'Very Positive' | 'Negotiating' | 'Needs Subsidy Info' | 'Hesitant'>('Very Positive');
-  const [description, setDescription] = useState('');
-  const [nextStep, setNextStep] = useState('Terrace site visit & shadow analysis');
-  const [nextFollowupDate, setNextFollowupDate] = useState('2026-11-11');
-  const [loading, setLoading] = useState(false);
+  const [inquiry, setInquiry] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleSendDocsWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Namaste Ramesh Patel ji,\n\nCongratulations on finalizing your Typhoon Solar 6 kW rooftop solar project (ID: ${projectId})!\n\nTo proceed with your government PM Surya Ghar portal subsidy registration, please send photos of:\n1. Latest Electricity Bill\n2. Aadhaar Card (Front & Back)\n3. Property Tax Receipt or Index-2\n4. Canceled Cheque or Bank Passbook copy\n\nThank you,\nTeam Typhoon Solar`
-    );
-    window.open(`https://wa.me/919825012345?text=${text}`, '_blank');
-    toast.success('Opened WhatsApp with KYC document request!');
-  };
-
-  // Check token on mount; redirect if absent
-  React.useEffect(() => {
+  // Load live inquiry data from backend
+  useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    const user = localStorage.getItem('user');
-    if (!token || token === 'null' || token === 'undefined' || !user) {
+    if (!token || token === 'null' || token === 'undefined') {
       localStorage.clear();
-      toast.error('No login session found. Redirecting to login...');
       router.push('/');
-    }
-  }, [router]);
-
-  // Initial realistic follow-up timeline for Operations Manager review
-  const [followups, setFollowups] = useState<FollowupRecord[]>([
-    {
-      id: 'FUP-101',
-      loggedBy: 'Amit Patel',
-      role: 'Sales Representative',
-      timestamp: 'Today, 11:15 AM',
-      type: 'Phone Call',
-      customerReaction: 'Very Positive',
-      reactionBadgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      description:
-        'Called customer to discuss 6 kW system inquiry. Customer verified monthly DISCOM bill is ₹3,800. Explained PM Surya Ghar ₹78,000 direct DBT subsidy. Ramesh agreed for terrace visit tomorrow morning.',
-      nextStep: 'Terrace site survey & shadow analysis with DISCOM meter photo',
-      committedDate: '10 Nov 2026, 10:30 AM',
-      isCompleted: true,
-    },
-    {
-      id: 'FUP-102',
-      loggedBy: 'Kunal Joshi',
-      role: 'Senior Sales Engineer',
-      timestamp: 'Yesterday, 04:30 PM',
-      type: 'WhatsApp',
-      customerReaction: 'Negotiating',
-      reactionBadgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-      description:
-        'Shared formal PDF quotation for 6 kW (12x 550W DCR Mono PERC + 6kW On-Grid Inverter). Customer compared pricing with a local vendor; clarified Typhoon includes 5-year free maintenance and Tier-1 mounting structure.',
-      nextStep: 'Follow up after father reviews quotation breakdown',
-      committedDate: '10 Nov 2026, 05:00 PM',
-      isCompleted: true,
-    },
-    {
-      id: 'FUP-103',
-      loggedBy: 'Amit Patel',
-      role: 'Sales Representative',
-      timestamp: 'Planned Upcoming',
-      type: 'Terrace Visit',
-      customerReaction: 'Needs Subsidy Info',
-      reactionBadgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      description:
-        'Pending terrace inspection. Must verify RCC roof slope, shadow obstacles from neighboring water tank, and cable conduit route from roof to ground meter.',
-      nextStep: 'Complete 4-photo site survey report and upload to portal',
-      committedDate: '11 Nov 2026, 11:00 AM',
-      isCompleted: false,
-    },
-  ]);
-
-  const quickTemplates = [
-    'Explained PM Surya Ghar ₹78k subsidy; customer interested in 3.24 kW.',
-    'Customer requested revised quotation with DCR panels for faster approval.',
-    'Customer discussed with father; ready to pay ₹20,000 booking token.',
-    'Terrace measured: 450 sq.ft shadow-free RCC roof, cable run 18 meters.',
-  ];
-
-  const handleSaveFollowup = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!description.trim()) {
-      toast.error('Please enter follow-up description / notes.');
       return;
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      const newRecord: FollowupRecord = {
-        id: `FUP-${Date.now().toString().slice(-3)}`,
-        loggedBy: 'Anand Kumar (Ops Manager)',
-        role: 'Operations Manager',
-        timestamp: 'Just now',
-        type: callType,
-        customerReaction,
-        reactionBadgeColor:
-          customerReaction === 'Very Positive'
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            : customerReaction === 'Negotiating'
-            ? 'bg-amber-50 text-amber-700 border-amber-200'
-            : 'bg-blue-50 text-blue-700 border-blue-200',
-        description,
-        nextStep,
-        committedDate: nextFollowupDate,
-        isCompleted: true,
-      };
+    fetch(`/api/v1/inquiries/${inquiryId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const item = data?.data || data;
+        if (item) {
+          setInquiry(item);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load inquiry:', err);
+      })
+      .finally(() => setLoading(false));
+  }, [inquiryId, router]);
 
-      setFollowups([newRecord, ...followups]);
-      toast.success('Follow-up call & notes logged successfully!');
-      setDescription('');
-      setIsLogCallOpen(false);
-      setLoading(false);
-    }, 400);
+  // Stage mapping helper
+  const getStageMeta = (stage?: string) => {
+    switch (stage) {
+      case 'INQUIRY_RECEIVED':
+        return { name: 'Inquiry received', num: 1, percent: '10%' };
+      case 'SITE_VISIT_PLANNED':
+        return { name: 'Quotation and visit', num: 2, percent: '20%' };
+      case 'QUOTATION_SENT':
+        return { name: 'Quotation negotiation', num: 3, percent: '30%' };
+      case 'DEAL_CLOSED':
+        return { name: 'Deal closed & KYC', num: 4, percent: '40%' };
+      case 'GOVT_DOCS_SUBMITTED':
+      case 'SR_NUMBER_ISSUED':
+        return { name: 'Govt portal filing', num: 5, percent: '50%' };
+      case 'MATERIAL_PLANNED':
+      case 'MATERIAL_UNLOADED':
+        return { name: 'Material & BOM delivery', num: 7, percent: '70%' };
+      case 'INSTALLATION_DONE':
+        return { name: 'Installation & testing', num: 8, percent: '80%' };
+      case 'METER_STARTED':
+      case 'COMPLETED':
+        return { name: 'Commissioned & Subsidy', num: 10, percent: '100%' };
+      default:
+        return { name: 'Quotation and visit', num: 2, percent: '20%' };
+    }
   };
 
+  const stageMeta = getStageMeta(inquiry?.currentStage);
+
+  // Status badge styling
+  const getBadgeStyle = (status?: string) => {
+    switch (status) {
+      case 'DONE':
+      case 'CALL_DONE':
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      case 'ON_TRACK':
+        return 'bg-amber-50 text-amber-800 border-amber-200';
+      case 'DELAYED':
+      case 'NOT_REACHABLE':
+        return 'bg-rose-50 text-rose-800 border-rose-200';
+      default:
+        return 'bg-blue-50 text-blue-800 border-blue-200';
+    }
+  };
+
+  const customerName = inquiry?.customerName || 'Ramesh Patel';
+  const customerPhone = inquiry?.customerPhone || '9825012345';
+  const requestedKw = inquiry?.requestedKw || '6.0';
+  const meterPhase = inquiry?.meterPhase || 'Single Phase';
+  const followupId = inquiry?.followupId || inquiryId;
+  const assignedSp = inquiry?.assignedSalesperson?.fullName || 'Amit';
+  const quoteDueDays = inquiry?.quoteDueDays || 3;
+
+  // Real or default followups list
+  const followupsList = inquiry?.followups && inquiry.followups.length > 0
+    ? inquiry.followups
+    : [
+        {
+          id: 'f-1',
+          status: 'DONE',
+          description: 'Wants a site visit this week',
+          nextStep: 'Site visit planned',
+          title: 'Customer called',
+        },
+        {
+          id: 'f-2',
+          status: 'ON_TRACK',
+          description: `${assignedSp} will visit terrace`,
+          nextStep: 'Prepare quotation breakdown',
+          title: 'Site visit planned',
+        },
+      ];
+
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-20">
-      {/* ======================================================== */}
-      {/* 1. TOP HEADER with dynamic active user role theme        */}
-      {/* ======================================================== */}
-      <div
-        style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
-        }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
-      >
-        <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-typhoon-sand pb-28">
+      {/* ================================================================ */}
+      {/* MOBILE LAYOUT (Matches Screen 4 from PDF)                        */}
+      {/* ================================================================ */}
+      <div className="lg:hidden">
+        {/* 1. Curved Header with Role Theme Colors */}
+        <div
+          style={{ backgroundColor: theme.hex.headerBg }}
+          className="pt-6 pb-12 px-5 rounded-b-[36px] shadow-sm relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
+          <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
+
+          <div className="max-w-md mx-auto">
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-4 cursor-pointer"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+              Inquiry detail
+            </h1>
+            <p className="text-xs text-white/70 mt-1 font-medium">
+              {followupId} · Follow-up ID
+            </p>
+          </div>
+        </div>
+
+        {/* 2. Mobile Body Cards */}
+        <div className="max-w-md mx-auto px-4 -mt-4 space-y-4">
+          {/* Summary Card (Customer, Phone, Requirement, Assigned to) */}
+          <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60">
+            <div className="flex justify-between items-center py-2 text-xs first:pt-0">
+              <span className="text-typhoon-muted font-medium">Customer</span>
+              <span className="font-bold text-typhoon-navy text-sm">
+                {customerName}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center py-2 text-xs">
+              <span className="text-typhoon-muted font-medium">Phone</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-typhoon-navy text-sm">
+                  +91 {customerPhone}
+                </span>
+                <a
+                  href={`tel:${customerPhone.replace(/\D/g, '')}`}
+                  className="w-6 h-6 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy"
+                >
+                  <Phone className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center py-2 text-xs">
+              <span className="text-typhoon-muted font-medium">Requirement</span>
+              <span className="font-bold text-typhoon-navy text-sm">
+                {requestedKw} kW, {meterPhase}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center py-2 text-xs last:pb-0">
+              <span className="text-typhoon-muted font-medium">Assigned to</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-typhoon-navy text-sm">
+                  {assignedSp} · {quoteDueDays} days
+                </span>
+                <button
+                  onClick={() => router.push(`/inquiries/${followupId}/assign`)}
+                  className="text-[11px] font-bold text-typhoon-gold-dark hover:underline"
+                >
+                  Change
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Stage Progress Card */}
+          <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-2.5">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-medium text-typhoon-navy">
+                {stageMeta.name}
+              </span>
+              <span className="font-bold text-typhoon-navy">
+                Stage {stageMeta.num} of 10
+              </span>
+            </div>
+
+            {/* Progress Bar with Gold / Accent Fill */}
+            <div className="w-full h-2.5 bg-typhoon-sand rounded-full overflow-hidden">
+              <div
+                style={{ width: stageMeta.percent, backgroundColor: theme.hex.accentBg }}
+                className="h-full rounded-full transition-all duration-500"
+              />
+            </div>
+          </div>
+
+          {/* Section: CALL HISTORY */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase px-1">
+              CALL HISTORY
+            </h3>
+
+            {/* Call History Card List */}
+            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60 overflow-hidden">
+              {followupsList.map((f: any, idx: number) => (
+                <div
+                  key={f.id || idx}
+                  onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
+                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy flex-shrink-0">
+                      {idx % 2 === 0 ? (
+                        <Phone className="w-5 h-5 text-typhoon-navy" />
+                      ) : (
+                        <Calendar className="w-5 h-5 text-typhoon-navy" />
+                      )}
+                    </div>
+                    <div className="truncate">
+                      <h4 className="text-sm font-bold text-typhoon-navy truncate">
+                        {f.title || (f.status === 'CALL_DONE' ? 'Customer called' : 'Follow-up update')}
+                      </h4>
+                      <p className="text-xs text-typhoon-muted truncate mt-0.5">
+                        {f.description || f.nextStep || 'Follow-up discussion notes'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    <span
+                      className={`text-xs font-bold px-3 py-1 rounded-full border ${getBadgeStyle(
+                        f.status
+                      )}`}
+                    >
+                      {f.status === 'DONE' || f.status === 'CALL_DONE'
+                        ? 'Done'
+                        : f.status === 'ON_TRACK'
+                        ? 'Next'
+                        : 'Update'}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Hub Buttons */}
+          <div className="pt-2 space-y-2">
+            {/* Main Log a Call Button Matching Screen 4 */}
+            <button
+              onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
+              style={{
+                backgroundColor: theme.hex.accentBg,
+                color: theme.hex.accentTextColor,
+              }}
+              className="w-full py-4 px-6 rounded-2xl font-bold text-base shadow-soft flex items-center justify-center gap-2 transition cursor-pointer hover:opacity-95"
+            >
+              <Phone className="w-5 h-5" />
+              <span>Log a call</span>
+            </button>
+
+            {/* Secondary Action: Deal closed */}
+            <button
+              onClick={() => router.push(`/inquiries/${followupId}/deal-closed`)}
+              className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-typhoon-sand border border-typhoon-border text-typhoon-navy font-bold text-xs shadow-soft flex items-center justify-center gap-2 transition cursor-pointer"
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Advance to Deal Closed</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================================================================ */}
+      {/* DESKTOP LAYOUT (Rich 2-Column Wide Grid Layout)                 */}
+      {/* ================================================================ */}
+      <div className="hidden lg:block max-w-6xl mx-auto px-6 py-8 space-y-6">
+        {/* Top Header Card */}
+        <div
+          style={{ backgroundColor: theme.hex.headerBg }}
+          className="rounded-3xl p-6 text-white shadow-soft relative overflow-hidden"
+        >
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -190,259 +333,167 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                   backgroundColor: theme.hex.accentBg,
                   color: theme.hex.accentTextColor,
                 }}
-                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm"
+                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm uppercase tracking-wide"
               >
-                STAGE 2 OF 10
+                Stage {stageMeta.num} of 10
               </span>
-              <span className="text-xs text-white/70">Quotation & Site Visit</span>
+              <span className="text-xs text-white/70">{stageMeta.name}</span>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
-                Ramesh Patel
+              <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+                {customerName}
               </h1>
-              <p
-                style={{ color: theme.hex.accentBg }}
-                className="text-xs font-semibold mt-1"
-              >
-                Inquiry {params.id} · B-42 Shivalik Residency, Anand · +91 98250 12345
+              <p className="text-xs text-white/70 mt-1 font-medium">
+                Inquiry {followupId} · {inquiry?.city || 'Vadodara'} · +91 {customerPhone}
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <a
-                href="tel:+919825012345"
-                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition"
+                href={`tel:${customerPhone.replace(/\D/g, '')}`}
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition"
               >
-                <Phone className="w-3.5 h-3.5 text-white/80" />
+                <Phone className="w-4 h-4 text-white/80" />
                 <span>Call Customer</span>
               </a>
+
               <button
-                onClick={() => setIsLogCallOpen(true)}
+                onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
                 style={{
                   backgroundColor: theme.hex.accentBg,
                   color: theme.hex.accentTextColor,
                 }}
-                className="font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-soft transition hover:opacity-90 active:scale-95 cursor-pointer"
+                className="font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-soft transition hover:opacity-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Log New Follow-Up</span>
+                <span>Log a Call</span>
+              </button>
+
+              <button
+                onClick={() => router.push(`/inquiries/${followupId}/deal-closed`)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition shadow-soft cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Close Deal</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ======================================================== */}
-      {/* 2. MAIN CONTENT (2-Column Grid on Desktop, Stack on Mobile) */}
-      {/* ======================================================== */}
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Customer Details & 10-Stage Progress (4 cols) */}
-          <div className="lg:col-span-4 space-y-4">
-            {/* System Sizing Card */}
-            <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-3">
+        {/* 2-Column Desktop Grid */}
+        <div className="grid grid-cols-12 gap-6 items-start">
+          {/* Left Column: Specifications (4 cols) */}
+          <div className="col-span-4 space-y-4">
+            <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-4">
               <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase">
                 SYSTEM SPECIFICATIONS
               </h3>
 
-              <div className="grid grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
                   <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Capacity</span>
-                  <span className="text-base font-bold text-typhoon-navy">6.0 kW</span>
+                  <span className="text-base font-bold text-typhoon-navy">{requestedKw} kW</span>
                 </div>
                 <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
-                  <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">DISCOM Phase</span>
-                  <span className="text-base font-bold text-typhoon-navy">Single Phase</span>
+                  <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Phase</span>
+                  <span className="text-base font-bold text-typhoon-navy">{meterPhase}</span>
                 </div>
                 <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
-                  <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Monthly Bill</span>
-                  <span className="text-base font-bold text-typhoon-navy">₹3,800</span>
+                  <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Region</span>
+                  <span className="text-base font-bold text-typhoon-navy">{inquiry?.city || 'Vadodara'}</span>
                 </div>
                 <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
-                  <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Govt Subsidy</span>
+                  <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Subsidy</span>
                   <span className="text-base font-bold text-emerald-600">₹78,000 DBT</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-typhoon-border/60 space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-typhoon-muted font-medium">Assigned Sales Rep:</span>
-                  <span className="font-bold text-typhoon-navy">Amit Patel</span>
+                  <span className="text-typhoon-muted font-medium">Assigned Salesperson:</span>
+                  <span className="font-bold text-typhoon-navy">{assignedSp}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-typhoon-muted font-medium">Lead Created:</span>
-                  <span className="font-semibold text-typhoon-navy">07 Nov 2026</span>
+                  <span className="text-typhoon-muted font-medium">SLA Commitment:</span>
+                  <span className="font-bold text-typhoon-navy">{quoteDueDays} days</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-typhoon-muted font-medium">Next SLA Due:</span>
-                  <span className="font-bold text-rose-600">Tomorrow 11:00 AM</span>
+                  <span className="text-typhoon-muted font-medium">Full Address:</span>
+                  <span className="font-semibold text-typhoon-navy text-right max-w-[180px] truncate">
+                    {inquiry?.address || 'Vadodara, Gujarat'}
+                  </span>
                 </div>
               </div>
 
-              {/* Action Buttons Hub */}
-              <div className="pt-3 border-t border-typhoon-border/60 space-y-2">
-                <span className="text-[10px] font-bold tracking-widest text-typhoon-muted uppercase block">
-                  ACTION WORKSPACE
-                </span>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    onClick={() => setIsVisitModalOpen(true)}
-                    className="p-2.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold flex items-center justify-center gap-1.5 transition border border-typhoon-border/80"
-                  >
-                    <MapPin className="w-3.5 h-3.5 text-typhoon-gold" />
-                    <span>Mark Visited</span>
-                  </button>
-
-                  <button
-                    onClick={() => router.push(`/quotations/new?inquiryId=${params.id}&name=Ramesh%20Patel&phone=9825012345&kw=6.0`)}
-                    className="p-2.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold flex items-center justify-center gap-1.5 transition border border-typhoon-border/80"
-                  >
-                    <FileText className="w-3.5 h-3.5 text-typhoon-gold" />
-                    <span>Quotation</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsDealClosedOpen(true)}
-                    className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 transition shadow-xs"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Deal Closed</span>
-                  </button>
-
-                  <button
-                    onClick={handleSendDocsWhatsApp}
-                    className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center gap-1.5 transition border border-emerald-200"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Request Docs</span>
-                  </button>
-                </div>
-
+              <div className="pt-3 border-t border-typhoon-border/60 flex items-center justify-between">
                 <button
-                  onClick={() => router.push(`/projects/${params.id}/documents`)}
-                  className="w-full mt-2 py-2.5 rounded-xl bg-typhoon-navy hover:bg-typhoon-navy-light text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-soft"
+                  onClick={() => router.push(`/inquiries/${followupId}/assign`)}
+                  className="w-full py-2.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs transition border border-typhoon-border text-center"
                 >
-                  <FileText className="w-4 h-4 text-typhoon-gold" />
-                  <span>Open KYC Document Locker</span>
+                  Reassign Salesperson
                 </button>
-              </div>
-            </div>
-
-            {/* 10-Stage Linear Lifecycle Tracker */}
-            <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft">
-              <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
-                10-STAGE LINEAR LIFECYCLE
-              </h3>
-
-              <div className="space-y-2 text-xs">
-                {[
-                  { stage: 1, name: 'Inquiry & Phone Qualification', status: 'Completed', color: 'text-emerald-600' },
-                  { stage: 2, name: 'Quotation & Terrace Site Survey', status: 'Active Now', color: 'text-typhoon-gold font-bold' },
-                  { stage: 3, name: 'KYC Document Collection', status: 'Pending', color: 'text-typhoon-muted' },
-                  { stage: 4, name: 'DISCOM Feasibility Approval', status: 'Locked', color: 'text-typhoon-muted' },
-                  { stage: 5, name: 'Token Advance (80% Milestone)', status: 'Locked', color: 'text-typhoon-muted' },
-                  { stage: 6, name: 'Material Dispatch & Delivery', status: 'Locked', color: 'text-typhoon-muted' },
-                  { stage: 7, name: 'Structure Fabrication & Solar Installation', status: 'Locked', color: 'text-typhoon-muted' },
-                  { stage: 8, name: 'CEI Inspection & Net Meter Testing', status: 'Locked', color: 'text-typhoon-muted' },
-                  { stage: 9, name: 'Final 20% Settlement & Portal Handover', status: 'Locked', color: 'text-typhoon-muted' },
-                  { stage: 10, name: 'PM Surya Ghar DBT Subsidy Credit', status: 'Locked', color: 'text-typhoon-muted' },
-                ].map((s) => (
-                  <div key={s.stage} className="flex items-center justify-between py-1.5 border-b border-typhoon-border/40 last:border-none">
-                    <span className="font-medium text-typhoon-navy">
-                      {s.stage}. {s.name}
-                    </span>
-                    <span className={`text-[10px] font-bold ${s.color}`}>{s.status}</span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
 
-          {/* Right Column: Full Follow-Up Audit Log & Detailed Descriptions (8 cols) */}
-          <div className="lg:col-span-8 space-y-4">
+          {/* Right Column: Follow-up Timeline (8 cols) */}
+          <div className="col-span-8 space-y-4">
             <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft">
               <div className="flex items-center justify-between pb-4 border-b border-typhoon-border/60">
                 <div>
-                  <h2 className="text-lg font-serif font-bold text-typhoon-navy">
-                    Follow-Up History & Notes
-                  </h2>
+                  <h3 className="text-base font-serif font-bold text-typhoon-navy">
+                    Call History & Follow-Up Notes
+                  </h3>
                   <p className="text-xs text-typhoon-muted">
-                    Full discussion descriptions, customer reactions, and committed next steps
+                    Discussion records and next actions for {followupId}
                   </p>
                 </div>
+
                 <button
-                  onClick={() => setIsLogCallOpen(true)}
-                  className="bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition"
+                  onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
+                  className="bg-typhoon-navy text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-typhoon-navy-light transition cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5 text-typhoon-gold" />
-                  <span>Log Follow-Up</span>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Log a Call</span>
                 </button>
               </div>
 
-              {/* Timeline of Follow-ups with Highlighted Descriptions */}
-              <div className="mt-5 space-y-5">
-                {followups.map((item, idx) => (
+              <div className="mt-5 space-y-4">
+                {followupsList.map((f: any, idx: number) => (
                   <div
-                    key={item.id}
-                    className="relative pl-6 pb-2 border-l-2 border-typhoon-border last:border-l-transparent"
+                    key={f.id || idx}
+                    className="p-4 rounded-xl bg-typhoon-sand/30 border border-typhoon-border/70 hover:border-typhoon-gold transition-colors space-y-2"
                   >
-                    {/* Timeline bullet */}
-                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-typhoon-navy border-2 border-white shadow-xs" />
-
-                    <div className="bg-typhoon-sand/30 rounded-xl p-4 border border-typhoon-border/70 hover:border-typhoon-gold transition-colors">
-                      {/* Top Header of Follow-up */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-typhoon-navy">
-                            {item.loggedBy}
-                          </span>
-                          <span className="text-[10px] text-typhoon-muted">({item.role})</span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-typhoon-navy/10 text-typhoon-navy">
-                            {item.type}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.reactionBadgeColor}`}
-                          >
-                            {item.customerReaction}
-                          </span>
-                          <span className="text-[11px] text-typhoon-muted font-medium">
-                            {item.timestamp}
-                          </span>
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-typhoon-navy">
+                          {f.title || (f.status === 'CALL_DONE' ? 'Phone Call' : 'Follow-up Task')}
+                        </span>
+                        <span className="text-[10px] text-typhoon-muted">
+                          by {f.createdBy?.fullName || assignedSp}
+                        </span>
                       </div>
+                      <span
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${getBadgeStyle(
+                          f.status
+                        )}`}
+                      >
+                        {f.status}
+                      </span>
+                    </div>
 
-                      {/* Explicit Follow-up Description Box (Seen by Operations Manager) */}
-                      <div className="my-2.5 p-3 rounded-xl bg-white border border-typhoon-border shadow-xs">
-                        <div className="flex items-start gap-2">
-                          <MessageSquare className="w-4 h-4 text-typhoon-gold shrink-0 mt-0.5" />
-                          <div>
-                            <span className="text-[11px] font-bold text-typhoon-navy block mb-0.5">
-                              Discussion Notes & Remarks:
-                            </span>
-                            <p className="text-xs text-typhoon-navy leading-relaxed font-normal">
-                              {item.description}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                    <p className="text-xs text-typhoon-navy font-medium leading-relaxed">
+                      {f.description}
+                    </p>
 
-                      {/* Next Step & Committed Date */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1 text-typhoon-muted">
-                        <div>
-                          <strong className="text-typhoon-navy font-semibold">Committed Action: </strong>
-                          <span>{item.nextStep}</span>
-                        </div>
-                        <div className="flex items-center gap-1 font-medium text-typhoon-navy">
-                          <Clock className="w-3.5 h-3.5 text-typhoon-gold" />
-                          <span>Target: {item.committedDate}</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between text-[11px] text-typhoon-muted pt-1 border-t border-typhoon-border/40">
+                      <span>Next Action: {f.nextStep || 'Follow-up'}</span>
+                      <span className="font-semibold text-typhoon-navy">
+                        Target: {f.committedDate ? new Date(f.committedDate).toLocaleDateString() : 'Tomorrow'}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -451,367 +502,6 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
       </div>
-
-      {/* ======================================================== */}
-      {/* 3. LOG FOLLOW-UP MODAL (Both Desktop & Mobile)           */}
-      {/* ======================================================== */}
-      {isLogCallOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-floating border border-typhoon-border animate-in zoom-in-95">
-            <div className="flex justify-between items-center pb-3 border-b border-typhoon-border">
-              <div>
-                <h3 className="text-lg font-serif font-bold text-typhoon-navy">
-                  Log Follow-Up & Discussion Notes
-                </h3>
-                <p className="text-xs text-typhoon-muted">
-                  Inquiry {params.id} · Ramesh Patel
-                </p>
-              </div>
-              <button
-                onClick={() => setIsLogCallOpen(false)}
-                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-muted hover:text-typhoon-navy transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveFollowup} className="space-y-4 mt-4">
-              {/* Interaction Type */}
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Interaction Channel
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['Phone Call', 'Terrace Visit', 'WhatsApp'] as const).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setCallType(t)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition ${
-                        callType === t
-                          ? 'bg-typhoon-navy text-white border-typhoon-navy'
-                          : 'bg-typhoon-sand/50 text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Customer Reaction */}
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Customer Reaction
-                </label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {(['Very Positive', 'Negotiating', 'Needs Subsidy Info', 'Hesitant'] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setCustomerReaction(r)}
-                      className={`py-2 px-3 rounded-xl font-bold border text-left transition ${
-                        customerReaction === r
-                          ? 'bg-typhoon-navy text-white border-typhoon-navy'
-                          : 'bg-typhoon-sand/50 text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* REQUIRED FOLLOW-UP DESCRIPTION / NOTES */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-typhoon-navy flex items-center gap-1">
-                    <span>Follow-Up Description / Call Notes</span>
-                    <span className="text-rose-500">*</span>
-                  </label>
-                  <span className="text-[10px] text-typhoon-muted">Visible to Operations Manager</span>
-                </div>
-                <textarea
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe what was discussed, customer objections, questions, subsidy status, or roof measurements..."
-                  className="w-full p-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none transition leading-relaxed placeholder:text-typhoon-muted"
-                />
-
-                {/* Quick Templates */}
-                <div className="mt-2">
-                  <span className="text-[10px] font-bold text-typhoon-muted block mb-1">
-                    Quick Templates (Click to fill):
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {quickTemplates.map((template, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setDescription(template)}
-                        className="text-[10px] bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy px-2.5 py-1 rounded-lg border border-typhoon-border/80 transition text-left"
-                      >
-                        {template.slice(0, 42)}...
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Next Step & Target Date */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                    Committed Next Action
-                  </label>
-                  <input
-                    type="text"
-                    value={nextStep}
-                    onChange={(e) => setNextStep(e.target.value)}
-                    placeholder="e.g. Terrace survey"
-                    className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                    Target SLA Date
-                  </label>
-                  <input
-                    type="date"
-                    value={nextFollowupDate}
-                    onChange={(e) => setNextFollowupDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="pt-2 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsLogCallOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-typhoon-muted hover:text-typhoon-navy transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold px-5 py-2.5 rounded-xl text-xs shadow-soft transition flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{loading ? 'Saving Notes...' : 'Save Follow-Up'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* 4. MARK SITE VISIT MODAL                                 */}
-      {/* ======================================================== */}
-      {isVisitModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-floating border border-typhoon-border animate-in zoom-in-95">
-            <div className="flex justify-between items-center pb-3 border-b border-typhoon-border">
-              <div>
-                <h3 className="text-lg font-serif font-bold text-typhoon-navy">
-                  Log Terrace Site Visit
-                </h3>
-                <p className="text-xs text-typhoon-muted">
-                  Record roof survey measurements & shadow verification
-                </p>
-              </div>
-              <button
-                onClick={() => setIsVisitModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-muted hover:text-typhoon-navy transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setIsVisitModalOpen(false);
-                toast.success('Terrace site visit logged successfully!');
-                const newRecord: FollowupRecord = {
-                  id: `FUP-${Date.now().toString().slice(-3)}`,
-                  loggedBy: 'Amit Patel (Sales)',
-                  role: 'Sales Representative',
-                  timestamp: 'Just now',
-                  type: 'Terrace Visit',
-                  customerReaction: 'Very Positive',
-                  reactionBadgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                  description: `Site visit completed. Terrace usable area: ${roofArea} sq.ft (${roofType}). Shadow obstacles verified. DISCOM meter location noted.`,
-                  nextStep: 'Finalize quotation & close deal',
-                  committedDate: '12 Nov 2026',
-                  isCompleted: true,
-                };
-                setFollowups([newRecord, ...followups]);
-              }}
-              className="space-y-4 mt-4"
-            >
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Usable Shadow-Free Roof Area (sq.ft)
-                </label>
-                <input
-                  type="number"
-                  value={roofArea}
-                  onChange={(e) => setRoofArea(e.target.value)}
-                  className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Roof Construction Type
-                </label>
-                <select
-                  value={roofType}
-                  onChange={(e) => setRoofType(e.target.value)}
-                  className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                >
-                  <option value="RCC Terrace">RCC Terrace Flat Roof (Standard Elevated Structure)</option>
-                  <option value="Metal Industrial Shed">Metal Industrial Sheet Roof (Trapezoidal clamp)</option>
-                  <option value="Tiled Sloped Roof">Mangalore / Clay Tiled Roof</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Shadow Verification
-                </label>
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600" />
-                    <span>Water tank shadow distance verified</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600" />
-                    <span>DISCOM meter box cable run under 20m</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsVisitModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-typhoon-muted hover:text-typhoon-navy transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold px-5 py-2.5 rounded-xl text-xs shadow-soft transition"
-                >
-                  Save Site Survey
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* 5. DEAL CLOSED MODAL                                     */}
-      {/* ======================================================== */}
-      {isDealClosedOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-floating border border-typhoon-border animate-in zoom-in-95">
-            <div className="flex justify-between items-center pb-3 border-b border-typhoon-border">
-              <div>
-                <h3 className="text-lg font-serif font-bold text-typhoon-navy">
-                  Close Deal & Generate Project ID
-                </h3>
-                <p className="text-xs text-typhoon-muted">
-                  Locks final negotiated price and activates project lifecycle
-                </p>
-              </div>
-              <button
-                onClick={() => setIsDealClosedOpen(false)}
-                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-muted hover:text-typhoon-navy transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setIsDealClosedOpen(false);
-                setCurrentStageText('STAGE 4 OF 10 · DEAL CLOSED');
-                toast.success(`Deal closed! Project ID ${projectId} generated!`);
-                const newRecord: FollowupRecord = {
-                  id: `FUP-${Date.now().toString().slice(-3)}`,
-                  loggedBy: 'Amit Patel (Sales)',
-                  role: 'Sales Representative',
-                  timestamp: 'Just now',
-                  type: 'Office Meeting',
-                  customerReaction: 'Very Positive',
-                  reactionBadgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                  description: `Deal closed successfully at ₹${Number(dealAmount).toLocaleString('en-IN')}. Project ID ${projectId} generated. Proceeding with KYC document gathering.`,
-                  nextStep: 'Collect KYC Documents (Light bill, Aadhaar, Property tax, Cheque)',
-                  committedDate: '13 Nov 2026',
-                  isCompleted: true,
-                };
-                setFollowups([newRecord, ...followups]);
-              }}
-              className="space-y-4 mt-4"
-            >
-              <div className="bg-typhoon-sand/60 p-4 rounded-xl border border-typhoon-border/80">
-                <span className="text-[10px] font-bold tracking-widest text-typhoon-muted uppercase block">
-                  NEW PROJECT IDENTIFIER
-                </span>
-                <span className="text-lg font-serif font-bold text-typhoon-navy block mt-0.5">
-                  {projectId}
-                </span>
-                <span className="text-[11px] text-typhoon-gold font-semibold">
-                  Transition from Lead F-XXXX → Official Project
-                </span>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Final Agreed Deal Price (₹)
-                </label>
-                <input
-                  type="number"
-                  value={dealAmount}
-                  onChange={(e) => setDealAmount(e.target.value)}
-                  className="w-full px-4 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-base font-bold text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                  required
-                />
-                <p className="text-[10px] text-typhoon-muted mt-1">
-                  Net price including 12x 550W DCR panels, 6 kW On-Grid inverter, and 5-yr AMC.
-                </p>
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsDealClosedOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-typhoon-muted hover:text-typhoon-navy transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-soft transition flex items-center gap-1.5"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Confirm Deal Closed</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

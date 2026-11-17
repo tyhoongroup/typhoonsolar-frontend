@@ -2,81 +2,62 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Check, Sun, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { Header } from '@/components/Header';
 import { useCurrentUser } from '@/lib/use-current-user';
 
 export default function AddInquiryPage() {
   const router = useRouter();
   const { user, theme } = useCurrentUser();
+
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [pincode, setPincode] = useState('390001');
+  const [state, setState] = useState('Gujarat');
   const [city, setCity] = useState('Vadodara');
-  const [requestedKw, setRequestedKw] = useState(6.0);
+  const [requestedKw, setRequestedKw] = useState('6.0');
   const [meterPhase, setMeterPhase] = useState<'Single Phase' | 'Three Phase'>('Single Phase');
-  const [salespersons, setSalespersons] = useState<Array<{ id: string; fullName: string; phone: string }>>([
-    { id: '9000000002', fullName: 'Amit (Salesperson)', phone: '9000000002' },
-    { id: '9000000003', fullName: 'Kunal (Salesperson)', phone: '9000000003' },
-    { id: '9000000004', fullName: 'Priya (Salesperson)', phone: '9000000004' },
-  ]);
-  const [assignedSalespersonId, setAssignedSalespersonId] = useState('9000000002');
   const [isUrgent, setIsUrgent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // 1. Session Token Guard & Load Sales Team
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    const user = localStorage.getItem('user');
-
-    if (!token || token === 'null' || token === 'undefined' || !user) {
+    if (!token || token === 'null' || token === 'undefined') {
       localStorage.clear();
-      toast.error('No login session found. Redirecting to login...');
       router.push('/');
       return;
     }
-
     setIsCheckingAuth(false);
-
-    // Fetch active sales team for lead assignment
-    fetch('/api/v1/inquiries/salespersons', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        const list = Array.isArray(data) ? data : (data?.data || []);
-        if (Array.isArray(list) && list.length > 0) {
-          setSalespersons(list);
-          setAssignedSalespersonId(list[0].id);
-        }
-      })
-      .catch(() => {});
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Re-verify token exists before submitting
     const token = localStorage.getItem('accessToken');
-    if (!token || token === 'null' || token === 'undefined') {
-      localStorage.clear();
-      toast.error('Session expired. Redirecting to login...');
+    if (!token) {
+      toast.error('Session expired. Please sign in again.');
       router.push('/');
       return;
     }
 
-    // Phone validation
     const cleanPhone = customerPhone.replace(/\D/g, '');
     if (cleanPhone.length !== 10) {
       toast.error('Please enter a valid 10-digit mobile number.');
       return;
     }
 
+    if (!customerName.trim() || !address.trim()) {
+      toast.error('Please fill in customer name and address.');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const fullAddress = `${address.trim()}, ${city}, ${state} - ${pincode}`;
       const res = await fetch('/api/v1/inquiries', {
         method: 'POST',
         headers: {
@@ -86,16 +67,17 @@ export default function AddInquiryPage() {
         body: JSON.stringify({
           customerName: customerName.trim(),
           customerPhone: cleanPhone,
-          address: address.trim(),
+          email: email.trim() || undefined,
+          address: fullAddress,
           city: city.trim(),
-          requestedKw: Number(requestedKw),
+          pincode: pincode.trim(),
+          state: state.trim(),
+          requestedKw: Number(requestedKw) || 6.0,
           meterPhase,
           isUrgent,
-          assignedSalespersonId,
         }),
       });
 
-      // 2. If backend rejects token (expired or invalid), clear session & redirect to login
       if (res.status === 401) {
         localStorage.clear();
         toast.error('Session expired. Please sign in again.');
@@ -103,14 +85,17 @@ export default function AddInquiryPage() {
         return;
       }
 
-      const data = await res.json();
-
+      const resData = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to save inquiry.');
+        throw new Error(resData.message || 'Failed to save inquiry.');
       }
 
-      toast.success(`Inquiry ${data.data?.followupId || 'saved'} created successfully!`);
-      router.push('/dashboard');
+      const inq = resData.data || resData;
+      const targetId = inq.followupId || inq.id;
+      toast.success(`Inquiry ${targetId} created! Moving to salesperson assignment.`);
+
+      // Direct transition to Assign Salesperson page (Screen 3)
+      router.push(`/inquiries/${targetId}/assign`);
     } catch (err: any) {
       toast.error(err.message || 'Error saving inquiry.');
     } finally {
@@ -120,245 +105,240 @@ export default function AddInquiryPage() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-typhoon-sand flex items-center justify-center text-xs text-typhoon-muted">
-        Verifying session...
+      <div className="min-h-screen bg-typhoon-sand flex items-center justify-center text-xs text-typhoon-muted font-medium">
+        Loading...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-20">
-      {/* 1. Unified Header matching Home */}
-      <Header
-        role={user?.role || 'OPS_MANAGER'}
-        initials={theme.tag}
-        roleTitle="Control tower"
-        subtitle="Register New Customer Lead & Sizing"
-      />
+    <div className="min-h-screen bg-typhoon-sand pb-28">
+      {/* 1. Curved Header Matching Screen 2 */}
+      <div
+        style={{ backgroundColor: theme.hex.headerBg }}
+        className="pt-6 pb-12 px-5 rounded-b-[36px] shadow-sm relative overflow-hidden"
+      >
+        {/* Subtle circular background watermark */}
+        <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
+        <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
 
-      <div className="max-w-3xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
-        {/* Title row with back button */}
-        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.back()}
-              className="w-9 h-9 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark flex items-center justify-center text-typhoon-navy transition cursor-pointer"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
-                Add New Inquiry
-              </h1>
-              <p className="text-xs text-typhoon-muted">
-                Enter rooftop solar customer details & requirement
-              </p>
-            </div>
+        <div className="max-w-md mx-auto">
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-4 cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+            Add inquiry
+          </h1>
+          <p className="text-xs text-white/70 mt-1 font-medium">
+            Enter the new requirement
+          </p>
+        </div>
+      </div>
+
+      {/* 2. Form Body Matching Screen 2 Layout */}
+      <div className="max-w-md mx-auto px-4 -mt-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Customer Name */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-typhoon-navy block">
+              Customer name
+            </label>
+            <input
+              type="text"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Full name"
+              className="w-full px-4 py-3.5 bg-white rounded-2xl text-sm font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
+              required
+            />
           </div>
 
-          <span
-            style={{
-              backgroundColor: theme.hex.accentBg,
-              color: theme.hex.accentTextColor,
-            }}
-            className="hidden sm:inline-block text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider"
-          >
-            Stage 1: Lead Capture
-          </span>
-        </div>
-
-        {/* 2. FORM BODY */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl p-6 lg:p-8 border border-typhoon-border shadow-soft space-y-4"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Customer Name */}
-            <div>
-              <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                Customer Name <span className="text-rose-500">*</span>
-              </label>
+          {/* Phone Number */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-typhoon-navy block">
+              Phone number
+            </label>
+            <div className="relative flex items-center">
+              <span className="absolute left-4 text-xs font-bold text-typhoon-navy border-r border-typhoon-border pr-2">
+                +91
+              </span>
               <input
-                type="text"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Full customer name"
-                className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
+                type="tel"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10-digit number"
+                className="w-full pl-16 pr-4 py-3.5 bg-white rounded-2xl text-sm font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
                 required
               />
             </div>
-
-            {/* Phone Number */}
-            <div>
-              <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                Phone Number <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-3.5 text-xs font-bold text-typhoon-navy border-r border-typhoon-border pr-2">
-                  +91
-                </span>
-                <input
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="10-digit mobile number"
-                  className="w-full pl-14 pr-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
-                  required
-                />
-              </div>
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* City */}
-            <div>
-              <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                City / Region <span className="text-rose-500">*</span>
+          {/* Email (Optional) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-typhoon-navy block">
+              Email (optional)
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="customer@example.com"
+              className="w-full px-4 py-3.5 bg-white rounded-2xl text-sm font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
+            />
+          </div>
+
+          {/* Address */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-typhoon-navy block">
+              Address
+            </label>
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Village or city, area"
+              className="w-full px-4 py-3.5 bg-white rounded-2xl text-sm font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
+              required
+            />
+          </div>
+
+          {/* State, City & Pincode Dropdowns */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-typhoon-navy block">
+                State
+              </label>
+              <select
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                className="w-full px-2.5 py-3.5 bg-white rounded-2xl text-xs font-bold text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
+              >
+                <option value="Gujarat">Gujarat</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-typhoon-navy block">
+                City
               </label>
               <select
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
+                className="w-full px-2.5 py-3.5 bg-white rounded-2xl text-xs font-bold text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
               >
                 <option value="Vadodara">Vadodara</option>
                 <option value="Anand">Anand</option>
                 <option value="Nadiad">Nadiad</option>
                 <option value="Bharuch">Bharuch</option>
                 <option value="Ahmedabad">Ahmedabad</option>
+                <option value="Surat">Surat</option>
+                <option value="Gandhinagar">Gandhinagar</option>
               </select>
             </div>
 
-            {/* Address */}
-            <div>
-              <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                Society / Area Address <span className="text-rose-500">*</span>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-typhoon-navy block">
+                Pincode
               </label>
               <input
                 type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="e.g. B-42 Shivalik Residency"
-                className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
-                required
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="390001"
+                className="w-full px-2.5 py-3.5 bg-white rounded-2xl text-xs font-bold text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Sizing Capacity */}
-            <div>
-              <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                Requested Capacity (kW) <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="1"
-                max="100"
+          {/* Requirement (kW Capacity & Phase Dropdowns) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-typhoon-navy block">
+              Requirement
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <select
                 value={requestedKw}
-                onChange={(e) => setRequestedKw(Number(e.target.value))}
-                placeholder="e.g. 6.0"
-                className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
-                required
-              />
-              <p className="text-[10px] text-typhoon-muted mt-1">
-                PM Surya Ghar subsidy: ₹33k (1 kW), ₹66k (2 kW), ₹78k (3-10 kW)
-              </p>
-            </div>
+                onChange={(e) => setRequestedKw(e.target.value)}
+                className="w-full px-4 py-3.5 bg-white rounded-2xl text-sm font-bold text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
+              >
+                <option value="3.0">3.0 kW</option>
+                <option value="3.24">3.24 kW</option>
+                <option value="4.0">4.0 kW</option>
+                <option value="5.0">5.0 kW</option>
+                <option value="6.0">6.0 kW</option>
+                <option value="7.0">7.0 kW</option>
+                <option value="8.0">8.0 kW</option>
+                <option value="10.0">10.0 kW</option>
+                <option value="12.0">12.0 kW</option>
+                <option value="15.0">15.0 kW</option>
+              </select>
 
-            {/* Meter Phase */}
-            <div>
-              <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                DISCOM Meter Phase <span className="text-rose-500">*</span>
-              </label>
               <select
                 value={meterPhase}
                 onChange={(e) => setMeterPhase(e.target.value as any)}
-                className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
+                className="w-full px-4 py-3.5 bg-white rounded-2xl text-sm font-bold text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
               >
-                <option value="Single Phase">Single Phase (Up to 6 kW)</option>
-                <option value="Three Phase">Three Phase (&gt; 6 kW or heavy load)</option>
+                <option value="Single Phase">Single Phase</option>
+                <option value="Three Phase">Three Phase</option>
               </select>
             </div>
           </div>
 
-          {/* Assign Salesperson Field */}
-          <div>
-            <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-              Assign to Salesperson <span className="text-typhoon-gold font-bold">*</span>
+          {/* Urgent Segmented Buttons (Matching Screen 2 Yes / No) */}
+          <div className="space-y-1.5 pt-1">
+            <label className="text-xs font-bold text-typhoon-navy block">
+              Urgent
             </label>
-            <select
-              value={assignedSalespersonId}
-              onChange={(e) => setAssignedSalespersonId(e.target.value)}
-              className="w-full px-4 py-3 bg-typhoon-sand/40 rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none transition"
-            >
-              {salespersons.map((sp) => (
-                <option key={sp.id} value={sp.id}>
-                  {sp.fullName} ({sp.phone})
-                </option>
-              ))}
-            </select>
-            <p className="text-[10px] text-typhoon-muted mt-1">
-              Assigned rep will get an instant push notification with a 3-day SLA timer to visit or send quotation.
-            </p>
-          </div>
-
-          {/* Urgent Priority Toggle */}
-          <div>
-            <label className="text-xs font-semibold text-typhoon-navy block mb-1.5">
-              Priority Flag
-            </label>
-            <div className="grid grid-cols-2 gap-3 max-w-xs">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setIsUrgent(true)}
-                className={`py-2.5 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
+                className={`py-3 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
                   isUrgent
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-soft'
-                    : 'bg-typhoon-sand/40 text-typhoon-navy border-typhoon-border'
+                    ? 'bg-typhoon-navy text-white border-typhoon-navy shadow-soft'
+                    : 'bg-white text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
                 }`}
               >
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>Urgent Lead</span>
+                Yes
               </button>
+
               <button
                 type="button"
                 onClick={() => setIsUrgent(false)}
-                className={`py-2.5 rounded-xl text-xs font-bold border transition ${
+                className={`py-3 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
                   !isUrgent
                     ? 'bg-typhoon-navy text-white border-typhoon-navy shadow-soft'
-                    : 'bg-typhoon-sand/40 text-typhoon-navy border-typhoon-border'
+                    : 'bg-white text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
                 }`}
               >
-                Standard
+                No
               </button>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-typhoon-border/60 flex items-center justify-between text-[11px] text-typhoon-muted">
-            <span>A unique Follow-up ID (e.g. F-1025) is automatically created on save.</span>
-          </div>
+          {/* Auto ID Helper Note */}
+          <p className="text-[11px] text-typhoon-muted pt-1">
+            A Follow-up ID is created automatically when you save.
+          </p>
 
-          {/* Action Buttons */}
-          <div className="pt-2 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-5 py-3 rounded-xl text-xs font-bold text-typhoon-muted hover:text-typhoon-navy transition"
-            >
-              Cancel
-            </button>
+          {/* Main Action Button Matching Screen 2 */}
+          <div className="pt-3">
             <button
               type="submit"
               disabled={loading}
-              style={{
-                backgroundColor: theme.hex.accentBg,
-                color: theme.hex.accentTextColor,
-              }}
-              className="font-bold px-6 py-3 rounded-xl text-xs shadow-soft transition flex items-center gap-2 hover:opacity-90 active:scale-95 disabled:opacity-50 cursor-pointer"
+              className="w-full py-4 px-6 rounded-2xl bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-base shadow-soft flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
             >
-              <Check className="w-4 h-4 stroke-[2.5]" />
-              <span>{loading ? 'Creating Inquiry...' : 'Save & Create Inquiry'}</span>
+              <Check className="w-5 h-5 stroke-[2.5]" />
+              <span>{loading ? 'Saving...' : 'Save inquiry'}</span>
             </button>
           </div>
         </form>
