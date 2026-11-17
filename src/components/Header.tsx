@@ -1,16 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
 import { getRoleTheme } from '@/lib/role-theme';
+import { BrandLogo } from './BrandLogo';
 import { ProfileModal } from './ProfileModal';
 import { NotificationModal } from './NotificationModal';
-import { toast } from 'sonner';
-import { requestNotificationPermission } from '@/lib/fcm-client';
 
 interface HeaderProps {
   initials?: string;
-  roleTitle: string;
+  roleTitle?: string;
   subtitle?: string;
   role?: string;
   onAvatarClick?: () => void;
@@ -62,91 +60,85 @@ export const Header: React.FC<HeaderProps> = ({
     month: 'long',
   }).format(new Date());
 
-  const headerTextColor = theme.hex.headerTextColor || '#ffffff';
-  const headerSubtextColor = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.85)';
-  const isLightHeader = headerTextColor !== '#ffffff';
-  const logoSrc = theme.hex.logoSrc || (isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png');
+  const sColor = theme.hex.cardDarkBg || '#111827';
+  const aColor = theme.hex.accentBg || '#6366F1';
+  const cColor = theme.hex.lightBg || '#F5F5F7';
 
   return (
     <>
       <header
         style={{
-          background: theme.hex.headerGradient || theme.hex.headerBg,
-          color: headerTextColor,
-          boxShadow: isLightHeader
-            ? '0 10px 30px -5px rgba(0, 0, 0, 0.12)'
-            : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
+          background: theme.hex.headerGradient || `linear-gradient(180deg, color-mix(in srgb, ${aColor} 38%, ${cColor}) 0%, color-mix(in srgb, ${aColor} 14%, ${cColor}) 100%)`,
+          borderRadius: '0 0 50% 50% / 0 0 34px 34px',
+          padding: '14px 16px 62px',
+          color: sColor,
         }}
-        className="relative pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden transition-all duration-300 border-b border-black/5"
+        className="relative transition-all duration-300"
       >
-        {/* Decorative concentric solar ripples in background */}
-        <div
-          className={`absolute -top-12 -right-12 w-48 h-48 rounded-full border pointer-events-none ${
-            isLightHeader ? 'border-black/5' : 'border-white/5'
-          }`}
-        />
-        <div
-          className={`absolute -top-6 -right-6 w-36 h-36 rounded-full border pointer-events-none ${
-            isLightHeader ? 'border-black/10' : 'border-white/10'
-          }`}
-        />
+        {/* Top Bar: Avatar, Brand Logo, Bell */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleAvatarClick}
+            style={{
+              color: sColor,
+              backgroundColor: 'rgba(255, 255, 255, 0.75)',
+              borderColor: `color-mix(in srgb, ${sColor} 15%, transparent)`,
+            }}
+            className="w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold active:scale-95 transition cursor-pointer"
+            title="Profile & Settings"
+          >
+            {displayInitials}
+          </button>
 
-        {/* Top Bar with Avatar and Official Brand Logo */}
-        <div className="relative flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3.5">
-            <button
-              onClick={handleAvatarClick}
-              style={{
-                color: headerTextColor,
-                borderColor: isLightHeader ? 'rgba(30, 31, 36, 0.25)' : 'rgba(255, 255, 255, 0.2)',
-                backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
-              }}
-              className="w-11 h-11 rounded-full border font-bold flex items-center justify-center text-sm tracking-wider hover:ring-2 hover:ring-black/20 active:scale-95 transition cursor-pointer"
-              title="Click for Profile & Logout"
-            >
-              {displayInitials}
-            </button>
-            <img
-              src={logoSrc}
-              alt="Typhoon Solar"
-              className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
-            />
-          </div>
+          <BrandLogo
+            accentColor={aColor}
+            textColor={sColor}
+            size={24}
+          />
 
           <button
             onClick={handleBellClick}
             style={{
-              color: headerTextColor,
-              backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+              color: sColor,
+              backgroundColor: 'rgba(255, 255, 255, 0.55)',
             }}
-            className="relative w-11 h-11 rounded-full hover:opacity-85 flex items-center justify-center transition-colors cursor-pointer"
-            aria-label="Lead Alerts & Notifications"
-            title="Lead Alerts & Notifications"
+            className="relative w-9 h-9 rounded-full flex items-center justify-center hover:opacity-85 active:scale-95 transition cursor-pointer"
+            aria-label="Alerts"
+            title="Alerts"
           >
-            <Bell className="w-5 h-5" style={{ color: headerTextColor }} />
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ color: sColor }}
+            >
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+            </svg>
             <span
-              style={{ backgroundColor: theme.hex.accentBg }}
-              className={`absolute top-2.5 right-2.5 w-2 h-2 rounded-full ring-2 ${
-                isLightHeader ? 'ring-black/30' : 'ring-white/40'
-              }`}
+              style={{
+                backgroundColor: aColor,
+                borderColor: '#ffffff',
+              }}
+              className="absolute top-[7px] right-[8px] w-2 h-2 rounded-full border-[1.5px]"
             />
           </button>
         </div>
 
-        {/* Role Title and Subtitle with clear readable typography */}
-        <div className="relative">
-          <p style={{ color: headerSubtextColor }} className="text-xs sm:text-sm font-medium mb-1">
-            {todayStr}
-          </p>
-          <h1
-            style={{ color: headerTextColor }}
-            className="text-3xl sm:text-4xl font-serif font-bold tracking-tight"
-          >
-            {displayTitle}
-          </h1>
-          <p style={{ color: headerSubtextColor }} className="text-sm sm:text-base font-medium mt-1">
-            {displaySubtitle}
-          </p>
+        {/* Date, Title, Subtitle */}
+        <div className="text-[11px] font-medium opacity-70 mt-4">
+          {todayStr}
+        </div>
+        <div className="text-2xl font-extrabold tracking-[-0.02em] mt-1.5 leading-[1.1]">
+          {displayTitle}
+        </div>
+        <div className="text-xs font-medium opacity-70 mt-1">
+          {displaySubtitle}
         </div>
       </header>
 

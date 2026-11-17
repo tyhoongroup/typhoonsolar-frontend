@@ -24,6 +24,15 @@ import {
   IndianRupee,
   Layers,
   ArrowRight,
+  Briefcase,
+  CheckSquare,
+  Phone,
+  Sun,
+  Wrench,
+  Wallet,
+  Truck,
+  Scan,
+  Receipt,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -58,34 +67,34 @@ export default function DashboardPage() {
   // 1. OPERATIONS MANAGER / ADMIN
   // =========================================================================
   if (user.role === 'OPS_MANAGER' || user.role === 'ADMIN') {
-    // Default Mobile Up Next Items
+    // Default Mobile Up Next Items (Exact from role_home_screens_all_palettes.html)
     const defaultMobileUpNext: UpNextItem[] = [
       {
         id: '1',
-        icon: <FileText className="w-4 h-4" />,
-        title: 'F-1021 · Quotation sent',
-        subtitle: '6 kW · Nilesh Desai · Negotiation stage',
-        badgeText: 'Active',
-        badgeType: 'active',
-        onClick: () => router.push('/inquiries/F-1021'),
+        icon: <Phone className="w-4 h-4" />,
+        title: 'F-1024 · Ramesh Patel',
+        subtitle: '6 kW · Vadodara · Approve quote',
+        badgeText: 'Urgent',
+        badgeType: 'urgent',
+        onClick: () => router.push('/inquiries/F-1024'),
       },
       {
         id: '2',
-        icon: <Users className="w-4 h-4" />,
-        title: 'F-1018 · Deal closed',
-        subtitle: '3.24 kW · Bhavna Joshi · Collect KYC documents',
-        badgeText: 'Docs',
-        badgeType: 'docs',
-        onClick: () => router.push('/inquiries/F-1018'),
+        icon: <FileText className="w-4 h-4" />,
+        title: 'F-1026 · Test User',
+        subtitle: '7 kW · Vadodara · Assign team',
+        badgeText: 'New',
+        badgeType: 'bn',
+        onClick: () => router.push('/inquiries/F-1026'),
       },
       {
         id: '3',
-        icon: <Package className="w-4 h-4" />,
-        title: 'F-1015 · Material dispatched',
-        subtitle: '10 kW · Diwan Zakirbhai · Sohail assigned',
-        badgeText: 'Material',
-        badgeType: 'active',
-        onClick: () => router.push('/inquiries/F-1015'),
+        icon: <FileText className="w-4 h-4" />,
+        title: 'F-1025 · Qureshi Mohammed Zahid',
+        subtitle: '6 kW · Vadodara · Schedule install',
+        badgeText: 'New',
+        badgeType: 'bn',
+        onClick: () => router.push('/inquiries/F-1025'),
       },
     ];
 
@@ -334,45 +343,41 @@ export default function DashboardPage() {
         </div>
 
         {/* ================================================================ */}
-        {/* MOBILE LAYOUT (Follows Standard Screen Layout - Layout guide@2x) */}
+        {/* MOBILE LAYOUT (Exact from role_home_screens_all_palettes.html)   */}
         {/* ================================================================ */}
         <div className="lg:hidden">
-          {/* Item 1: Control Tower Midnight Navy & Sunlight Gold Header (Screen 6) */}
           <Header
             role="OPS_MANAGER"
-            initials="AK"
-            roleTitle="Control tower"
-            subtitle="Lead assignment and SLA delays"
+            initials="OM"
+            roleTitle="Ops Manager"
+            subtitle="Jobs, teams and approvals"
           />
 
-          {/* Item 2: Two summary tiles */}
           <SummaryTiles
+            role="OPS_MANAGER"
             tiles={[
-              { icon: <Users className="w-4 h-4 text-[#f59e0b]" />, value: '4', label: 'Unassigned leads' },
-              { icon: <Clock className="w-4 h-4 text-[#f59e0b]" />, value: '3', label: 'SLA delays' },
+              { icon: <Briefcase className="w-4 h-4" />, value: '14', label: 'Active jobs' },
+              { icon: <CheckSquare className="w-4 h-4" />, value: '5', label: 'Approvals pending' },
             ]}
           />
 
-          {/* Item 3: Priority Card (Midnight Navy with Gold badge) */}
           <PriorityCard
             role="OPS_MANAGER"
-            icon={<Clock className="w-5 h-5 text-[#f59e0b]" />}
-            title="SLA delay · F-1015"
-            subtitle="Document upload is 2 days late"
-            badgeText="Overdue"
-            onClick={() => router.push('/inquiries/F-1015')}
+            icon={<Briefcase className="w-4 h-4" />}
+            title="Approve quote · F-1024"
+            subtitle="Ramesh Patel · ₹ 3.2L"
+            badgeText="Today"
+            onClick={() => router.push('/inquiries/F-1024')}
           />
 
-          {/* Item 4: Up next list */}
-          <UpNextList items={mobileUpNext} />
+          <UpNextList role="OPS_MANAGER" items={mobileUpNext} />
 
-          {/* Item 5: Main Action (Sunlight Gold button) */}
           <MainButton
             role="OPS_MANAGER"
-            icon={<Send className="w-4 h-4" />}
-            onClick={() => router.push('/inquiries/new')}
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => router.push('/team')}
           >
-            Assign lead
+            Assign job
           </MainButton>
         </div>
       </div>
@@ -386,21 +391,30 @@ export default function DashboardPage() {
     const defaultMobileUpNext: UpNextItem[] = [
       {
         id: '1',
-        icon: <FileText className="w-4 h-4" />,
-        title: 'Make quotation · F-1022',
-        subtitle: '6 kW, 3 phase · Nilesh Desai · Anand',
-        badgeText: 'Due',
-        badgeType: 'due',
-        onClick: () => router.push('/quotations/new'),
+        icon: <Phone className="w-4 h-4" />,
+        title: 'F-1024 · Ramesh Patel',
+        subtitle: '6 kW · Vadodara · Call customer',
+        badgeText: 'Urgent',
+        badgeType: 'urgent',
+        onClick: () => router.push('/inquiries/F-1024'),
       },
       {
         id: '2',
-        icon: <PhoneCall className="w-4 h-4" />,
-        title: 'Follow-up call · F-1019',
-        subtitle: 'Discuss PM Surya Ghar ₹78,000 subsidy',
-        badgeText: 'Next',
-        badgeType: 'active',
-        onClick: () => router.push('/inquiries/F-1019'),
+        icon: <FileText className="w-4 h-4" />,
+        title: 'F-1026 · Test User',
+        subtitle: '7 kW · Vadodara · Call customer',
+        badgeText: 'New',
+        badgeType: 'bn',
+        onClick: () => router.push('/inquiries/F-1026'),
+      },
+      {
+        id: '3',
+        icon: <FileText className="w-4 h-4" />,
+        title: 'F-1025 · Qureshi Mohammed Zahid',
+        subtitle: '6 kW · Vadodara · Call customer',
+        badgeText: 'New',
+        badgeType: 'bn',
+        onClick: () => router.push('/inquiries/F-1025'),
       },
     ];
 
@@ -564,7 +578,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* MOBILE - Salesperson Royal Blue & Sky Blue (Screen 2) */}
+        {/* MOBILE - Salesperson (Exact from role_home_screens_all_palettes.html) */}
         <div className="lg:hidden">
           <Header
             role="SALESPERSON"
@@ -573,20 +587,21 @@ export default function DashboardPage() {
             subtitle="Survey, quotation and closing"
           />
           <SummaryTiles
+            role="SALESPERSON"
             tiles={[
-              { icon: <Camera className="w-4 h-4 text-[#00a3e0]" />, value: '2', label: 'Surveys today' },
-              { icon: <FileText className="w-4 h-4 text-[#00a3e0]" />, value: '3', label: 'Quotes pending' },
+              { icon: <Camera className="w-4 h-4" />, value: '2', label: 'Surveys today' },
+              { icon: <FileText className="w-4 h-4" />, value: '3', label: 'Quotes pending' },
             ]}
           />
           <PriorityCard
             role="SALESPERSON"
-            icon={<Camera className="w-5 h-5 text-[#00a3e0]" />}
+            icon={<Camera className="w-4 h-4" />}
             title="Field survey · F-1024"
             subtitle="Ramesh Patel · upload photos"
             badgeText="Today"
             onClick={() => router.push('/inquiries/F-1024')}
           />
-          <UpNextList items={mobileUpNext} />
+          <UpNextList role="SALESPERSON" items={mobileUpNext} />
           <MainButton
             role="SALESPERSON"
             icon={<Camera className="w-4 h-4" />}
@@ -729,63 +744,67 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* MOBILE - Material Manager Deep Olive & Vibrant Lime (Screen 4) */}
+        {/* MOBILE - Material Manager (Exact from role_home_screens_all_palettes.html) */}
         <div className="lg:hidden">
           <Header
             role="MATERIAL_MANAGER"
-            initials="SM"
-            roleTitle="Material manager"
-            subtitle="Warehouse stock and delivery"
+            initials="MM"
+            roleTitle="Material Manager"
+            subtitle="Stock, dispatch and orders"
           />
           <SummaryTiles
+            role="MATERIAL_MANAGER"
             tiles={[
-              { icon: <Package className="w-4 h-4 text-[#a3e635]" />, value: '2', label: 'Low stock items' },
-              { icon: <Upload className="w-4 h-4 text-[#a3e635]" />, value: '1', label: 'Deliveries today' },
+              { icon: <Package className="w-4 h-4" />, value: '4', label: 'Low stock items' },
+              { icon: <Truck className="w-4 h-4" />, value: '6', label: 'Dispatches today' },
             ]}
           />
           <PriorityCard
             role="MATERIAL_MANAGER"
-            icon={<Package className="w-5 h-5 text-[#a3e635]" />}
-            title="BOM staging · F-1018"
-            subtitle="Panels, inverter, structures"
-            badgeText="Stage"
-            onClick={() => router.push('/material/projects/F-1018')}
+            icon={<Truck className="w-4 h-4" />}
+            title="Dispatch · F-1024"
+            subtitle="Ramesh Patel · 12 panels, 1 inverter"
+            badgeText="Today"
+            onClick={() => router.push('/material')}
           />
-          <UpNextList items={[
-            {
-              id: '1',
-              icon: <Package className="w-4 h-4" />,
-              title: 'Warehouse stock',
-              subtitle: 'Panels, inverters, structures',
-              badgeText: 'Check',
-              badgeType: 'active',
-              onClick: () => router.push('/material'),
-            },
-            {
-              id: '2',
-              icon: <PhoneCall className="w-4 h-4" />,
-              title: 'Delivery call · F-1018',
-              subtitle: 'Confirm the date with customer',
-              badgeText: 'Call',
-              badgeType: 'due',
-              onClick: () => router.push('/material/projects/F-1018'),
-            },
-            {
-              id: '3',
-              icon: <Camera className="w-4 h-4" />,
-              title: 'Unloading proof · F-1016',
-              subtitle: 'Upload site photos',
-              badgeText: 'Upload',
-              badgeType: 'docs',
-              onClick: () => router.push('/material'),
-            },
-          ]} />
+          <UpNextList
+            role="MATERIAL_MANAGER"
+            items={[
+              {
+                id: '1',
+                icon: <Package className="w-4 h-4" />,
+                title: 'F-1024 · Ramesh Patel',
+                subtitle: '6 kW · Panels, inverter · Pack items',
+                badgeText: 'Urgent',
+                badgeType: 'urgent',
+                onClick: () => router.push('/material'),
+              },
+              {
+                id: '2',
+                icon: <Package className="w-4 h-4" />,
+                title: 'F-1026 · Test User',
+                subtitle: '7 kW · Cables · Awaiting stock',
+                badgeText: 'New',
+                badgeType: 'bn',
+                onClick: () => router.push('/material'),
+              },
+              {
+                id: '3',
+                icon: <Package className="w-4 h-4" />,
+                title: 'F-1025 · Qureshi Mohammed Zahid',
+                subtitle: '6 kW · Structure · Verify count',
+                badgeText: 'New',
+                badgeType: 'bn',
+                onClick: () => router.push('/material'),
+              },
+            ]}
+          />
           <MainButton
             role="MATERIAL_MANAGER"
-            icon={<Package className="w-4 h-4" />}
+            icon={<Scan className="w-4 h-4" />}
             onClick={() => router.push('/material')}
           >
-            Stage BOM
+            Scan material
           </MainButton>
         </div>
       </div>
@@ -904,65 +923,67 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* MOBILE - Accountant Deep Plum Burgundy & Berry Crimson (Screen 1) */}
+      {/* MOBILE - Accountant (Exact from role_home_screens_all_palettes.html) */}
       <div className="lg:hidden">
         <Header
           role="ACCOUNTANT"
-          initials="MA"
+          initials="AC"
           roleTitle="Accountant"
-          subtitle="Payment milestones and receipts"
+          subtitle="Invoices, payments and ledgers"
         />
         <SummaryTiles
+          role="ACCOUNTANT"
           tiles={[
-            { icon: <IndianRupee className="w-4 h-4 text-[#e1144a]" />, value: '3', label: 'Due this week' },
-            { icon: <FileText className="w-4 h-4 text-[#e1144a]" />, value: '2', label: 'Receipts to issue' },
+            { icon: <Receipt className="w-4 h-4" />, value: '7', label: 'Invoices due' },
+            { icon: <Wallet className="w-4 h-4" />, value: '3', label: 'Payments received' },
           ]}
         />
         <PriorityCard
           role="ACCOUNTANT"
-          icon={<IndianRupee className="w-5 h-5 text-[#e1144a]" />}
-          title="80% after unload · F-1018"
-          subtitle="Follow-up call is due"
-          badgeText="Due"
-          onClick={() => router.push('/payments/F-1018')}
+          icon={<Receipt className="w-4 h-4" />}
+          title="Invoice · F-1024"
+          subtitle="Ramesh Patel · ₹ 1.8L due"
+          badgeText="Today"
+          onClick={() => router.push('/payments')}
         />
         <UpNextList
+          role="ACCOUNTANT"
           items={[
             {
               id: '1',
-              icon: <PhoneCall className="w-4 h-4" />,
-              title: '80% after unload · F-1018',
-              subtitle: 'Call the customer',
-              badgeText: 'Due',
-              badgeType: 'due',
-              onClick: () => router.push('/payments/F-1018'),
+              icon: <Receipt className="w-4 h-4" />,
+              title: 'F-1024 · Ramesh Patel',
+              subtitle: '₹ 1.8L · Vadodara · Send reminder',
+              badgeText: 'Urgent',
+              badgeType: 'urgent',
+              onClick: () => router.push('/payments'),
             },
             {
               id: '2',
-              icon: <Clock className="w-4 h-4" />,
-              title: '20% final settlement · F-1011',
-              subtitle: 'After installation',
-              badgeText: 'Waiting',
-              badgeType: 'active',
+              icon: <FileText className="w-4 h-4" />,
+              title: 'F-1026 · Test User',
+              subtitle: '₹ 2.1L · Vadodara · Raise invoice',
+              badgeText: 'New',
+              badgeType: 'bn',
               onClick: () => router.push('/payments'),
             },
             {
               id: '3',
-              icon: <CheckCircle2 className="w-4 h-4" />,
-              title: 'Subsidy DBT · F-1009',
-              subtitle: 'Track the bank credit',
-              badgeText: 'Track',
-              badgeType: 'docs',
+              icon: <FileText className="w-4 h-4" />,
+              title: 'F-1025 · Qureshi Mohammed Zahid',
+              subtitle: '₹ 1.9L · Vadodara · Raise invoice',
+              badgeText: 'New',
+              badgeType: 'bn',
               onClick: () => router.push('/payments'),
             },
           ]}
         />
         <MainButton
           role="ACCOUNTANT"
-          icon={<FileText className="w-4 h-4" />}
+          icon={<Wallet className="w-4 h-4" />}
           onClick={() => router.push('/payments')}
         >
-          Issue money receipt
+          Record payment
         </MainButton>
       </div>
     </div>
@@ -977,61 +998,63 @@ function OtherRoleDashboards({ user }: { user: any }) {
       <div className="lg:hidden">
         <Header
           role="PORTAL_USER"
-          initials="RP"
-          roleTitle="Portal user"
-          subtitle="DISCOM and PM Surya Ghar portals"
+          initials="PU"
+          roleTitle="My Solar Project"
+          subtitle="Progress, documents and payments"
         />
         <SummaryTiles
+          role="PORTAL_USER"
           tiles={[
-            { icon: <FileText className="w-4 h-4 text-[#00bfa5]" />, value: '8', label: 'Applications' },
-            { icon: <CheckCircle2 className="w-4 h-4 text-[#00bfa5]" />, value: '3', label: 'Subsidy claims' },
+            { icon: <Sun className="w-4 h-4" />, value: '3/6', label: 'Stages done' },
+            { icon: <FileText className="w-4 h-4" />, value: '2', label: 'Documents ready' },
           ]}
         />
         <PriorityCard
           role="PORTAL_USER"
-          icon={<FileText className="w-5 h-5 text-[#00bfa5]" />}
-          title="SR No. pending · F-1015"
-          subtitle="Document verification running"
-          badgeText="Waiting"
-          onClick={() => router.push('/portal/projects/F-1015')}
+          icon={<Sun className="w-4 h-4" />}
+          title="Site visit · F-1024"
+          subtitle="Typhoon team · arriving 11 AM"
+          badgeText="Today"
+          onClick={() => router.push('/portal')}
         />
         <UpNextList
+          role="PORTAL_USER"
           items={[
             {
               id: '1',
-              icon: <FileText className="w-4 h-4" />,
-              title: 'Document verification · F-1012',
-              subtitle: 'Check on the portal',
-              badgeText: 'Verify',
-              badgeType: 'active',
+              icon: <CheckSquare className="w-4 h-4" />,
+              title: 'Survey',
+              subtitle: 'Completed · 12 Nov',
+              badgeText: 'Done',
+              badgeType: 'bg',
               onClick: () => router.push('/portal'),
             },
             {
               id: '2',
-              icon: <Upload className="w-4 h-4" />,
-              title: 'Meter file · F-1018',
-              subtitle: 'Ready to upload',
-              badgeText: 'Upload',
-              badgeType: 'due',
-              onClick: () => router.push('/portal/projects/F-1018'),
+              icon: <FileText className="w-4 h-4" />,
+              title: 'Quotation',
+              subtitle: '6 kW · Review and accept',
+              badgeText: 'Action',
+              badgeType: 'bn',
+              onClick: () => router.push('/portal'),
             },
             {
               id: '3',
-              icon: <CheckCircle2 className="w-4 h-4" />,
-              title: 'Subsidy claim · F-1009',
-              subtitle: 'Submit the claim',
-              badgeText: 'Claim',
-              badgeType: 'docs',
+              icon: <Wrench className="w-4 h-4" />,
+              title: 'Installation',
+              subtitle: 'Scheduled · 20 Nov',
+              badgeText: 'Soon',
+              badgeType: 'bn',
               onClick: () => router.push('/portal'),
             },
           ]}
         />
         <MainButton
           role="PORTAL_USER"
-          icon={<CheckCircle2 className="w-4 h-4" />}
+          icon={<Wallet className="w-4 h-4" />}
           onClick={() => router.push('/portal')}
         >
-          Update portal status
+          View project
         </MainButton>
       </div>
     );
@@ -1043,60 +1066,62 @@ function OtherRoleDashboards({ user }: { user: any }) {
         <Header
           role="INSTALLATION_TEAM"
           initials="IT"
-          roleTitle="Installation team"
-          subtitle="Rooftop installation jobs"
+          roleTitle="Install Team"
+          subtitle="Installation and commissioning"
         />
         <SummaryTiles
+          role="INSTALLATION_TEAM"
           tiles={[
-            { icon: <Layers className="w-4 h-4 text-[#f97316]" />, value: '2', label: 'Jobs today' },
-            { icon: <Camera className="w-4 h-4 text-[#f97316]" />, value: '1', label: 'Photos pending' },
+            { icon: <Wrench className="w-4 h-4" />, value: '2', label: 'Installs today' },
+            { icon: <CheckSquare className="w-4 h-4" />, value: '3', label: 'Checklists open' },
           ]}
         />
         <PriorityCard
           role="INSTALLATION_TEAM"
-          icon={<Layers className="w-5 h-5 text-[#f97316]" />}
-          title="Rooftop install · F-1018"
-          subtitle="Bhavna Joshi · 6 kW"
+          icon={<Wrench className="w-4 h-4" />}
+          title="Installation · F-1024"
+          subtitle="Ramesh Patel · Vadodara · 6 kW"
           badgeText="Today"
-          onClick={() => router.push('/installation/projects/F-1018')}
+          onClick={() => router.push('/installation')}
         />
         <UpNextList
+          role="INSTALLATION_TEAM"
           items={[
             {
               id: '1',
-              icon: <Layers className="w-4 h-4" />,
-              title: 'Structure assembly',
-              subtitle: 'Photos and checklist',
-              badgeText: 'Today',
-              badgeType: 'active',
+              icon: <Wrench className="w-4 h-4" />,
+              title: 'F-1024 · Ramesh Patel',
+              subtitle: '6 kW · Vadodara · Mount panels',
+              badgeText: 'Urgent',
+              badgeType: 'urgent',
               onClick: () => router.push('/installation'),
             },
             {
               id: '2',
-              icon: <CheckCircle2 className="w-4 h-4" />,
-              title: 'Wiring and earthing check',
-              subtitle: 'Record the results',
-              badgeText: 'Next',
-              badgeType: 'due',
+              icon: <CheckSquare className="w-4 h-4" />,
+              title: 'F-1026 · Test User',
+              subtitle: '7 kW · Vadodara · Safety check',
+              badgeText: 'New',
+              badgeType: 'bn',
               onClick: () => router.push('/installation'),
             },
             {
               id: '3',
-              icon: <Camera className="w-4 h-4" />,
-              title: 'Serial and barcode',
-              subtitle: 'Record inverter and panels',
-              badgeText: 'Pending',
-              badgeType: 'docs',
-              onClick: () => router.push('/installation/projects/F-1018'),
+              icon: <CheckSquare className="w-4 h-4" />,
+              title: 'F-1025 · Qureshi Mohammed Zahid',
+              subtitle: '6 kW · Vadodara · Commissioning',
+              badgeText: 'New',
+              badgeType: 'bn',
+              onClick: () => router.push('/installation'),
             },
           ]}
         />
         <MainButton
           role="INSTALLATION_TEAM"
-          icon={<Camera className="w-4 h-4" />}
+          icon={<Wrench className="w-4 h-4" />}
           onClick={() => router.push('/installation')}
         >
-          Record serial and barcode
+          Start installation
         </MainButton>
       </div>
     );

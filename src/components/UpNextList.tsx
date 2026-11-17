@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { getRoleTheme } from '@/lib/role-theme';
 
 export interface UpNextItem {
   id: string;
@@ -7,79 +7,139 @@ export interface UpNextItem {
   title: string;
   subtitle: string;
   badgeText: string;
-  badgeType?: 'active' | 'docs' | 'due' | 'waiting' | 'today' | 'pending';
+  badgeType?: 'urgent' | 'bu' | 'bn' | 'bg' | 'active' | 'docs' | 'due' | 'waiting' | 'today' | 'pending';
   onClick?: () => void;
 }
 
 interface UpNextListProps {
   title?: string;
   items: UpNextItem[];
+  role?: string;
 }
 
 export const UpNextList: React.FC<UpNextListProps> = ({
   title = 'UP NEXT',
   items,
+  role,
 }) => {
-  const getBadgeStyle = (type?: string) => {
-    switch (type) {
-      case 'active':
-        return 'bg-amber-50 text-amber-800 border-amber-200';
-      case 'docs':
-        return 'bg-purple-50 text-purple-800 border-purple-200';
-      case 'due':
-        return 'bg-rose-50 text-rose-800 border-rose-200';
-      case 'waiting':
-        return 'bg-indigo-50 text-indigo-800 border-indigo-200';
-      case 'today':
-        return 'bg-orange-50 text-orange-800 border-orange-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
+  const theme = getRoleTheme(role);
+  const sColor = theme.hex.cardDarkBg || '#111827';
+  const aColor = theme.hex.accentBg || '#6366F1';
 
   return (
-    <div className="px-4 my-3">
-      <div className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border">
-        <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
+    <div className="px-3.5 mt-3">
+      <div
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '18px',
+          padding: '14px 14px 4px',
+          border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+          boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+        }}
+      >
+        <div
+          style={{ color: sColor }}
+          className="text-[10px] font-bold tracking-[0.08em] opacity-55 mb-1"
+        >
           {title}
-        </h4>
+        </div>
 
-        <div className="divide-y divide-typhoon-border/60">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              onClick={item.onClick}
-              className="py-3 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy flex-shrink-0">
+        <div>
+          {items.map((item, idx) => {
+            const isUrgent =
+              item.badgeType === 'urgent' ||
+              item.badgeType === 'bu' ||
+              item.badgeType === 'due' ||
+              item.badgeText.toLowerCase().includes('urgent') ||
+              item.badgeText.toLowerCase().includes('overdue');
+
+            const isDone =
+              item.badgeType === 'bg' ||
+              item.badgeText.toLowerCase() === 'done';
+
+            // Tile background
+            const tileBg = isUrgent
+              ? '#FDECEC'
+              : `color-mix(in srgb, ${aColor} 22%, #ffffff)`;
+            const tileColor = isUrgent ? '#B42318' : sColor;
+
+            // Badge styling
+            let badgeBg = `color-mix(in srgb, ${aColor} 24%, #ffffff)`;
+            let badgeText = sColor;
+            if (isUrgent) {
+              badgeBg = '#FDECEC';
+              badgeText = '#B42318';
+            } else if (isDone) {
+              badgeBg = '#E6F6EE';
+              badgeText = '#137A4B';
+            }
+
+            return (
+              <div
+                key={item.id || idx}
+                onClick={item.onClick}
+                style={{
+                  borderTop:
+                    idx > 0
+                      ? `0.5px solid color-mix(in srgb, ${sColor} 10%, transparent)`
+                      : 'none',
+                }}
+                className="flex items-center gap-2.5 py-2.5 cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <div
+                  style={{
+                    backgroundColor: tileBg,
+                    color: tileColor,
+                    borderRadius: '12px',
+                  }}
+                  className="w-[34px] h-[34px] flex items-center justify-center flex-none"
+                >
                   {item.icon}
                 </div>
-                <div className="truncate">
-                  <p className="text-sm font-bold text-typhoon-navy truncate">
-                    {item.title}
-                  </p>
-                  <p className="text-xs text-typhoon-muted truncate mt-0.5">
-                    {item.subtitle}
-                  </p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                <div className="flex-1 min-w-0">
+                  <div
+                    style={{ color: sColor }}
+                    className="text-[13px] font-bold leading-snug truncate"
+                  >
+                    {item.title}
+                  </div>
+                  <div
+                    style={{ color: sColor }}
+                    className="text-[11px] opacity-65 mt-0.5 truncate"
+                  >
+                    {item.subtitle}
+                  </div>
+                </div>
+
                 <span
-                  className={`text-xs font-semibold px-3 py-1 rounded-full border ${getBadgeStyle(
-                    item.badgeType,
-                  )}`}
+                  style={{
+                    backgroundColor: badgeBg,
+                    color: badgeText,
+                  }}
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-full flex-none"
                 >
                   {item.badgeText}
                 </span>
-                <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ color: sColor, flex: 'none' }}
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
   );
 };
-

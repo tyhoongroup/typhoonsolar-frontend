@@ -16,17 +16,21 @@ export const MainButton: React.FC<MainButtonProps> = ({
   ...props
 }) => {
   const theme = getRoleTheme(role);
+  const aColor = theme.hex.accentBg || '#6366F1';
+  const onColor = theme.hex.accentTextColor || '#FFFFFF';
 
   return (
-    <div className="px-4 mt-6 mb-24">
+    <div className="px-3.5 mt-3.5 mb-20">
       <button
         disabled={disabled}
         style={{
-          background: theme.hex.accentGradient || theme.hex.accentBg,
-          color: theme.hex.accentTextColor,
-          boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
+          background: theme.hex.accentGradient || `linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.06)), ${aColor}`,
+          color: onColor,
+          borderRadius: '18px',
+          padding: '14px',
+          boxShadow: `0 8px 20px color-mix(in srgb, ${aColor} 35%, transparent)`,
         }}
-        className={`w-full py-4 px-6 rounded-2xl font-bold text-base tracking-wide flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-98 cursor-pointer ${className}`}
+        className={`w-full flex items-center justify-center gap-2 text-sm font-extrabold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-[0.98] cursor-pointer ${className}`}
         {...props}
       >
         {icon}
@@ -35,4 +39,3 @@ export const MainButton: React.FC<MainButtonProps> = ({
     </div>
   );
 };
-

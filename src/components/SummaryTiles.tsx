@@ -1,6 +1,7 @@
 import React from 'react';
+import { getRoleTheme } from '@/lib/role-theme';
 
-interface TileData {
+export interface TileData {
   icon: React.ReactNode;
   value: string | number;
   label: string;
@@ -8,30 +9,52 @@ interface TileData {
 
 interface SummaryTilesProps {
   tiles: TileData[];
+  role?: string;
 }
 
-export const SummaryTiles: React.FC<SummaryTilesProps> = ({ tiles }) => {
+export const SummaryTiles: React.FC<SummaryTilesProps> = ({ tiles, role }) => {
+  const theme = getRoleTheme(role);
+  const sColor = theme.hex.cardDarkBg || '#111827';
+  const aColor = theme.hex.accentBg || '#6366F1';
+
   return (
-    <div className={`relative -mt-10 px-4 grid gap-3 z-10 ${tiles.length === 2 ? 'grid-cols-2' : tiles.length === 3 ? 'grid-cols-3' : 'grid-cols-2 lg:grid-cols-4'}`}>
+    <div className="relative -mt-[42px] px-3.5 flex gap-2.5 z-10">
       {tiles.map((tile, idx) => (
         <div
           key={idx}
-          className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border flex flex-col justify-between"
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 12%, transparent)`,
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="flex-1 p-3 flex flex-col justify-between"
         >
-          <div className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy mb-2">
+          <div
+            style={{
+              backgroundColor: `color-mix(in srgb, ${aColor} 22%, #ffffff)`,
+              color: sColor,
+            }}
+            className="w-[30px] h-[30px] rounded-full flex items-center justify-center flex-none"
+          >
             {tile.icon}
           </div>
           <div>
-            <span className="text-3xl sm:text-4xl font-bold font-serif text-typhoon-navy tracking-tight block">
+            <div
+              style={{ color: sColor }}
+              className="text-[26px] font-extrabold mt-2.5 leading-none"
+            >
               {tile.value}
-            </span>
-            <span className="text-sm font-semibold text-typhoon-muted block mt-0.5">
+            </div>
+            <div
+              style={{ color: sColor }}
+              className="text-xs font-medium opacity-70 mt-1"
+            >
               {tile.label}
-            </span>
+            </div>
           </div>
         </div>
       ))}
     </div>
   );
 };
-

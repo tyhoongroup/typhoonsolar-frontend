@@ -5,7 +5,7 @@ interface PriorityCardProps {
   icon: React.ReactNode;
   title: string;
   subtitle: string;
-  badgeText: string;
+  badgeText?: string;
   role?: string;
   onClick?: () => void;
 }
@@ -14,48 +14,66 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
   icon,
   title,
   subtitle,
-  badgeText,
+  badgeText = 'Today',
   role,
   onClick,
 }) => {
   const theme = getRoleTheme(role);
+  const sColor = theme.hex.cardDarkBg || '#111827';
+  const aColor = theme.hex.accentBg || '#6366F1';
+  const cColor = theme.hex.lightBg || '#F5F5F7';
+  const onColor = theme.hex.accentTextColor || '#FFFFFF';
 
   return (
-    <div className="px-4 my-3">
+    <div className="px-3.5 mt-3">
       <div
         onClick={onClick}
         style={{
-          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || theme.hex.headerBg,
-          borderColor: theme.hex.cardDarkBg ? '#2d2f36' : theme.hex.headerBorder,
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.35)',
+          background: theme.hex.cardDarkGradient || `radial-gradient(circle at 100% 0, rgba(255, 255, 255, 0.14), transparent 55%), ${sColor}`,
+          color: cColor,
+          borderRadius: '18px',
+          boxShadow: `0 8px 20px color-mix(in srgb, ${sColor} 28%, transparent)`,
         }}
-        className="text-white rounded-2xl p-4 cursor-pointer hover:opacity-95 transition-all flex items-center justify-between border"
+        className="p-3.5 flex items-center gap-3 cursor-pointer hover:opacity-95 transition-all"
       >
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white flex-shrink-0">
-            {icon}
+        <div
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            color: cColor,
+            borderRadius: '12px',
+          }}
+          className="w-[38px] h-[38px] flex items-center justify-center flex-none"
+        >
+          {icon}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div
+            style={{ color: aColor }}
+            className="text-[10px] font-extrabold tracking-[0.08em] uppercase"
+          >
+            PRIORITY
           </div>
-          <div>
-            <span
-              style={{ color: theme.role === 'OPS_MANAGER' ? '#D9A23A' : theme.hex.accentBg }}
-              className="text-xs font-bold tracking-widest uppercase block mb-1"
-            >
-              PRIORITY
-            </span>
-            <h3 className="text-base font-bold text-white tracking-tight leading-snug">
-              {title}
-            </h3>
-            <p className="text-sm text-white/80 mt-0.5">{subtitle}</p>
+          <div
+            style={{ color: cColor }}
+            className="text-sm font-bold mt-0.5 truncate"
+          >
+            {title}
+          </div>
+          <div
+            style={{ color: cColor }}
+            className="text-[11px] opacity-75 mt-0.5 truncate"
+          >
+            {subtitle}
           </div>
         </div>
 
         <span
           style={{
-            background: theme.hex.accentGradient || theme.hex.accentBg,
-            color: theme.hex.accentTextColor,
-            boxShadow: theme.hex.accentShadow || '0 4px 12px -2px rgba(36, 72, 255, 0.4)',
+            backgroundColor: aColor,
+            color: onColor,
           }}
-          className="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ml-2"
+          className="text-[11px] font-bold px-[11px] py-[5px] rounded-full flex-none"
         >
           {badgeText}
         </span>
@@ -63,4 +81,3 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
     </div>
   );
 };
-

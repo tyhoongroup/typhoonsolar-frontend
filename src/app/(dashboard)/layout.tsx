@@ -6,6 +6,7 @@ import { Sidebar } from '../../components/desktop/Sidebar';
 import { TopBar } from '../../components/desktop/TopBar';
 import { BottomNav, NavItem } from '../../components/BottomNav';
 import { MoreMenuModal } from '../../components/MoreMenuModal';
+import { getRoleTheme } from '@/lib/role-theme';
 import { requestNotificationPermission } from '@/lib/fcm-client';
 
 export default function DashboardLayout({
@@ -212,6 +213,8 @@ export default function DashboardLayout({
     else router.push('/dashboard');
   };
 
+  const theme = getRoleTheme(user?.role);
+
   return (
     <div className="min-h-screen bg-typhoon-sand">
       {/* 1. DESKTOP VIEW (Screens >= 1024px) */}
@@ -238,7 +241,13 @@ export default function DashboardLayout({
       </div>
 
       {/* 2. MOBILE VIEW (Screens < 1024px) */}
-      <div className="lg:hidden w-full min-h-screen pb-24 relative bg-typhoon-sand overflow-x-hidden">
+      <div
+        style={{
+          backgroundColor: theme.hex.lightBg,
+          color: theme.hex.cardDarkBg,
+        }}
+        className="lg:hidden w-full min-h-screen pb-24 relative overflow-x-hidden font-sans"
+      >
         {children}
         <BottomNav
           role={user.role}

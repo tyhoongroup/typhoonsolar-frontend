@@ -19,7 +19,6 @@ import {
   FileText,
   CheckCircle2,
   PlusCircle,
-  FileSpreadsheet,
   MoreHorizontal,
 } from 'lucide-react';
 import { getRoleTheme } from '@/lib/role-theme';
@@ -47,9 +46,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   role,
 }) => {
   const theme = getRoleTheme(role);
+  const sColor = theme.hex.cardDarkBg || '#111827';
+  const aColor = theme.hex.accentBg || '#6366F1';
+  const cColor = theme.hex.lightBg || '#F5F5F7';
+  const onColor = theme.hex.accentTextColor || '#FFFFFF';
 
   const renderIcon = (name: string, isActive: boolean) => {
-    const className = 'w-5 h-5 flex-shrink-0';
+    const className = 'w-4 h-4 flex-none';
     switch (name) {
       case 'home':
         return <Home className={className} />;
@@ -109,14 +112,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto">
+    <div className="fixed bottom-3 left-3 right-3 z-50 max-w-[340px] sm:max-w-md mx-auto">
       <nav
         style={{
-          background: theme.hex.navGradient || theme.hex.navBg,
-          borderColor: '#2d2f36',
-          boxShadow: '0 12px 35px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset',
+          backgroundColor: sColor,
+          height: '52px',
+          borderRadius: '999px',
+          boxShadow: `0 8px 20px color-mix(in srgb, ${sColor} 30%, transparent)`,
         }}
-        className="rounded-full px-3 py-2 flex items-center justify-around border transition-all duration-300"
+        className="px-2 flex items-center justify-between transition-all duration-300"
       >
         {items.map((item) => {
           const isActive = item.id === activeId;
@@ -133,23 +137,22 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               style={
                 isActive
                   ? {
-                      background: theme.hex.accentGradient || theme.hex.accentBg,
-                      color: theme.hex.accentTextColor,
-                      boxShadow: theme.hex.accentShadow || '0 4px 14px -2px rgba(36, 72, 255, 0.4)',
+                      backgroundColor: aColor,
+                      color: onColor,
                     }
                   : {
-                      color: 'rgba(255, 255, 255, 0.75)',
+                      color: cColor,
                     }
               }
-              className={`flex items-center gap-1.5 transition-all text-xs sm:text-sm font-semibold cursor-pointer ${
+              className={`flex items-center justify-center transition-all cursor-pointer ${
                 isActive
-                  ? 'px-4 py-2 rounded-full shadow-md font-bold'
-                  : 'p-2.5 rounded-full hover:text-white hover:bg-white/10 active:scale-95'
+                  ? 'gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold'
+                  : 'w-10 opacity-85 hover:opacity-100'
               }`}
               title={item.label}
             >
               {renderIcon(item.iconName, isActive)}
-              {isActive && <span className="tracking-wide text-xs sm:text-sm font-bold">{item.label}</span>}
+              {isActive && <span className="text-xs font-bold">{item.label}</span>}
             </button>
           );
         })}
