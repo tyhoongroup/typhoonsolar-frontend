@@ -1,6 +1,9 @@
 export interface RoleColors {
   headerBg: string;
   headerBorder: string;
+  headerTextColor?: string;
+  headerSubtextColor?: string;
+  cardDarkBg?: string;
   accentBg: string;
   accentHoverBg: string;
   accentTextColor: string;
@@ -40,6 +43,9 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
     hex: {
       headerBg: '#1e1b4b',
       headerBorder: '#2e2a72',
+      headerTextColor: '#ffffff',
+      headerSubtextColor: 'rgba(255, 255, 255, 0.7)',
+      cardDarkBg: '#1e1b4b',
       accentBg: '#7c3aed',
       accentHoverBg: '#6d28d9',
       accentTextColor: '#ffffff',
@@ -66,27 +72,30 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
     tag: 'AK',
     subtitle: 'Lead assignment and SLA delays',
     hex: {
-      headerBg: '#0b192c',
-      headerBorder: '#1b2b42',
-      accentBg: '#f59e0b',
-      accentHoverBg: '#d97706',
-      accentTextColor: '#0b192c',
-      navBg: '#0b192c',
-      lightBg: '#fffbeb',
-      lightText: '#b45309',
-      lightBorder: '#fde68a',
+      headerBg: '#D9A23A',        // 60% Butterscotch Gold
+      headerBorder: '#B88428',    // Deep Butterscotch Gold Border
+      headerTextColor: '#1E1F24', // 30% Graphite Ink Text for contrast on Gold
+      headerSubtextColor: 'rgba(30, 31, 36, 0.75)',
+      cardDarkBg: '#1E1F24',      // 30% Graphite Ink
+      accentBg: '#2448FF',        // 10% Hyper Cobalt
+      accentHoverBg: '#1B3AE6',
+      accentTextColor: '#ffffff', // Crisp white on Cobalt
+      navBg: '#1E1F24',           // 30% Graphite Ink
+      lightBg: '#FDF9F2',         // Soft warm canvas tint
+      lightText: '#1E1F24',
+      lightBorder: '#E8D4A9',
     },
-    headerBg: 'bg-[#0b192c]',
-    headerBorder: 'border-[#1b2b42]',
-    accentBg: 'bg-[#f59e0b]',
-    accentHoverBg: 'hover:bg-[#d97706]',
-    accentText: 'text-[#0b192c]',
-    navBg: 'bg-[#0b192c]',
-    navActiveBg: 'bg-[#f59e0b]',
-    navActiveText: 'text-[#0b192c]',
-    lightBg: 'bg-[#fffbeb]',
-    lightText: 'text-[#b45309]',
-    lightBorder: 'border-[#fde68a]',
+    headerBg: 'bg-[#D9A23A]',
+    headerBorder: 'border-[#B88428]',
+    accentBg: 'bg-[#2448FF]',
+    accentHoverBg: 'hover:bg-[#1B3AE6]',
+    accentText: 'text-white',
+    navBg: 'bg-[#1E1F24]',
+    navActiveBg: 'bg-[#2448FF]',
+    navActiveText: 'text-white',
+    lightBg: 'bg-[#FDF9F2]',
+    lightText: 'text-[#1E1F24]',
+    lightBorder: 'border-[#E8D4A9]',
   },
   SALESPERSON: {
     role: 'SALESPERSON',

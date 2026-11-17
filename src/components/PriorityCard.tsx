@@ -25,8 +25,8 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
       <div
         onClick={onClick}
         style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
+          backgroundColor: theme.hex.cardDarkBg || theme.hex.headerBg,
+          borderColor: theme.hex.cardDarkBg ? '#2d2f36' : theme.hex.headerBorder,
         }}
         className="text-white rounded-2xl p-4 shadow-soft cursor-pointer hover:opacity-95 transition-all flex items-center justify-between border"
       >
@@ -36,7 +36,7 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
           </div>
           <div>
             <span
-              style={{ color: theme.hex.accentBg }}
+              style={{ color: theme.role === 'OPS_MANAGER' ? '#D9A23A' : theme.hex.accentBg }}
               className="text-xs font-bold tracking-widest uppercase block mb-1"
             >
               PRIORITY

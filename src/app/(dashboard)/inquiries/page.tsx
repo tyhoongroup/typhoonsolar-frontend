@@ -595,7 +595,11 @@ export default function InquiriesPage() {
           </div>
           <button
             onClick={() => router.push('/inquiries/new')}
-            className="bg-typhoon-gold text-typhoon-navy font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-typhoon-gold-dark transition shadow-soft flex items-center gap-2 cursor-pointer"
+            style={{
+              backgroundColor: theme.hex.accentBg,
+              color: theme.hex.accentTextColor,
+            }}
+            className="font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-soft flex items-center gap-2 cursor-pointer hover:opacity-95"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Add New Inquiry</span>

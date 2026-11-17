@@ -62,29 +62,45 @@ export const Header: React.FC<HeaderProps> = ({
     month: 'long',
   }).format(new Date());
 
+  const headerTextColor = theme.hex.headerTextColor || '#ffffff';
+  const headerSubtextColor = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.85)';
+  const isLightHeader = headerTextColor === '#1E1F24';
+
   return (
     <>
       <header
-        style={{ backgroundColor: theme.hex.headerBg }}
-        className={`relative ${theme.headerBg} text-white pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden shadow-soft transition-colors duration-300 border-b border-white/5`}
+        style={{ backgroundColor: theme.hex.headerBg, color: headerTextColor }}
+        className="relative pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden shadow-soft transition-colors duration-300 border-b border-black/5"
       >
         {/* Decorative concentric solar ripples in background */}
-        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
-        <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/10 pointer-events-none" />
+        <div
+          className={`absolute -top-12 -right-12 w-48 h-48 rounded-full border pointer-events-none ${
+            isLightHeader ? 'border-black/5' : 'border-white/5'
+          }`}
+        />
+        <div
+          className={`absolute -top-6 -right-6 w-36 h-36 rounded-full border pointer-events-none ${
+            isLightHeader ? 'border-black/10' : 'border-white/10'
+          }`}
+        />
 
         {/* Top Bar with Avatar and Official Brand Logo */}
         <div className="relative flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <button
               onClick={handleAvatarClick}
-              style={{ color: theme.hex.accentBg }}
-              className="w-11 h-11 rounded-full border border-white/20 bg-white/10 font-bold flex items-center justify-center text-sm tracking-wider hover:ring-2 hover:ring-white/40 active:scale-95 transition cursor-pointer"
+              style={{
+                color: headerTextColor,
+                borderColor: isLightHeader ? 'rgba(30, 31, 36, 0.25)' : 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+              }}
+              className="w-11 h-11 rounded-full border font-bold flex items-center justify-center text-sm tracking-wider hover:ring-2 hover:ring-black/20 active:scale-95 transition cursor-pointer"
               title="Click for Profile & Logout"
             >
               {displayInitials}
             </button>
             <img
-              src="/images/typhoon-logo-white.png"
+              src={isLightHeader ? '/images/typhoon-logo.png' : '/images/typhoon-logo-white.png'}
               alt="Typhoon Solar"
               className="h-7 w-auto object-contain drop-shadow-sm opacity-95"
             />
@@ -92,25 +108,38 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={handleBellClick}
-            className="relative w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+            style={{
+              color: headerTextColor,
+              backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+            }}
+            className="relative w-11 h-11 rounded-full hover:opacity-85 flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Lead Alerts & Notifications"
             title="Lead Alerts & Notifications"
           >
-            <Bell className="w-5 h-5 text-white/90" />
+            <Bell className="w-5 h-5" style={{ color: headerTextColor }} />
             <span
               style={{ backgroundColor: theme.hex.accentBg }}
-              className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full ring-2 ring-white/40"
+              className={`absolute top-2.5 right-2.5 w-2 h-2 rounded-full ring-2 ${
+                isLightHeader ? 'ring-black/30' : 'ring-white/40'
+              }`}
             />
           </button>
         </div>
 
         {/* Role Title and Subtitle with clear readable typography */}
         <div className="relative">
-          <p className="text-xs sm:text-sm text-white/70 font-medium mb-1">{todayStr}</p>
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+          <p style={{ color: headerSubtextColor }} className="text-xs sm:text-sm font-medium mb-1">
+            {todayStr}
+          </p>
+          <h1
+            style={{ color: headerTextColor }}
+            className="text-3xl sm:text-4xl font-serif font-bold tracking-tight"
+          >
             {displayTitle}
           </h1>
-          <p className="text-sm sm:text-base text-white/85 font-medium mt-1">{displaySubtitle}</p>
+          <p style={{ color: headerSubtextColor }} className="text-sm sm:text-base font-medium mt-1">
+            {displaySubtitle}
+          </p>
         </div>
       </header>
 

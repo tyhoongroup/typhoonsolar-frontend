@@ -130,30 +130,46 @@ export default function AssignSalespersonPage() {
     }
   };
 
+  const headerText = theme.hex.headerTextColor || '#ffffff';
+  const headerSubtext = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
+  const isLightHeader = headerText === '#1E1F24';
+
   return (
     <div className="min-h-screen bg-typhoon-sand pb-28">
       {/* 1. Curved Header with Role Theme Colors (Screen 3) */}
       <div
-        style={{ backgroundColor: theme.hex.headerBg }}
+        style={{ backgroundColor: theme.hex.headerBg, color: headerText }}
         className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
-        <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
+        <div
+          className={`absolute top-0 right-0 w-64 h-64 border rounded-full pointer-events-none -mr-16 -mt-16 ${
+            isLightHeader ? 'border-black/5' : 'border-white/5'
+          }`}
+        />
+        <div
+          className={`absolute top-0 right-0 w-44 h-44 border rounded-full pointer-events-none -mr-8 -mt-8 ${
+            isLightHeader ? 'border-black/10' : 'border-white/10'
+          }`}
+        />
 
         <div className="max-w-md mx-auto">
           {/* Back button */}
           <button
             type="button"
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-3 cursor-pointer"
+            style={{
+              color: headerText,
+              backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+            }}
+            className="w-10 h-10 rounded-full flex items-center justify-center transition mb-3 cursor-pointer hover:opacity-85"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+          <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
             Assign salesperson
           </h1>
-          <p className="text-xs text-white/70 mt-1 font-medium">
+          <p style={{ color: headerSubtext }} className="text-xs mt-1 font-medium">
             {inquiry?.followupId || inquiryId} · {inquiry?.customerName || 'Customer Lead'}
           </p>
         </div>
