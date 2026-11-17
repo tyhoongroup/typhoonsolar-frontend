@@ -100,9 +100,9 @@ export const Header: React.FC<HeaderProps> = ({
               {displayInitials}
             </button>
             <img
-              src={isLightHeader ? '/images/typhoon-logo.png' : '/images/typhoon-logo-white.png'}
+              src={isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png'}
               alt="Typhoon Solar"
-              className="h-7 w-auto object-contain drop-shadow-sm opacity-95"
+              className="h-8 sm:h-9 w-auto object-contain filter drop-shadow-xs"
             />
           </div>
 
