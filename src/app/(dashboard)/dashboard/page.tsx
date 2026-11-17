@@ -102,7 +102,12 @@ export default function DashboardPage() {
       }`,
       badgeText: inq.isUrgent ? 'Urgent' : (inq.currentStage?.replace(/_/g, ' ') || 'New Lead'),
       badgeType: inq.isUrgent ? 'due' : 'active',
-      onClick: () => router.push(`/inquiries/${inq.followupId || inq.id}`),
+      onClick: () =>
+        router.push(
+          inq.currentStage === 'DEAL_CLOSED'
+            ? `/projects/${inq.followupId || inq.id}`
+            : `/inquiries/${inq.followupId || inq.id}`
+        ),
     }));
 
     const mobileUpNext: UpNextItem[] =
@@ -406,7 +411,12 @@ export default function DashboardPage() {
       subtitle: `${inq.requestedKw} kW · ${inq.city || 'Vadodara'} · Call customer`,
       badgeText: inq.isUrgent ? 'Urgent' : 'New',
       badgeType: inq.isUrgent ? 'due' : 'active',
-      onClick: () => router.push(`/inquiries/${inq.followupId || inq.id}`),
+      onClick: () =>
+        router.push(
+          inq.currentStage === 'DEAL_CLOSED'
+            ? `/projects/${inq.followupId || inq.id}`
+            : `/inquiries/${inq.followupId || inq.id}`
+        ),
     }));
 
     const mobileUpNext: UpNextItem[] = liveMobileUpNext.length > 0 ? liveMobileUpNext : defaultMobileUpNext;

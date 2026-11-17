@@ -21,6 +21,9 @@ import {
   Send,
   ChevronRight,
   ExternalLink,
+  Home,
+  IndianRupee,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/lib/use-current-user';
@@ -33,8 +36,13 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
   const [inquiry, setInquiry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Close Deal Modal State
+  const [showCloseDealModal, setShowCloseDealModal] = useState(false);
+  const [modalDealAmount, setModalDealAmount] = useState('275000');
+  const [closingDeal, setClosingDeal] = useState(false);
+
   // Load live inquiry data from backend
-  useEffect(() => {
+  const loadInquiry = () => {
     const token = localStorage.getItem('accessToken');
     if (!token || token === 'null' || token === 'undefined') {
       localStorage.clear();
@@ -50,13 +58,24 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
         const item = data?.data || data;
         if (item) {
           setInquiry(item);
+          if (item.quotation?.grossCost) {
+            setModalDealAmount(String(item.quotation.grossCost));
+          } else if (item.dealAmount) {
+            setModalDealAmount(String(item.dealAmount));
+          } else if (item.requestedKw) {
+            setModalDealAmount(String(Math.round(Number(item.requestedKw) * 50000)));
+          }
         }
       })
       .catch((err) => {
         console.error('Failed to load inquiry:', err);
       })
       .finally(() => setLoading(false));
-  }, [inquiryId, router]);
+  };
+
+  useEffect(() => {
+    loadInquiry();
+  }, [inquiryId]);
 
   // Stage mapping helper
   const getStageMeta = (stage?: string) => {
@@ -64,7 +83,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
       case 'INQUIRY_RECEIVED':
         return { name: 'Inquiry received', num: 1, percent: '10%' };
       case 'SITE_VISIT_PLANNED':
-        return { name: 'Quotation and visit', num: 2, percent: '20%' };
+        return { name: 'Site inspection & survey', num: 2, percent: '20%' };
       case 'QUOTATION_SENT':
         return { name: 'Quotation negotiation', num: 3, percent: '30%' };
       case 'DEAL_CLOSED':
@@ -87,23 +106,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
 
   const stageMeta = getStageMeta(inquiry?.currentStage);
 
-  // Status badge styling
-  const getBadgeStyle = (status?: string) => {
-    switch (status) {
-      case 'DONE':
-      case 'CALL_DONE':
-        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
-      case 'ON_TRACK':
-        return 'bg-amber-50 text-amber-800 border-amber-200';
-      case 'DELAYED':
-      case 'NOT_REACHABLE':
-        return 'bg-rose-50 text-rose-800 border-rose-200';
-      default:
-        return 'bg-blue-50 text-blue-800 border-blue-200';
-    }
-  };
-
-  const customerName = inquiry?.customerName || 'Ramesh Patel';
+  const customerName = inquiry?.customerName || 'Customer';
   const customerPhone = inquiry?.customerPhone || '9825012345';
   const requestedKw = inquiry?.requestedKw || '6.0';
   const meterPhase = inquiry?.meterPhase || 'Single Phase';
@@ -111,30 +114,126 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
   const assignedSp = inquiry?.assignedSalesperson?.fullName || 'Amit';
   const quoteDueDays = inquiry?.quoteDueDays || 3;
 
-  // Real or default followups list
-  const followupsList = inquiry?.followups && inquiry.followups.length > 0
-    ? inquiry.followups
-    : [
-        {
-          id: 'f-1',
-          status: 'DONE',
-          description: 'Wants a site visit this week',
-          nextStep: 'Site visit planned',
-          title: 'Customer called',
+  // Pipeline 3 Core Stages computation
+  const isCallDone = Boolean(
+    inquiry?.followups?.some((f: any) => f.status === 'CALL_DONE' || f.stage !== 'INQUIRY_RECEIVED') ||
+    (inquiry?.currentStage && inquiry.currentStage !== 'INQUIRY_RECEIVED') ||
+    inquiry?.siteVisit ||
+    inquiry?.quotation ||
+    inquiry?.dealAmount
+  );
+
+  const isSiteVisitDone = Boolean(
+    inquiry?.siteVisit ||
+    inquiry?.currentStage === 'QUOTATION_SENT' ||
+    inquiry?.currentStage === 'DEAL_CLOSED' ||
+    inquiry?.quotation ||
+    inquiry?.dealAmount ||
+    inquiry?.followups?.some(
+      (f: any) =>
+        f.description?.toLowerCase().includes('site visit') ||
+        f.nextStep?.toLowerCase().includes('quotation')
+    )
+  );
+
+  const isQuotationDone = Boolean(
+    inquiry?.quotation ||
+    inquiry?.currentStage === 'QUOTATION_SENT' ||
+    inquiry?.currentStage === 'DEAL_CLOSED' ||
+    inquiry?.dealAmount
+  );
+
+  const isDealClosed = inquiry?.currentStage === 'DEAL_CLOSED' || Boolean(inquiry?.dealAmount);
+
+  // Primary action button decision
+  let primaryAction: {
+    label: string;
+    icon: React.ReactNode;
+    onClick: () => void;
+  };
+
+  if (!isCallDone) {
+    primaryAction = {
+      label: 'Log a call',
+      icon: <Phone className="w-5 h-5" />,
+      onClick: () => router.push(`/inquiries/${followupId}/log-call`),
+    };
+  } else if (!isSiteVisitDone) {
+    primaryAction = {
+      label: 'Site visit done',
+      icon: <Home className="w-5 h-5" />,
+      onClick: () => router.push(`/inquiries/${followupId}/site-visit`),
+    };
+  } else if (!isQuotationDone) {
+    primaryAction = {
+      label: 'Send quotation',
+      icon: <FileText className="w-5 h-5" />,
+      onClick: () => router.push(`/quotations/new?inquiryId=${followupId}`),
+    };
+  } else {
+    primaryAction = {
+      label: isDealClosed ? 'View Project & KYC Docs' : 'Close the deal',
+      icon: <CheckCircle2 className="w-5 h-5" />,
+      onClick: () => {
+        if (isDealClosed) {
+          router.push(`/projects/${followupId}`);
+        } else {
+          setShowCloseDealModal(true);
+        }
+      },
+    };
+  }
+
+  // Handle Close Deal confirmation
+  const handleConfirmCloseDeal = async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      toast.error('Session expired. Please sign in again.');
+      router.push('/');
+      return;
+    }
+
+    const cleanAmount = Number(modalDealAmount.replace(/\D/g, ''));
+    if (!cleanAmount || cleanAmount <= 0) {
+      toast.error('Please enter a valid deal amount.');
+      return;
+    }
+
+    setClosingDeal(true);
+    try {
+      const res = await fetch(`/api/v1/inquiries/${inquiry?.id || inquiryId}/close-deal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        {
-          id: 'f-2',
-          status: 'ON_TRACK',
-          description: `${assignedSp} will visit terrace`,
-          nextStep: 'Prepare quotation breakdown',
-          title: 'Site visit planned',
-        },
-      ];
+        body: JSON.stringify({
+          dealAmount: cleanAmount,
+        }),
+      });
+
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.message || 'Failed to close deal.');
+      }
+
+      const generatedProjectId = `TYP-2026-${followupId.replace('F-', '')}`;
+      toast.success(`Deal closed successfully! Project ${generatedProjectId} created.`);
+      setShowCloseDealModal(false);
+
+      // Redirect to project detail page
+      router.push(`/projects/${followupId}`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to close deal.');
+    } finally {
+      setClosingDeal(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-28">
       {/* ================================================================ */}
-      {/* MOBILE LAYOUT (Matches Screen 4 from PDF)                        */}
+      {/* MOBILE LAYOUT (Screen 4 Layout)                                 */}
       {/* ================================================================ */}
       <div className="lg:hidden">
         {/* 1. Curved Header with Role Theme Colors */}
@@ -205,7 +304,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                 </span>
                 <button
                   onClick={() => router.push(`/inquiries/${followupId}/assign`)}
-                  className="text-[11px] font-bold text-typhoon-gold-dark hover:underline"
+                  className="text-[11px] font-bold text-typhoon-gold-dark hover:underline cursor-pointer"
                 >
                   Change
                 </button>
@@ -233,86 +332,170 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
             </div>
           </div>
 
-          {/* Section: CALL HISTORY */}
+          {/* 3 Core Stages Section: Customer called, Site visit, Quotation sent */}
           <div className="space-y-2">
             <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase px-1">
-              CALL HISTORY
+              PIPELINE PROGRESS
             </h3>
 
-            {/* Call History Card List */}
             <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60 overflow-hidden">
-              {followupsList.map((f: any, idx: number) => (
-                <div
-                  key={f.id || idx}
-                  onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
-                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 transition-colors"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy flex-shrink-0">
-                      {idx % 2 === 0 ? (
-                        <Phone className="w-5 h-5 text-typhoon-navy" />
-                      ) : (
-                        <Calendar className="w-5 h-5 text-typhoon-navy" />
-                      )}
-                    </div>
-                    <div className="truncate">
-                      <h4 className="text-sm font-bold text-typhoon-navy truncate">
-                        {f.title || (f.status === 'CALL_DONE' ? 'Customer called' : 'Follow-up update')}
-                      </h4>
-                      <p className="text-xs text-typhoon-muted truncate mt-0.5">
-                        {f.description || f.nextStep || 'Follow-up discussion notes'}
-                      </p>
-                    </div>
+              {/* 1. Customer called */}
+              <div
+                onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      isCallDone ? 'bg-emerald-50 text-emerald-700' : 'bg-typhoon-sand text-typhoon-navy'
+                    }`}
+                  >
+                    <Phone className="w-5 h-5" />
                   </div>
-
-                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                    <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full border ${getBadgeStyle(
-                        f.status
-                      )}`}
-                    >
-                      {f.status === 'DONE' || f.status === 'CALL_DONE'
-                        ? 'Done'
-                        : f.status === 'ON_TRACK'
-                        ? 'Next'
-                        : 'Update'}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                  <div className="truncate">
+                    <h4 className="text-sm font-bold text-typhoon-navy truncate">
+                      1. Customer called
+                    </h4>
+                    <p className="text-xs text-typhoon-muted truncate mt-0.5">
+                      {isCallDone
+                        ? inquiry?.followups?.[0]?.description || 'Call completed with customer'
+                        : 'Initial call pending'}
+                    </p>
                   </div>
                 </div>
-              ))}
+
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                      isCallDone
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-amber-50 text-amber-800 border-amber-200'
+                    }`}
+                  >
+                    {isCallDone ? 'Done' : 'Next'}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                </div>
+              </div>
+
+              {/* 2. Site visit */}
+              <div
+                onClick={() => router.push(`/inquiries/${followupId}/site-visit`)}
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      isSiteVisitDone ? 'bg-emerald-50 text-emerald-700' : 'bg-typhoon-sand text-typhoon-navy'
+                    }`}
+                  >
+                    <Home className="w-5 h-5" />
+                  </div>
+                  <div className="truncate">
+                    <h4 className="text-sm font-bold text-typhoon-navy truncate">
+                      2. Site visit
+                    </h4>
+                    <p className="text-xs text-typhoon-muted truncate mt-0.5">
+                      {isSiteVisitDone
+                        ? inquiry?.siteVisit?.notes || 'Roof area & wiring verified'
+                        : isCallDone
+                        ? 'Schedule & log terrace inspection'
+                        : 'Pending customer call'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                      isSiteVisitDone
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : isCallDone
+                        ? 'bg-amber-50 text-amber-800 border-amber-200'
+                        : 'bg-typhoon-sand text-typhoon-muted border-typhoon-border'
+                    }`}
+                  >
+                    {isSiteVisitDone ? 'Done' : isCallDone ? 'Next' : 'Pending'}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                </div>
+              </div>
+
+              {/* 3. Quotation sent */}
+              <div
+                onClick={() => router.push(`/quotations/new?inquiryId=${followupId}`)}
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      isQuotationDone ? 'bg-emerald-50 text-emerald-700' : 'bg-typhoon-sand text-typhoon-navy'
+                    }`}
+                  >
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="truncate">
+                    <h4 className="text-sm font-bold text-typhoon-navy truncate">
+                      3. Quotation sent
+                    </h4>
+                    <p className="text-xs text-typhoon-muted truncate mt-0.5">
+                      {isQuotationDone
+                        ? `Quotation sent · ₹${(inquiry?.quotation?.netCustomerCost || 172050).toLocaleString('en-IN')}`
+                        : isSiteVisitDone
+                        ? 'Configure Excel sizing & WhatsApp quotation'
+                        : 'Pending site survey'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                      isQuotationDone
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : isSiteVisitDone
+                        ? 'bg-amber-50 text-amber-800 border-amber-200'
+                        : 'bg-typhoon-sand text-typhoon-muted border-typhoon-border'
+                    }`}
+                  >
+                    {isQuotationDone ? 'Done' : isSiteVisitDone ? 'Next' : 'Pending'}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Action Hub Buttons */}
+          {/* Action Hub Buttons: Dynamically switches based on current pipeline state */}
           <div className="pt-2 space-y-2">
-            {/* Main Log a Call Button Matching Screen 4 */}
             <button
-              onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
+              onClick={primaryAction.onClick}
               style={{
                 backgroundColor: theme.hex.accentBg,
                 color: theme.hex.accentTextColor,
               }}
               className="w-full py-4 px-6 rounded-2xl font-bold text-base shadow-soft flex items-center justify-center gap-2 transition cursor-pointer hover:opacity-95"
             >
-              <Phone className="w-5 h-5" />
-              <span>Log a call</span>
+              {primaryAction.icon}
+              <span>{primaryAction.label}</span>
             </button>
 
-            {/* Secondary Action: Deal closed */}
-            <button
-              onClick={() => router.push(`/inquiries/${followupId}/deal-closed`)}
-              className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-typhoon-sand border border-typhoon-border text-typhoon-navy font-bold text-xs shadow-soft flex items-center justify-center gap-2 transition cursor-pointer"
-            >
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Advance to Deal Closed</span>
-            </button>
+            {/* If quotation is already done and deal is not closed, show explicit Close the deal option */}
+            {isQuotationDone && !isDealClosed && (
+              <button
+                onClick={() => setShowCloseDealModal(true)}
+                className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-typhoon-sand border border-typhoon-border text-typhoon-navy font-bold text-xs shadow-soft flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Close the deal (Convert to Project)</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* ================================================================ */}
-      {/* DESKTOP LAYOUT (Rich 2-Column Wide Grid Layout)                 */}
+      {/* DESKTOP LAYOUT (2-Column Grid Layout)                           */}
       {/* ================================================================ */}
       <div className="hidden lg:block max-w-6xl mx-auto px-6 py-8 space-y-6">
         {/* Top Header Card */}
@@ -361,23 +544,15 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
               </a>
 
               <button
-                onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
+                onClick={primaryAction.onClick}
                 style={{
                   backgroundColor: theme.hex.accentBg,
                   color: theme.hex.accentTextColor,
                 }}
                 className="font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-soft transition hover:opacity-95 cursor-pointer"
               >
-                <Plus className="w-4 h-4" />
-                <span>Log a Call</span>
-              </button>
-
-              <button
-                onClick={() => router.push(`/inquiries/${followupId}/deal-closed`)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition shadow-soft cursor-pointer"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Close Deal</span>
+                {primaryAction.icon}
+                <span>{primaryAction.label}</span>
               </button>
             </div>
           </div>
@@ -385,7 +560,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
 
         {/* 2-Column Desktop Grid */}
         <div className="grid grid-cols-12 gap-6 items-start">
-          {/* Left Column: Specifications (4 cols) */}
+          {/* Left Column: Specifications */}
           <div className="col-span-4 space-y-4">
             <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-4">
               <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase">
@@ -428,10 +603,10 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-typhoon-border/60 flex items-center justify-between">
+              <div className="pt-3 border-t border-typhoon-border/60">
                 <button
                   onClick={() => router.push(`/inquiries/${followupId}/assign`)}
-                  className="w-full py-2.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs transition border border-typhoon-border text-center"
+                  className="w-full py-2.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs transition border border-typhoon-border text-center cursor-pointer"
                 >
                   Reassign Salesperson
                 </button>
@@ -439,69 +614,214 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
             </div>
           </div>
 
-          {/* Right Column: Follow-up Timeline (8 cols) */}
+          {/* Right Column: 3-Stage Pipeline & History */}
           <div className="col-span-8 space-y-4">
-            <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft">
-              <div className="flex items-center justify-between pb-4 border-b border-typhoon-border/60">
+            <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-typhoon-border/60">
                 <div>
                   <h3 className="text-base font-serif font-bold text-typhoon-navy">
-                    Call History & Follow-Up Notes
+                    Pipeline Stages
                   </h3>
                   <p className="text-xs text-typhoon-muted">
-                    Discussion records and next actions for {followupId}
+                    Core 3 milestone workflow for {followupId}
                   </p>
                 </div>
 
-                <button
-                  onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
-                  className="bg-typhoon-navy text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-typhoon-navy-light transition cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Log a Call</span>
-                </button>
+                {isQuotationDone && !isDealClosed && (
+                  <button
+                    onClick={() => setShowCloseDealModal(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Close the Deal</span>
+                  </button>
+                )}
               </div>
 
-              <div className="mt-5 space-y-4">
-                {followupsList.map((f: any, idx: number) => (
-                  <div
-                    key={f.id || idx}
-                    className="p-4 rounded-xl bg-typhoon-sand/30 border border-typhoon-border/70 hover:border-typhoon-gold transition-colors space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-typhoon-navy">
-                          {f.title || (f.status === 'CALL_DONE' ? 'Phone Call' : 'Follow-up Task')}
-                        </span>
-                        <span className="text-[10px] text-typhoon-muted">
-                          by {f.createdBy?.fullName || assignedSp}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${getBadgeStyle(
-                          f.status
-                        )}`}
-                      >
-                        {f.status}
-                      </span>
+              {/* 3 Core Stages List */}
+              <div className="space-y-3">
+                {/* 1. Customer called */}
+                <div
+                  onClick={() => router.push(`/inquiries/${followupId}/log-call`)}
+                  className="p-4 rounded-xl bg-typhoon-sand/30 border border-typhoon-border/70 hover:border-typhoon-gold transition-colors flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                        isCallDone ? 'bg-emerald-100 text-emerald-800' : 'bg-typhoon-sand text-typhoon-navy'
+                      }`}
+                    >
+                      <Phone className="w-4 h-4" />
                     </div>
-
-                    <p className="text-xs text-typhoon-navy font-medium leading-relaxed">
-                      {f.description}
-                    </p>
-
-                    <div className="flex items-center justify-between text-[11px] text-typhoon-muted pt-1 border-t border-typhoon-border/40">
-                      <span>Next Action: {f.nextStep || 'Follow-up'}</span>
-                      <span className="font-semibold text-typhoon-navy">
-                        Target: {f.committedDate ? new Date(f.committedDate).toLocaleDateString() : 'Tomorrow'}
-                      </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-typhoon-navy">Stage 1: Customer called</h4>
+                      <p className="text-xs text-typhoon-muted">
+                        {isCallDone ? 'Initial phone call logged & requirement discussed' : 'Initial phone call pending'}
+                      </p>
                     </div>
                   </div>
-                ))}
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                      isCallDone ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'
+                    }`}
+                  >
+                    {isCallDone ? 'Done' : 'Next'}
+                  </span>
+                </div>
+
+                {/* 2. Site visit */}
+                <div
+                  onClick={() => router.push(`/inquiries/${followupId}/site-visit`)}
+                  className="p-4 rounded-xl bg-typhoon-sand/30 border border-typhoon-border/70 hover:border-typhoon-gold transition-colors flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                        isSiteVisitDone ? 'bg-emerald-100 text-emerald-800' : 'bg-typhoon-sand text-typhoon-navy'
+                      }`}
+                    >
+                      <Home className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-typhoon-navy">Stage 2: Site visit</h4>
+                      <p className="text-xs text-typhoon-muted">
+                        {isSiteVisitDone ? 'Terrace dimensions, shadow conditions & wiring verified' : 'Terrace inspection and sizing check'}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                      isSiteVisitDone
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : isCallDone
+                        ? 'bg-amber-50 text-amber-800 border-amber-300'
+                        : 'bg-typhoon-sand text-typhoon-muted border-typhoon-border'
+                    }`}
+                  >
+                    {isSiteVisitDone ? 'Done' : isCallDone ? 'Next' : 'Pending'}
+                  </span>
+                </div>
+
+                {/* 3. Quotation sent */}
+                <div
+                  onClick={() => router.push(`/quotations/new?inquiryId=${followupId}`)}
+                  className="p-4 rounded-xl bg-typhoon-sand/30 border border-typhoon-border/70 hover:border-typhoon-gold transition-colors flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                        isQuotationDone ? 'bg-emerald-100 text-emerald-800' : 'bg-typhoon-sand text-typhoon-navy'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-typhoon-navy">Stage 3: Quotation sent</h4>
+                      <p className="text-xs text-typhoon-muted">
+                        {isQuotationDone ? 'Excel-formula quotation generated & sent on WhatsApp' : 'Calculate system pricing & share WhatsApp PDF'}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                      isQuotationDone
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : isSiteVisitDone
+                        ? 'bg-amber-50 text-amber-800 border-amber-300'
+                        : 'bg-typhoon-sand text-typhoon-muted border-typhoon-border'
+                    }`}
+                  >
+                    {isQuotationDone ? 'Done' : isSiteVisitDone ? 'Next' : 'Pending'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ================================================================ */}
+      {/* CLOSE THE DEAL MODAL                                             */}
+      {/* ================================================================ */}
+      {showCloseDealModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 border border-typhoon-border shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-serif font-bold text-typhoon-navy tracking-tight">
+                  Close the deal
+                </h3>
+                <p className="text-xs text-typhoon-muted mt-0.5">
+                  {followupId} · {customerName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCloseDealModal(false)}
+                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy hover:bg-typhoon-sand-dark transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quotation Reference Box */}
+            <div className="bg-typhoon-sand/60 p-3.5 rounded-2xl border border-typhoon-border/70 flex justify-between items-center text-xs">
+              <span className="text-typhoon-muted font-medium">Quotation Total Price:</span>
+              <span className="font-bold text-typhoon-navy text-sm">
+                ₹{Number(modalDealAmount || 275000).toLocaleString('en-IN')}
+              </span>
+            </div>
+
+            {/* Agreed Deal Amount Input */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-typhoon-navy block">
+                Agreed Deal Amount (₹)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-typhoon-muted">
+                  <IndianRupee className="w-4 h-4" />
+                </div>
+                <input
+                  type="number"
+                  value={modalDealAmount}
+                  onChange={(e) => setModalDealAmount(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3 bg-white border border-typhoon-border rounded-2xl font-bold text-typhoon-navy text-base outline-none focus:ring-2 focus:ring-typhoon-gold"
+                  placeholder="275000"
+                />
+              </div>
+              <p className="text-[11px] text-typhoon-muted">
+                Saving will create Project ID TYP-2026-{followupId.replace('F-', '')} and move to KYC document upload.
+              </p>
+            </div>
+
+            {/* Modal Buttons */}
+            <div className="pt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCloseDealModal(false)}
+                className="flex-1 py-3 rounded-2xl border border-typhoon-border font-bold text-xs text-typhoon-navy hover:bg-typhoon-sand transition cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmCloseDeal}
+                disabled={closingDeal}
+                style={{
+                  backgroundColor: theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                }}
+                className="flex-1 py-3 rounded-2xl font-bold text-xs shadow-soft transition hover:opacity-95 active:scale-98 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{closingDeal ? 'Closing...' : 'Convert to Project'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

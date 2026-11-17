@@ -455,7 +455,13 @@ export default function InquiriesPage() {
                     return (
                       <div
                         key={inq.id}
-                        onClick={() => router.push(`/inquiries/${inq.followupId || inq.id}`)}
+                        onClick={() =>
+                          router.push(
+                            activeTab === 'projects' || isClosed
+                              ? `/projects/${inq.followupId || inq.id}`
+                              : `/inquiries/${inq.followupId || inq.id}`
+                          )
+                        }
                         className="py-3 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors"
                       >
                         {/* Left: User Icon in Rounded Container */}
@@ -725,7 +731,13 @@ export default function InquiriesPage() {
                       return (
                         <div
                           key={inq.id}
-                          onClick={() => router.push(`/inquiries/${inq.followupId || inq.id}`)}
+                          onClick={() =>
+                            router.push(
+                              activeTab === 'projects' || inq.currentStage === 'DEAL_CLOSED'
+                                ? `/projects/${inq.followupId || inq.id}`
+                                : `/inquiries/${inq.followupId || inq.id}`
+                            )
+                          }
                           className="p-4 hover:bg-typhoon-sand/30 transition flex items-center justify-between cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
