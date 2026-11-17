@@ -14,10 +14,12 @@ import {
   ExternalLink,
   ShieldCheck,
   Zap,
+  Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { FollowUpModal } from '@/components/FollowUpModal';
 
 export default function PortalProjectProcessingPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -41,6 +43,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
   const [selectedDocForQuery, setSelectedDocForQuery] = useState('');
   const [queryText, setQueryText] = useState('');
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -324,14 +327,14 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
             ))}
           </div>
 
-          {/* Application Submitted Button */}
-          <div className="pt-2">
+          {/* Application Submitted Button & Follow-up */}
+          <div className="pt-2 flex flex-col sm:flex-row gap-2">
             <button
               onClick={() => {
                 setIsApplicationSubmitted(true);
                 toast.success('Marked: Application uploaded to Government Portal!');
               }}
-              className={`w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition ${
+              className={`flex-1 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition ${
                 isApplicationSubmitted
                   ? 'bg-emerald-600 text-white shadow-soft'
                   : 'bg-typhoon-navy hover:bg-typhoon-navy-light text-white'
@@ -340,9 +343,18 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
               <CheckCircle2 className="w-4 h-4" />
               <span>
                 {isApplicationSubmitted
-                  ? 'Application Submitted to Surya Gujarat Portal'
-                  : 'Mark Application Submitted on Govt Portal'}
+                  ? 'Docs Uploaded to Surya Gujarat Portal'
+                  : 'Docs Uploaded on Govt Portal'}
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFollowupOpen(true)}
+              className="py-3 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition flex items-center justify-center gap-1.5"
+            >
+              <Clock className="w-4 h-4 text-typhoon-gold" />
+              <span>Add Follow-up</span>
             </button>
           </div>
         </div>
@@ -465,9 +477,29 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
               {isSubsidyReceived && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
               <span>{isSubsidyReceived ? 'Subsidy Received (DBT Verified)' : 'Mark Subsidy Received'}</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFollowupOpen(true)}
+              className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition inline-flex items-center gap-1.5"
+            >
+              <Clock className="w-3.5 h-3.5 text-typhoon-gold" />
+              <span>Follow-up</span>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={params.id}
+        onSuccess={() => {
+          setIsFollowupOpen(false);
+          toast.success('Follow-up recorded!');
+        }}
+      />
 
       {/* Query Modal */}
       {isQueryModalOpen && (

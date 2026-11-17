@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { FollowUpModal } from '@/components/FollowUpModal';
 
 export default function InquiryDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
   const [showCloseDealModal, setShowCloseDealModal] = useState(false);
   const [modalDealAmount, setModalDealAmount] = useState('275000');
   const [closingDeal, setClosingDeal] = useState(false);
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
 
   // Load live inquiry data from backend
   const loadInquiry = () => {
@@ -178,7 +180,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
         if (isDealClosed) {
           router.push(`/projects/${followupId}`);
         } else {
-          setShowCloseDealModal(true);
+          router.push(`/inquiries/${followupId}/deal-closed`);
         }
       },
     };
@@ -498,27 +500,38 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
 
           {/* Action Hub Buttons: Dynamically switches based on current pipeline state */}
           <div className="pt-2 space-y-2">
-            <button
-              onClick={primaryAction.onClick}
-              style={{
-                background: theme.hex.accentGradient || theme.hex.accentBg,
-                color: theme.hex.accentTextColor,
-                boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
-              }}
-              className="w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition cursor-pointer hover:opacity-95 active:scale-98"
-            >
-              {primaryAction.icon}
-              <span>{primaryAction.label}</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={primaryAction.onClick}
+                style={{
+                  background: theme.hex.accentGradient || theme.hex.accentBg,
+                  color: theme.hex.accentTextColor,
+                  boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
+                }}
+                className="flex-1 py-4 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition cursor-pointer hover:opacity-95 active:scale-98"
+              >
+                {primaryAction.icon}
+                <span>{primaryAction.label}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFollowupOpen(true)}
+                className="py-4 px-4 rounded-2xl bg-white hover:bg-typhoon-sand border border-typhoon-border text-typhoon-navy font-bold text-xs shadow-soft flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <Clock className="w-4 h-4 text-typhoon-gold" />
+                <span>Follow-up</span>
+              </button>
+            </div>
 
             {/* If quotation is already done and deal is not closed, show explicit Close the deal option */}
             {isQuotationDone && !isDealClosed && (
               <button
-                onClick={() => setShowCloseDealModal(true)}
+                onClick={() => router.push(`/inquiries/${followupId}/deal-closed`)}
                 className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-typhoon-sand border border-typhoon-border text-typhoon-navy font-bold text-xs shadow-soft flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Close the deal (Convert to Project)</span>
+                <span>Close the deal (Setup Milestone Terms)</span>
               </button>
             )}
           </div>
@@ -863,6 +876,18 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
       )}
+
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={followupId || inquiry?.id}
+        onSuccess={() => {
+          setIsFollowupOpen(false);
+          toast.success('Follow-up recorded!');
+          loadInquiry();
+        }}
+      />
     </div>
   );
 }

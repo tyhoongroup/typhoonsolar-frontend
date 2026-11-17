@@ -17,10 +17,13 @@ import {
   Layers,
   Truck,
   MessageSquare,
+  ShieldCheck,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { FollowUpModal } from '@/components/FollowUpModal';
 
 export default function MaterialProjectDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -38,6 +41,9 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
   // Unload Proof Uploads
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [isUnloaded, setIsUnloaded] = useState(false);
+  const [isMaterialPlanned, setIsMaterialPlanned] = useState(false);
+  const [isInstallVerified, setIsInstallVerified] = useState(false);
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -117,6 +123,32 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePlanMaterial = async () => {
+    try {
+      setLoading(true);
+      await fetchWithAuth('/api/v1/material/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inquiryId: params.id,
+          scheduledUnloadDate: new Date(deliveryDate).toISOString(),
+          amountDueOnUnload: inquiry?.dealAmount ? Math.round(Number(inquiry.dealAmount) * 0.8) : 160000,
+        }),
+      });
+      setIsMaterialPlanned(true);
+      toast.success('Material marked PLANNED in database! Delivery schedule set.');
+    } catch (err: any) {
+      toast.error(err.message || 'Error planning material');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyInstall = () => {
+    setIsInstallVerified(true);
+    toast.success('Installation team proof photos verified done! Operations Manager notified.');
   };
 
   const handleMarkMaterialUnloaded = async () => {
@@ -397,29 +429,134 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
             </div>
           )}
 
-          {/* Action button: Material Unloaded on Site */}
-          <div className="pt-2">
+          {/* Action buttons: Material Planned -> Material Unloaded + Follow-up */}
+          <div className="pt-2 space-y-2">
+            {!isMaterialPlanned && !isUnloaded && (
+              <button
+                onClick={handlePlanMaterial}
+                disabled={loading}
+                className="w-full py-3.5 rounded-2xl bg-typhoon-navy hover:bg-typhoon-navy-light text-white font-bold text-xs flex items-center justify-center gap-2 shadow-soft transition"
+              >
+                <Package className="w-4 h-4" />
+                <span>Mark Material Planned (Set Delivery Date)</span>
+              </button>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleMarkMaterialUnloaded}
+                disabled={loading || isUnloaded}
+                className={`flex-1 py-3.5 rounded-2xl font-bold text-xs shadow-soft flex items-center justify-center gap-2 transition ${
+                  isUnloaded
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy disabled:opacity-50'
+                }`}
+              >
+                <Truck className="w-4 h-4 stroke-[2.5]" />
+                <span>
+                  {loading
+                    ? 'Updating...'
+                    : isUnloaded
+                    ? 'Material Unloaded on Site'
+                    : 'Mark Material Unloaded on Site'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFollowupOpen(true)}
+                className="py-3.5 px-4 rounded-2xl bg-white hover:bg-typhoon-sand text-typhoon-navy font-bold text-xs border border-typhoon-border transition flex items-center gap-1.5 shadow-2xs"
+              >
+                <Clock className="w-4 h-4 text-typhoon-gold" />
+                <span>Follow-up</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 4. Installation Team Proof Photos & Verified Done Section */}
+        <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-typhoon-navy">
+                Installation Team Rooftop Execution Proofs
+              </h3>
+              <p className="text-xs text-typhoon-muted">
+                Inspect photos uploaded by Installation Team (Irfan) and verify site completion
+              </p>
+            </div>
+            {isInstallVerified ? (
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Verified Done</span>
+              </span>
+            ) : (
+              <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                Pending Verification
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { label: 'Structure Mounting', img: 'structure_angle1.jpg' },
+              { label: 'Panels Array Fitting', img: 'panels_array.jpg' },
+              { label: 'Inverter Wiring Box', img: 'inverter_connection.jpg' },
+              { label: 'Chemical Earthing Pit', img: 'earthing_pit.jpg' },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="p-3 bg-typhoon-sand/40 border border-typhoon-border/80 rounded-xl space-y-1.5 text-center"
+              >
+                <div className="w-full h-16 rounded-lg bg-typhoon-sand flex items-center justify-center border border-typhoon-border/60">
+                  <Camera className="w-5 h-5 text-typhoon-gold" />
+                </div>
+                <span className="text-[11px] font-bold text-typhoon-navy block truncate">
+                  {item.label}
+                </span>
+                <span className="text-[10px] text-emerald-700 font-semibold block">
+                  {item.img}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-2 flex gap-2">
             <button
-              onClick={handleMarkMaterialUnloaded}
-              disabled={loading || isUnloaded}
-              className={`w-full py-4 rounded-2xl font-bold text-sm shadow-soft flex items-center justify-center gap-2 transition ${
-                isUnloaded
+              onClick={handleVerifyInstall}
+              disabled={isInstallVerified}
+              className={`flex-1 py-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition shadow-soft ${
+                isInstallVerified
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy disabled:opacity-50'
+                  : 'bg-typhoon-navy hover:bg-typhoon-navy-light text-white'
               }`}
             >
-              <Truck className="w-4 h-4 stroke-[2.5]" />
-              <span>
-                {loading
-                  ? 'Updating Status...'
-                  : isUnloaded
-                  ? 'Material Unloaded & Confirmed on Site'
-                  : 'Mark Material Unloaded on Site (Notify Accountant & Installation)'}
-              </span>
+              <ShieldCheck className="w-4 h-4" />
+              <span>{isInstallVerified ? 'Installation Photos Verified Done' : 'Verified Done (Confirm Quality)'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFollowupOpen(true)}
+              className="py-3.5 px-4 rounded-2xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition flex items-center gap-1.5"
+            >
+              <Clock className="w-4 h-4 text-typhoon-gold" />
+              <span>Follow-up</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={params.id}
+        onSuccess={() => {
+          setIsFollowupOpen(false);
+          toast.success('Follow-up recorded!');
+        }}
+      />
     </div>
   );
 }

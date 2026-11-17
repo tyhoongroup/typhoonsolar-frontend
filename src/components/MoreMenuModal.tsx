@@ -4,6 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import {
   X,
+  User,
   FilePlus2,
   Calculator,
   ShieldCheck,
@@ -448,6 +449,13 @@ export function MoreMenuModal({
                 badge: '14 Active',
               },
               {
+                label: 'All Follow-ups Control Tower',
+                desc: 'Filter by stage, salesperson, inquiry & project',
+                icon: <Clock className="w-5 h-5 text-indigo-600" />,
+                path: '/followups',
+                badge: 'Live SLA',
+              },
+              {
                 label: 'Add New Solar Inquiry',
                 desc: 'Register customer lead & auto-assign to sales',
                 icon: <FilePlus2 className="w-5 h-5 text-sky-600" />,
@@ -496,6 +504,12 @@ export function MoreMenuModal({
                 desc: '80% terrace unload & 20% commissioning receipts',
                 icon: <IndianRupee className="w-5 h-5 text-rose-600" />,
                 path: '/payments',
+              },
+              {
+                label: 'Service & Maintenance',
+                desc: 'Customer complaints, repairs & resolution tickets',
+                icon: <Wrench className="w-5 h-5 text-emerald-600" />,
+                path: '/service',
               },
             ],
           },
@@ -621,6 +635,17 @@ export function MoreMenuModal({
 
           {/* Account Actions */}
           <div className="pt-4 space-y-2">
+            <button
+              onClick={() => handleNavigate('/profile')}
+              className="w-full py-3 px-4 rounded-2xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs flex items-center justify-between border border-typhoon-border transition cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <User className="w-4 h-4 text-typhoon-navy" />
+                <span>Profile & Account Settings</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+            </button>
+
             <button
               onClick={handleLogout}
               className="w-full py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-2 border border-rose-200 transition cursor-pointer"

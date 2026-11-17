@@ -40,7 +40,7 @@ export default function DashboardLayout({
     requestNotificationPermission().catch(console.error);
   }, [router]);
 
-  // Keep active tab in sync with current URL pathname
+  // Keep active tab in sync with current URL pathname and enforce role route protection
   useEffect(() => {
     if (pathname.includes('/portal')) {
       setActiveTab('portal');
@@ -50,8 +50,10 @@ export default function DashboardLayout({
       setActiveTab('installation');
     } else if (pathname.includes('/payments')) {
       setActiveTab('payments');
+    } else if (pathname === '/projects' || pathname.startsWith('/projects/')) {
+      setActiveTab('projects');
     } else if (pathname === '/inquiries') {
-      setActiveTab('pipeline');
+      setActiveTab('inquiries');
     } else if (pathname.includes('/inquiries')) {
       setActiveTab('inquiries');
     } else if (pathname.includes('/quotations')) {
@@ -61,7 +63,32 @@ export default function DashboardLayout({
     } else {
       setActiveTab('home');
     }
-  }, [pathname]);
+
+    // Role Route Protection: Prevent unauthorized roles from entering other department pages
+    if (user && user.role !== 'ADMIN' && user.role !== 'OPS_MANAGER') {
+      const role = user.role;
+      const allowedPrefixes = ['/dashboard', '/track', '/profile'];
+
+      if (role === 'SALESPERSON') {
+        allowedPrefixes.push('/inquiries', '/projects', '/quotations');
+      } else if (role === 'PORTAL_USER') {
+        allowedPrefixes.push('/portal', '/projects');
+      } else if (role === 'MATERIAL_MANAGER') {
+        allowedPrefixes.push('/material', '/projects');
+      } else if (role === 'INSTALLATION_TEAM') {
+        allowedPrefixes.push('/installation', '/projects');
+      } else if (role === 'ACCOUNTANT') {
+        allowedPrefixes.push('/payments', '/projects');
+      } else if (role === 'SERVICE_TECH') {
+        allowedPrefixes.push('/service');
+      }
+
+      const isAllowed = allowedPrefixes.some((prefix) => pathname.startsWith(prefix));
+      if (!isAllowed) {
+        router.push('/dashboard');
+      }
+    }
+  }, [pathname, user, router]);
 
   const handleSignOut = () => {
     localStorage.clear();
@@ -84,8 +111,8 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'inquiries', label: 'New Lead', iconName: 'inquiries', href: '/inquiries/new' },
-          { id: 'quotations', label: 'Quotes', iconName: 'quotations', href: '/quotations/new' },
+          { id: 'inquiries', label: 'Inquiries', iconName: 'inquiries', href: '/inquiries' },
+          { id: 'projects', label: 'Projects & Docs', iconName: 'docs', href: '/projects' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
@@ -100,8 +127,8 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'portal', label: 'Govt Portal', iconName: 'portal', href: '/portal' },
-          { id: 'sr', label: 'SR Queue', iconName: 'sr', href: '/portal' },
+          { id: 'portal', label: 'Govt Queue', iconName: 'portal', href: '/portal' },
+          { id: 'meter', label: 'Meter & Subsidy', iconName: 'subsidy', href: '/portal' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
@@ -117,8 +144,8 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'material', label: 'Stock & BOM', iconName: 'material', href: '/material' },
-          { id: 'unload', label: 'Site Unloads', iconName: 'unload', href: '/material' },
+          { id: 'material', label: 'BOM & Unload', iconName: 'material', href: '/material' },
+          { id: 'verify', label: 'Verify Proofs', iconName: 'unload', href: '/material' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
@@ -132,8 +159,8 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'installation', label: 'Active Sites', iconName: 'installation', href: '/installation' },
-          { id: 'checklist', label: 'Fitting Jobs', iconName: 'checklist', href: '/installation' },
+          { id: 'installation', label: 'My Projects', iconName: 'installation', href: '/installation' },
+          { id: 'serials', label: 'Upload Serials', iconName: 'checklist', href: '/installation' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
@@ -147,8 +174,8 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'payments', label: 'Ledger', iconName: 'payments', href: '/payments' },
-          { id: 'milestones', label: '80/20 Terms', iconName: 'stats', href: '/payments' },
+          { id: 'projects', label: 'Projects', iconName: 'ledger', href: '/payments' },
+          { id: 'payments', label: 'Log Payment', iconName: 'payments', href: '/payments' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
@@ -162,8 +189,8 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'tickets', label: 'Complaints', iconName: 'tickets', href: '/dashboard' },
-          { id: 'plants', label: 'Plants', iconName: 'jobs', href: '/dashboard' },
+          { id: 'tickets', label: 'Tickets', iconName: 'tickets', href: '/dashboard' },
+          { id: 'service', label: 'Service Action', iconName: 'jobs', href: '/dashboard' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [
@@ -177,8 +204,8 @@ export default function DashboardLayout({
     return {
       mobile: [
         { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-        { id: 'pipeline', label: 'Pipeline', iconName: 'pipeline', href: '/inquiries' },
-        { id: 'team', label: 'Team SLA', iconName: 'team', href: '/team' },
+        { id: 'inquiries', label: 'Inquiries', iconName: 'inquiries', href: '/inquiries' },
+        { id: 'projects', label: 'Projects', iconName: 'jobs', href: '/projects' },
         { id: 'more', label: 'More', iconName: 'more', href: '#more' },
       ],
       desktop: [
@@ -202,14 +229,15 @@ export default function DashboardLayout({
     }
     setActiveTab(id);
     if (id === 'home' || id === 'dashboard') router.push('/dashboard');
-    else if (id === 'pipeline') router.push('/inquiries');
-    else if (id === 'inquiries') router.push('/inquiries');
+    else if (id === 'pipeline' || id === 'inquiries') router.push('/inquiries');
+    else if (id === 'projects') router.push('/projects');
     else if (id === 'quotations') router.push('/quotations/new');
     else if (id === 'portal' || id === 'sr' || id === 'subsidy' || id === 'meter') router.push('/portal');
-    else if (id === 'material' || id === 'planning' || id === 'unload') router.push('/material');
-    else if (id === 'installation' || id === 'jobs' || id === 'checklist') router.push('/installation');
+    else if (id === 'material' || id === 'planning' || id === 'unload' || id === 'verify') router.push('/material');
+    else if (id === 'installation' || id === 'jobs' || id === 'checklist' || id === 'serials') router.push('/installation');
     else if (id === 'payments' || id === 'milestones' || id === 'accounts') router.push('/payments');
     else if (id === 'team') router.push('/team');
+    else if (id === 'tickets' || id === 'service') router.push('/dashboard');
     else router.push('/dashboard');
   };
 

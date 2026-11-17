@@ -19,9 +19,14 @@ import {
   Zap,
   X,
   Share2,
+  Clock,
+  Send,
+  User,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCurrentUser } from '@/lib/use-current-user';
+import { getRoleTheme } from '@/lib/role-theme';
+import { BrandLogo } from '@/components/BrandLogo';
+import { FollowUpModal } from '@/components/FollowUpModal';
 
 interface KycDoc {
   id: string;
@@ -37,18 +42,23 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
   const rawId = params.id as string;
-  const { user, theme } = useCurrentUser();
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [inquiry, setInquiry] = useState<any>(null);
+  const [followups, setFollowups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingDocId, setSavingDocId] = useState<string | null>(null);
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
+
+  // Meter Start Date input for Operations Manager & Portal
+  const [meterStartDate, setMeterStartDate] = useState('');
+  const [savingMeterDate, setSavingMeterDate] = useState(false);
 
   // Normalize project ID format: TYP-2026-XXXX
   const cleanNum = rawId.replace('TYP-2026-', '').replace('F-', '');
   const projectId = rawId.startsWith('TYP-') ? rawId : `TYP-2026-${cleanNum}`;
 
-  const [inquiry, setInquiry] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [savingDocId, setSavingDocId] = useState<string | null>(null);
-  const [showPdfModal, setShowPdfModal] = useState(false);
-
-  // KYC Documents with editable title and description
   const [docs, setDocs] = useState<KycDoc[]>([
     {
       id: 'light-bill',
@@ -80,14 +90,19 @@ export default function ProjectDetailPage() {
     },
   ]);
 
-  // Load project inquiry data
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) setCurrentUser(JSON.parse(stored));
+    } catch {}
+
     const token = localStorage.getItem('accessToken');
     if (!token) {
       router.push('/');
       return;
     }
 
+    // Load Project Inquiry
     fetch(`/api/v1/inquiries/${rawId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -96,7 +111,9 @@ export default function ProjectDetailPage() {
         const item = data?.data || data;
         if (item) {
           setInquiry(item);
-          // Check if documents already uploaded
+          if (item.portalApplication?.meterStartDate) {
+            setMeterStartDate(new Date(item.portalApplication.meterStartDate).toISOString().split('T')[0]);
+          }
           if (item.documents && item.documents.length > 0) {
             setDocs((prev) =>
               prev.map((d) => {
@@ -109,6 +126,16 @@ export default function ProjectDetailPage() {
               })
             );
           }
+
+          // Load followups history
+          fetch(`/api/v1/followups/inquiry/${item.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+            .then((r) => (r.ok ? r.json() : []))
+            .then((fList) => {
+              if (Array.isArray(fList)) setFollowups(fList);
+            })
+            .catch(() => {});
         }
       })
       .catch((err) => {
@@ -116,6 +143,12 @@ export default function ProjectDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [rawId, router]);
+
+  const theme = getRoleTheme(currentUser?.role);
+  const sColor = theme.hex.cardDarkBg || '#111827';
+  const aColor = theme.hex.accentBg || '#6366F1';
+  const cColor = theme.hex.lightBg || '#F5F5F7';
+  const onColor = theme.hex.accentTextColor || '#FFFFFF';
 
   // Handle document file change
   const handleFileSelect = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,7 +161,7 @@ export default function ProjectDetailPage() {
             : d
         )
       );
-      toast.success(`${selected.name} selected. Click 'Save Document' to upload.`);
+      toast.success(`${selected.name} selected. Tap 'Save' to upload.`);
     }
   };
 
@@ -140,7 +173,6 @@ export default function ProjectDetailPage() {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       toast.error('Session expired. Please sign in again.');
-      router.push('/');
       return;
     }
 
@@ -164,18 +196,59 @@ export default function ProjectDetailPage() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to save document.');
-      }
+      if (!res.ok) throw new Error('Failed to save document.');
 
       setDocs((prev) =>
         prev.map((d) => (d.id === docId ? { ...d, status: 'Uploaded' } : d))
       );
-      toast.success(`${targetDoc.title} saved successfully!`);
+      toast.success(`${targetDoc.title} uploaded successfully!`);
     } catch (err: any) {
       toast.error(err.message || 'Error saving document.');
     } finally {
       setSavingDocId(null);
+    }
+  };
+
+  // Save Start Meter Date
+  const handleSaveMeterDate = async () => {
+    if (!meterStartDate) {
+      toast.error('Please select the Net Meter live start date.');
+      return;
+    }
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      toast.error('Session expired.');
+      return;
+    }
+
+    setSavingMeterDate(true);
+    try {
+      const res = await fetch('/api/v1/portal/meter-dates', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          inquiryId: inquiry?.id || rawId,
+          meterStartDate: new Date(meterStartDate).toISOString(),
+        }),
+      });
+
+      if (!res.ok) throw new Error('Could not update meter start date.');
+
+      toast.success('Net Meter Start Date saved & synchronized with grid!');
+      if (inquiry) {
+        setInquiry({
+          ...inquiry,
+          currentStage: 'METER_STARTED',
+        });
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save meter start date.');
+    } finally {
+      setSavingMeterDate(false);
     }
   };
 
@@ -184,333 +257,440 @@ export default function ProjectDetailPage() {
   const requestedKw = inquiry?.requestedKw || '6.0';
   const meterPhase = inquiry?.meterPhase || 'Single Phase';
   const dealAmount = inquiry?.dealAmount ? Number(inquiry.dealAmount) : 275000;
-  const quote = inquiry?.quotation;
-
-  const headerText = theme.hex.headerTextColor || '#ffffff';
-  const headerSubtext = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
-  const isLightHeader = headerText !== '#ffffff';
-  const logoSrc = theme.hex.logoSrc || (isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png');
+  const stage = inquiry?.currentStage || 'DEAL_CLOSED';
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-28">
-      {/* 1. Curved Header with Role Theme Colors & Gradient */}
+    <div
+      style={{
+        backgroundColor: cColor,
+        color: sColor,
+      }}
+      className="min-h-screen pb-28 font-sans"
+    >
+      {/* 1. Header with Role Gradient & Parabolic Curve */}
       <div
         style={{
-          background: theme.hex.headerGradient || theme.hex.headerBg,
-          color: headerText,
-          boxShadow: isLightHeader
-            ? '0 10px 30px -5px rgba(0, 0, 0, 0.12)'
-            : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
+          background: theme.hex.headerGradient || `linear-gradient(180deg, color-mix(in srgb, ${aColor} 38%, ${cColor}) 0%, color-mix(in srgb, ${aColor} 14%, ${cColor}) 100%)`,
+          borderRadius: '0 0 50% 50% / 0 0 34px 34px',
+          padding: '14px 16px 48px',
+          color: sColor,
         }}
-        className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
+        className="relative"
       >
-        <div
-          className={`absolute top-0 right-0 w-64 h-64 border rounded-full pointer-events-none -mr-16 -mt-16 ${
-            isLightHeader ? 'border-black/5' : 'border-white/5'
-          }`}
-        />
-        <div
-          className={`absolute top-0 right-0 w-44 h-44 border rounded-full pointer-events-none -mr-8 -mt-8 ${
-            isLightHeader ? 'border-black/10' : 'border-white/10'
-          }`}
-        />
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.75)',
+              borderColor: `color-mix(in srgb, ${sColor} 15%, transparent)`,
+              color: sColor,
+            }}
+            className="w-9 h-9 rounded-full border flex items-center justify-center transition active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-        <div className="max-w-3xl mx-auto">
-          {/* Top Bar with Back button and Big Logo */}
-          <div className="flex items-center justify-between mb-3">
-            <button
-              type="button"
-              onClick={() => router.push('/inquiries')}
-              style={{
-                color: headerText,
-                backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
-              }}
-              className="w-10 h-10 rounded-full flex items-center justify-center transition cursor-pointer hover:opacity-85"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <img
-              src={logoSrc}
-              alt="Typhoon Solar"
-              className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
-            />
-          </div>
+          <BrandLogo accentColor={aColor} textColor={sColor} size={24} />
 
+          <button
+            onClick={() => setIsFollowupOpen(true)}
+            style={{
+              backgroundColor: aColor,
+              color: onColor,
+            }}
+            className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 active:scale-95 transition cursor-pointer shadow-sm"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Follow-up</span>
+          </button>
+        </div>
+
+        <div className="mt-3">
           <div className="flex items-center justify-between">
-            <div>
-              <span style={{ color: headerSubtext }} className="text-[10px] font-bold tracking-widest uppercase block">
-                ACTIVE CLOSED PROJECT
-              </span>
-              <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
-                {projectId}
-              </h1>
-              <p style={{ color: headerSubtext }} className="text-xs mt-1 font-medium">
-                {customerName} · +91 {customerPhone} · {inquiry?.city || 'Vadodara'}
-              </p>
-            </div>
-
+            <span
+              style={{ color: aColor }}
+              className="text-[11px] font-extrabold uppercase tracking-wider block"
+            >
+              {projectId} · {inquiry?.city || 'Vadodara'}
+            </span>
             <span
               style={{
-                background: theme.hex.accentGradient || theme.hex.accentBg,
-                color: theme.hex.accentTextColor,
-                boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.45)',
+                backgroundColor: `color-mix(in srgb, ${aColor} 22%, #ffffff)`,
+                color: sColor,
               }}
-              className="px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide"
+              className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase"
             >
-              Deal Closed
+              {stage.replace(/_/g, ' ')}
             </span>
           </div>
+
+          <h1
+            style={{ color: sColor }}
+            className="text-2xl font-extrabold tracking-tight mt-1"
+          >
+            {customerName}
+          </h1>
+
+          <p className="text-xs opacity-75 font-medium mt-0.5">
+            +91 {customerPhone} · {requestedKw} kW · {meterPhase}
+          </p>
         </div>
       </div>
 
-      {/* 2. Main Content */}
-      <div className="max-w-3xl mx-auto px-4 pt-4 space-y-4">
-        {/* Project Snapshot Card */}
-        <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
-            <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">System Capacity</span>
-            <span className="text-base font-bold text-typhoon-navy">{requestedKw} kW</span>
-          </div>
-
-          <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
-            <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Meter Grid</span>
-            <span className="text-base font-bold text-typhoon-navy">{meterPhase}</span>
-          </div>
-
-          <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
-            <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">Agreed Deal Price</span>
-            <span className="text-base font-bold text-emerald-600">₹{dealAmount.toLocaleString('en-IN')}</span>
-          </div>
-
-          <div className="bg-typhoon-sand/60 p-3 rounded-xl border border-typhoon-border/60">
-            <span className="text-[10px] text-typhoon-muted font-semibold uppercase block">PM Surya Subsidy</span>
-            <span className="text-base font-bold text-typhoon-gold-dark">₹78,000 DBT</span>
-          </div>
-        </div>
-
-        {/* SECTION 1: QUOTATION SHEET PDF PREVIEW */}
-        <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-typhoon-border/60">
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-typhoon-navy" />
-              <div>
-                <h3 className="text-sm font-bold text-typhoon-navy">
-                  Quotation Sheet & System Specifications
-                </h3>
-                <p className="text-xs text-typhoon-muted">
-                  Approved commercial quotation TSS/2627/{cleanNum}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowPdfModal(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs flex items-center gap-1.5 transition border border-typhoon-border cursor-pointer"
-            >
-              <Eye className="w-4 h-4" />
-              <span>View PDF</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs pt-1">
-            <div className="p-2.5 bg-typhoon-sand/40 rounded-xl">
-              <span className="text-[10px] text-typhoon-muted block">Modules</span>
-              <span className="font-bold text-typhoon-navy">
-                {quote?.panelQuantity || Math.round((Number(requestedKw) * 1000) / 580)} × {quote?.panelWattage || 580}W ({quote?.panelTech || 'Topcon'})
-              </span>
-            </div>
-
-            <div className="p-2.5 bg-typhoon-sand/40 rounded-xl">
-              <span className="text-[10px] text-typhoon-muted block">Inverter</span>
-              <span className="font-bold text-typhoon-navy">
-                {quote?.inverterCapacityKw || (Number(requestedKw) <= 3 ? 3.3 : 6.0)} kW {quote?.inverterBrand || 'Growatt'}
-              </span>
-            </div>
-
-            <div className="p-2.5 bg-typhoon-sand/40 rounded-xl">
-              <span className="text-[10px] text-typhoon-muted block">Net Customer Cost</span>
-              <span className="font-bold text-emerald-600">
-                ₹{(quote?.netCustomerCost || Math.max(0, dealAmount - 78000)).toLocaleString('en-IN')}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 2: KYC DOCUMENTS UPLOAD (LIGHT BILL, AADHAAR, PROPERTY TAX, PASSBOOK) */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-typhoon-navy uppercase">
-                KYC DOCUMENT LOCKER
-              </h3>
-              <p className="text-xs text-typhoon-muted">
-                Salesperson document collection for PM Surya Ghar portal filing
-              </p>
-            </div>
-            <span className="text-xs font-bold text-emerald-600">
-              {docs.filter((d) => d.status === 'Uploaded').length} of {docs.length} Uploaded
+      {/* 2. Main Content Cards */}
+      <div className="px-3.5 -mt-6 space-y-3 relative z-10">
+        {/* Project Snapshot Floating Tile */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="p-3.5 grid grid-cols-2 gap-2.5"
+        >
+          <div
+            style={{ backgroundColor: `color-mix(in srgb, ${cColor} 60%, #ffffff)` }}
+            className="p-2.5 rounded-xl border border-black/5"
+          >
+            <span className="text-[10px] opacity-60 font-bold uppercase block">Capacity</span>
+            <span style={{ color: sColor }} className="text-base font-extrabold">
+              {requestedKw} kWp
             </span>
           </div>
 
-          <div className="space-y-3">
+          <div
+            style={{ backgroundColor: `color-mix(in srgb, ${cColor} 60%, #ffffff)` }}
+            className="p-2.5 rounded-xl border border-black/5"
+          >
+            <span className="text-[10px] opacity-60 font-bold uppercase block">Agreed Deal Price</span>
+            <span style={{ color: aColor }} className="text-base font-extrabold">
+              ₹{dealAmount.toLocaleString('en-IN')}
+            </span>
+          </div>
+
+          <div
+            style={{ backgroundColor: `color-mix(in srgb, ${cColor} 60%, #ffffff)` }}
+            className="p-2.5 rounded-xl border border-black/5"
+          >
+            <span className="text-[10px] opacity-60 font-bold uppercase block">PM Surya Ghar Subsidy</span>
+            <span className="text-base font-extrabold text-emerald-600">₹78,000 DBT</span>
+          </div>
+
+          <div
+            style={{ backgroundColor: `color-mix(in srgb, ${cColor} 60%, #ffffff)` }}
+            className="p-2.5 rounded-xl border border-black/5"
+          >
+            <span className="text-[10px] opacity-60 font-bold uppercase block">Customer Net Cost</span>
+            <span style={{ color: sColor }} className="text-base font-extrabold">
+              ₹{(dealAmount - 78000).toLocaleString('en-IN')}
+            </span>
+          </div>
+        </div>
+
+        {/* SECTION 1: START METER DATE (Operations Manager & Portal Action) */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="p-4"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Zap style={{ color: aColor }} className="w-4 h-4" />
+              <h3 style={{ color: sColor }} className="text-sm font-extrabold">
+                Grid Synchronization & Net Meter
+              </h3>
+            </div>
+            {inquiry?.portalApplication?.meterStartDate && (
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                METER LIVE
+              </span>
+            )}
+          </div>
+
+          <p className="text-xs text-gray-500 mb-3">
+            Enter the date when GEB installed the bidirectional net meter and the solar plant started live generation:
+          </p>
+
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={meterStartDate}
+              onChange={(e) => setMeterStartDate(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-xl border border-gray-300 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button
+              onClick={handleSaveMeterDate}
+              disabled={savingMeterDate}
+              style={{
+                backgroundColor: aColor,
+                color: onColor,
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-extrabold hover:opacity-90 active:scale-95 transition cursor-pointer disabled:opacity-50"
+            >
+              {savingMeterDate ? 'Saving...' : 'Start Meter Date Enter'}
+            </button>
+          </div>
+        </div>
+
+        {/* SECTION 2: QUOTATION SHEET & PROPOSAL */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="p-4"
+        >
+          <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <FileText style={{ color: aColor }} className="w-4 h-4" />
+              <h3 style={{ color: sColor }} className="text-sm font-extrabold">
+                Official Quotation & Sizing
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowPdfModal(true)}
+              style={{ color: aColor }}
+              className="text-xs font-bold hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Preview</span>
+            </button>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-gray-800">
+                Proposal TSS/2627/{cleanNum}
+              </p>
+              <p className="text-[11px] text-gray-500 mt-0.5">
+                TopCon 550W Panels · Growatt Inverter · ₹{dealAmount.toLocaleString('en-IN')}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const text = `Typhoon Solar System Quotation for ${customerName}: ${requestedKw} kW Rooftop Solar. Total Deal: ₹${dealAmount}. DBT Subsidy: ₹78,000.`;
+                window.open(`https://wa.me/91${customerPhone}?text=${encodeURIComponent(text)}`, '_blank');
+              }}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center gap-1 hover:bg-emerald-700 transition cursor-pointer"
+            >
+              <Share2 className="w-3 h-3" />
+              <span>WhatsApp</span>
+            </button>
+          </div>
+        </div>
+
+        {/* SECTION 3: PROJECT KYC DOCUMENTS */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="p-4"
+        >
+          <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <ShieldCheck style={{ color: aColor }} className="w-4 h-4" />
+              <h3 style={{ color: sColor }} className="text-sm font-extrabold">
+                Project KYC & Portal Documents
+              </h3>
+            </div>
+            <span className="text-[11px] font-bold text-gray-500">
+              {docs.filter((d) => d.status === 'Uploaded').length} / {docs.length} Uploaded
+            </span>
+          </div>
+
+          <div className="mt-3 divide-y divide-gray-100">
             {docs.map((doc) => {
               const isUploaded = doc.status === 'Uploaded';
               const isSaving = savingDocId === doc.id;
 
               return (
-                <div
-                  key={doc.id}
-                  className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-3"
-                >
+                <div key={doc.id} className="py-3 first:pt-0 last:pb-0">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                          isUploaded ? 'bg-emerald-50 text-emerald-700' : 'bg-typhoon-sand text-typhoon-navy'
-                        }`}
-                      >
-                        <ShieldCheck className="w-5 h-5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-800">{doc.title}</span>
+                        {isUploaded ? (
+                          <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 flex items-center gap-0.5">
+                            <Check className="w-2.5 h-2.5" />
+                            <span>Uploaded</span>
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">
+                            Pending
+                          </span>
+                        )}
                       </div>
-                      <div>
-                        {/* Editable Document Title */}
-                        <input
-                          type="text"
-                          value={doc.title}
-                          onChange={(e) =>
-                            setDocs((prev) =>
-                              prev.map((d) => (d.id === doc.id ? { ...d, title: e.target.value } : d))
-                            )
-                          }
-                          className="font-bold text-sm text-typhoon-navy bg-transparent outline-none border-b border-transparent hover:border-typhoon-border focus:border-typhoon-gold"
-                        />
-                        <span
-                          className={`inline-block ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                            isUploaded
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                              : 'bg-amber-50 text-amber-800 border-amber-300'
-                          }`}
-                        >
-                          {isUploaded ? 'Uploaded' : 'Pending'}
-                        </span>
-                      </div>
+                      <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">
+                        {doc.description}
+                      </p>
+                      {doc.fileName && (
+                        <p className="text-[10px] text-gray-400 mt-1 truncate">
+                          File: {doc.fileName}
+                        </p>
+                      )}
                     </div>
 
-                    {/* File Upload Trigger */}
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileSelect(doc.id, e)}
-                      />
-                      <span className="px-3 py-1.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy text-xs font-bold border border-typhoon-border flex items-center gap-1.5 transition">
+                    <div className="flex items-center gap-1.5 flex-none">
+                      <label className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer transition">
                         <Upload className="w-3.5 h-3.5" />
-                        <span>{doc.fileName ? 'Change File' : 'Choose File'}</span>
-                      </span>
-                    </label>
-                  </div>
+                        <input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          className="hidden"
+                          onChange={(e) => handleFileSelect(doc.id, e)}
+                        />
+                      </label>
 
-                  {/* Editable Description */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-typhoon-muted uppercase block">
-                      Description & Notes
-                    </label>
-                    <input
-                      type="text"
-                      value={doc.description}
-                      onChange={(e) =>
-                        setDocs((prev) =>
-                          prev.map((d) =>
-                            d.id === doc.id ? { ...d, description: e.target.value } : d
-                          )
-                        )
-                      }
-                      className="w-full p-2.5 rounded-xl border border-typhoon-border/70 bg-typhoon-sand/30 text-xs text-typhoon-navy outline-none focus:ring-1 focus:ring-typhoon-gold"
-                      placeholder="Add document description..."
-                    />
-                  </div>
-
-                  {/* File status and Save button */}
-                  <div className="flex items-center justify-between pt-1 border-t border-typhoon-border/60 text-xs">
-                    <span className="text-[11px] text-typhoon-muted truncate max-w-[200px]">
-                      {doc.fileName ? `File: ${doc.fileName}` : 'No file chosen yet'}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSaveDoc(doc.id)}
-                      disabled={isSaving}
-                      className="px-4 py-2 rounded-xl bg-typhoon-navy hover:bg-typhoon-navy-light text-white font-bold text-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{isSaving ? 'Saving...' : 'Save Document'}</span>
-                    </button>
+                      {doc.file && (
+                        <button
+                          onClick={() => handleSaveDoc(doc.id)}
+                          disabled={isSaving}
+                          style={{ backgroundColor: aColor, color: onColor }}
+                          className="px-2.5 py-1.5 rounded-xl text-xs font-bold hover:opacity-90 transition cursor-pointer"
+                        >
+                          {isSaving ? '...' : 'Save'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
+
+        {/* SECTION 4: AUDIT TIMELINE & WHO DID WHAT */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="p-4"
+        >
+          <div className="flex items-center justify-between pb-2 border-b border-gray-100 mb-3">
+            <div className="flex items-center gap-2">
+              <Clock style={{ color: aColor }} className="w-4 h-4" />
+              <h3 style={{ color: sColor }} className="text-sm font-extrabold">
+                Activity Audit & Follow-ups Done
+              </h3>
+            </div>
+            <button
+              onClick={() => setIsFollowupOpen(true)}
+              style={{ color: aColor }}
+              className="text-xs font-bold hover:underline cursor-pointer"
+            >
+              + Add
+            </button>
+          </div>
+
+          {followups.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-4">
+              No follow-ups logged yet. Tap '+ Add' to schedule one.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {followups.map((f, idx) => (
+                <div
+                  key={f.id || idx}
+                  className="p-3 rounded-xl bg-gray-50 border border-gray-100"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-gray-800">
+                      {f.nextStep || f.description?.split('-')[0] || 'Follow-up'}
+                    </span>
+                    <span className="text-[10px] text-gray-500">
+                      {new Date(f.committedDate || f.createdAt).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-600 mt-1 leading-snug">
+                    {f.description}
+                  </p>
+
+                  <div className="mt-2 pt-1.5 border-t border-gray-200/60 flex items-center justify-between text-[10px] text-gray-400">
+                    <span>By: {f.createdBy?.fullName || 'Team Member'} ({f.createdBy?.role || 'Staff'})</span>
+                    <span className="font-bold text-gray-600">{f.stage?.replace(/_/g, ' ')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ================================================================ */}
-      {/* QUOTATION PDF PREVIEW MODAL                                      */}
-      {/* ================================================================ */}
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={inquiry?.id || rawId}
+        stage={inquiry?.currentStage || 'DEAL_CLOSED'}
+        role={currentUser?.role}
+        onSuccess={() => {
+          if (inquiry) {
+            fetch(`/api/v1/followups/inquiry/${inquiry.id}`, {
+              headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+            })
+              .then((r) => (r.ok ? r.json() : []))
+              .then((fList) => {
+                if (Array.isArray(fList)) setFollowups(fList);
+              });
+          }
+        }}
+      />
+
+      {/* PDF Modal Preview */}
       {showPdfModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 border border-typhoon-border shadow-2xl space-y-4">
-            <div className="flex justify-between items-start pb-3 border-b border-typhoon-border/60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-start border-b pb-3">
               <div>
-                <span className="text-[10px] font-bold text-typhoon-gold-dark tracking-widest uppercase block">
-                  OFFICIAL QUOTATION PDF
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
+                  QUOTATION SUMMARY
                 </span>
-                <h3 className="text-xl font-serif font-bold text-typhoon-navy">
-                  Typhoon Solar Project {projectId}
+                <h3 className="text-lg font-bold text-gray-900">
+                  {projectId} · {customerName}
                 </h3>
               </div>
               <button
-                type="button"
                 onClick={() => setShowPdfModal(false)}
-                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy hover:bg-typhoon-sand-dark transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="bg-typhoon-sand/40 p-4 rounded-xl border border-typhoon-border/70 grid grid-cols-2 gap-2">
-                <div>Customer: <span className="font-bold text-typhoon-navy">{customerName}</span></div>
-                <div>Location: <span className="font-bold text-typhoon-navy">{inquiry?.city || 'Vadodara'}</span></div>
-                <div>Capacity: <span className="font-bold text-typhoon-navy">{requestedKw} kWp</span></div>
-                <div>Phase: <span className="font-bold text-typhoon-navy">{meterPhase}</span></div>
-              </div>
-
-              <div className="border border-typhoon-border rounded-xl p-3 space-y-1">
-                <div className="font-bold text-typhoon-navy">Commercial Terms</div>
-                <div>Total Project Deal Price: <span className="font-bold text-typhoon-navy">₹{dealAmount.toLocaleString('en-IN')}</span></div>
-                <div>Central DBT Subsidy: <span className="font-bold text-emerald-600">₹78,000</span></div>
-                <div>Net Customer Investment: <span className="font-bold text-typhoon-navy">₹{(dealAmount - 78000).toLocaleString('en-IN')}</span></div>
+            <div className="text-xs space-y-2">
+              <div className="p-3 bg-gray-50 rounded-xl space-y-1">
+                <div>Customer: <span className="font-bold">{customerName}</span></div>
+                <div>Capacity: <span className="font-bold">{requestedKw} kW</span></div>
+                <div>Phase: <span className="font-bold">{meterPhase}</span></div>
+                <div>Total Price: <span className="font-bold text-emerald-600">₹{dealAmount.toLocaleString('en-IN')}</span></div>
+                <div>PM Surya Subsidy: <span className="font-bold text-emerald-600">₹78,000</span></div>
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="px-4 py-2.5 rounded-xl bg-typhoon-sand text-typhoon-navy font-bold text-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Print PDF</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowPdfModal(false)}
-                className="px-4 py-2.5 rounded-xl bg-typhoon-navy text-white font-bold text-xs cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
+            <button
+              onClick={() => setShowPdfModal(false)}
+              className="w-full py-2.5 rounded-xl bg-gray-900 text-white font-bold text-xs"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

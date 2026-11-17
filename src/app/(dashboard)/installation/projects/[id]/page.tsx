@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { FollowUpModal } from '@/components/FollowUpModal';
 
 export default function InstallationExecutionPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
 
   const [loading, setLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -380,12 +382,12 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
             </div>
           </div>
 
-          {/* Action Button: Mark Installation Done */}
-          <div>
+          {/* Action Button: Mark Installation Done & Follow-up */}
+          <div className="flex gap-2">
             <button
               type="submit"
               disabled={loading || isCompleted}
-              className={`w-full py-4 rounded-2xl font-bold text-sm shadow-soft flex items-center justify-center gap-2 transition ${
+              className={`flex-1 py-4 rounded-2xl font-bold text-sm shadow-soft flex items-center justify-center gap-2 transition ${
                 isCompleted
                   ? 'bg-emerald-600 text-white'
                   : 'bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy disabled:opacity-50'
@@ -396,13 +398,33 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                 {loading
                   ? 'Finalizing Installation...'
                   : isCompleted
-                  ? 'Installation Complete (Portal Notified)'
-                  : 'Mark Installation Done (Notify Rahul for Meter File)'}
+                  ? 'Installation Complete'
+                  : 'Done (Notify Portal for Meter File)'}
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFollowupOpen(true)}
+              className="py-4 px-5 rounded-2xl bg-white hover:bg-typhoon-sand text-typhoon-navy font-bold text-xs border border-typhoon-border shadow-soft transition flex items-center gap-1.5"
+            >
+              <Clock className="w-4 h-4 text-typhoon-gold" />
+              <span>Follow-up</span>
             </button>
           </div>
         </form>
       </div>
+
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={params.id}
+        onSuccess={() => {
+          setIsFollowupOpen(false);
+          toast.success('Follow-up recorded!');
+        }}
+      />
     </div>
   );
 }

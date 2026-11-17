@@ -9,27 +9,48 @@ import {
   ChevronRight,
   IndianRupee,
   Edit3,
+  Clock,
+  Plus,
+  Trash2,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCurrentUser } from '@/lib/use-current-user';
+import { getRoleTheme } from '@/lib/role-theme';
+import { BrandLogo } from '@/components/BrandLogo';
+import { FollowUpModal } from '@/components/FollowUpModal';
+
+interface PaymentTerm {
+  id: string;
+  amount: string;
+  trigger: string;
+}
 
 export default function DealClosedPage() {
   const router = useRouter();
   const params = useParams();
   const inquiryId = params.id as string;
-  const { user, theme } = useCurrentUser();
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [inquiry, setInquiry] = useState<any>(null);
-  const [dealStatus, setDealStatus] = useState<'Open' | 'Closed'>('Closed');
   const [dealAmount, setDealAmount] = useState('275000');
-  const [docs, setDocs] = useState([
-    { id: 'light-bill', title: 'Light bill', status: 'Received', isDone: true },
-    { id: 'aadhaar', title: 'Aadhaar', status: 'Received', isDone: true },
-    { id: 'passbook', title: 'Passbook or cheque', status: 'Not received', isDone: false },
-  ]);
   const [loading, setLoading] = useState(false);
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
+
+  // Payment terms schedule with action dropdown triggers
+  const [paymentTerms, setPaymentTerms] = useState<PaymentTerm[]>([
+    { id: '1', amount: '25000', trigger: 'Booking Advance / Token' },
+    { id: '2', amount: '150000', trigger: 'After Material Unload at Terrace' },
+    { id: '3', amount: '75000', trigger: 'After Installation & Wiring' },
+    { id: '4', amount: '25000', trigger: 'After Meter Start & Subsidy Claim' },
+  ]);
 
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) setCurrentUser(JSON.parse(stored));
+    } catch {}
+
     const token = localStorage.getItem('accessToken');
     if (!token) {
       router.push('/');
@@ -44,7 +65,9 @@ export default function DealClosedPage() {
         const item = data?.data || data;
         if (item) {
           setInquiry(item);
-          if (item.dealAmount) {
+          if (item.quotation?.grossCost) {
+            setDealAmount(String(item.quotation.grossCost));
+          } else if (item.dealAmount) {
             setDealAmount(String(item.dealAmount));
           }
         }
@@ -52,17 +75,39 @@ export default function DealClosedPage() {
       .catch(() => {});
   }, [inquiryId, router]);
 
-  const toggleDoc = (idx: number) => {
-    setDocs((prev) =>
-      prev.map((d, i) =>
-        i === idx
-          ? {
-              ...d,
-              isDone: !d.isDone,
-              status: !d.isDone ? 'Received' : 'Not received',
-            }
-          : d
-      )
+  const theme = getRoleTheme(currentUser?.role || 'SALESPERSON');
+  const sColor = theme.hex.cardDarkBg || '#111827';
+  const aColor = theme.hex.accentBg || '#FF6B4A';
+  const cColor = theme.hex.lightBg || '#FAF8F5';
+  const onColor = theme.hex.accentTextColor || '#FFFFFF';
+
+  const triggerOptions = [
+    'Booking Advance / Token',
+    'After Material Unload at Terrace',
+    'After Installation & Wiring',
+    'After Meter Start & Grid Live',
+    'After Subsidy Claimed / Received',
+  ];
+
+  const handleAddTerm = () => {
+    setPaymentTerms([
+      ...paymentTerms,
+      {
+        id: String(Date.now()),
+        amount: '25000',
+        trigger: 'After Installation & Wiring',
+      },
+    ]);
+  };
+
+  const handleRemoveTerm = (id: string) => {
+    if (paymentTerms.length <= 1) return;
+    setPaymentTerms(paymentTerms.filter((t) => t.id !== id));
+  };
+
+  const handleTermChange = (id: string, field: 'amount' | 'trigger', val: string) => {
+    setPaymentTerms(
+      paymentTerms.map((t) => (t.id === id ? { ...t, [field]: val } : t))
     );
   };
 
@@ -101,11 +146,12 @@ export default function DealClosedPage() {
       }
 
       toast.success(
-        `Deal closed for ${inquiry?.customerName || 'customer'}! Converted into active project.`
+        `Deal closed for ${inquiry?.customerName || 'customer'} at ₹${cleanAmount.toLocaleString('en-IN')}! Opening Document Upload.`
       );
 
-      // Redirect to Inquiries view
-      router.push('/inquiries');
+      // Redirect immediately to project documents upload page
+      const targetId = inquiry?.followupId || inquiryId;
+      router.push(`/projects/${targetId}`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to mark deal closed.');
     } finally {
@@ -113,193 +159,224 @@ export default function DealClosedPage() {
     }
   };
 
-  const headerText = theme.hex.headerTextColor || '#ffffff';
-  const headerSubtext = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
-  const isLightHeader = headerText !== '#ffffff';
-  const logoSrc = theme.hex.logoSrc || (isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png');
+  const customerName = inquiry?.customerName || 'Customer';
+  const customerPhone = inquiry?.customerPhone || '9825012345';
+  const requestedKw = inquiry?.requestedKw || '6.0';
+  const meterPhase = inquiry?.meterPhase || 'Single Phase';
+  const followupId = inquiry?.followupId || inquiryId;
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-28">
-      {/* 1. Curved Header Matching Screen 6 */}
+    <div
+      style={{
+        backgroundColor: cColor,
+        color: sColor,
+      }}
+      className="min-h-screen pb-28 font-sans"
+    >
+      {/* 1. Curved Header with Role Theme Colors */}
       <div
         style={{
-          background: theme.hex.headerGradient || theme.hex.headerBg,
-          color: headerText,
-          boxShadow: isLightHeader
-            ? '0 10px 30px -5px rgba(0, 0, 0, 0.12)'
-            : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
+          background: theme.hex.headerGradient || `linear-gradient(180deg, color-mix(in srgb, ${aColor} 38%, ${cColor}) 0%, color-mix(in srgb, ${aColor} 14%, ${cColor}) 100%)`,
+          borderRadius: '0 0 50% 50% / 0 0 34px 34px',
+          padding: '14px 16px 48px',
+          color: sColor,
         }}
-        className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
+        className="relative"
       >
-        <div
-          className={`absolute top-0 right-0 w-64 h-64 border rounded-full pointer-events-none -mr-16 -mt-16 ${
-            isLightHeader ? 'border-black/5' : 'border-white/5'
-          }`}
-        />
-        <div
-          className={`absolute top-0 right-0 w-44 h-44 border rounded-full pointer-events-none -mr-8 -mt-8 ${
-            isLightHeader ? 'border-black/10' : 'border-white/10'
-          }`}
-        />
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.75)',
+              borderColor: `color-mix(in srgb, ${sColor} 15%, transparent)`,
+              color: sColor,
+            }}
+            className="w-9 h-9 rounded-full border flex items-center justify-center transition active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-        <div className="max-w-md mx-auto">
-          {/* Top Bar with Back button and Big Logo */}
-          <div className="flex items-center justify-between mb-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              style={{
-                color: headerText,
-                backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
-              }}
-              className="w-10 h-10 rounded-full flex items-center justify-center transition cursor-pointer hover:opacity-85"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <img
-              src={logoSrc}
-              alt="Typhoon Solar"
-              className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
-            />
-          </div>
+          <BrandLogo accentColor={aColor} textColor={sColor} size={24} />
 
-          <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
-            Deal closed
+          <button
+            onClick={() => setIsFollowupOpen(true)}
+            style={{
+              backgroundColor: aColor,
+              color: onColor,
+            }}
+            className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 active:scale-95 transition cursor-pointer shadow-sm"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Follow-up</span>
+          </button>
+        </div>
+
+        <div className="mt-3">
+          <span
+            style={{ color: aColor }}
+            className="text-[11px] font-extrabold uppercase tracking-wider block"
+          >
+            CONFIRM DEAL CLOSURE & TERMS
+          </span>
+          <h1
+            style={{ color: sColor }}
+            className="text-2xl font-extrabold tracking-tight mt-1"
+          >
+            {customerName}
           </h1>
-          <p style={{ color: headerSubtext }} className="text-xs mt-1 font-medium">
-            {inquiry?.followupId || inquiryId} · {inquiry?.customerName || 'Customer'}
+          <p className="text-xs opacity-75 font-medium mt-0.5">
+            {followupId} · +91 {customerPhone} · {requestedKw} kW · {meterPhase}
           </p>
         </div>
       </div>
 
-      {/* 2. Body Container Matching Screen 6 */}
-      <div className="max-w-md mx-auto px-4 pt-4 space-y-4">
-        <form onSubmit={handleMarkClosed} className="space-y-4">
-          {/* Deal status Toggle */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Deal status
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setDealStatus('Open')}
-                className={`py-3.5 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
-                  dealStatus === 'Open'
-                    ? 'bg-typhoon-navy text-white border-typhoon-navy shadow-soft'
-                    : 'bg-white text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
-                }`}
-              >
-                Open
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDealStatus('Closed')}
-                className={`py-3.5 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
-                  dealStatus === 'Closed'
-                    ? 'bg-typhoon-navy text-white border-typhoon-navy shadow-soft'
-                    : 'bg-white text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
-                }`}
-              >
-                Closed
-              </button>
-            </div>
-          </div>
-
-          {/* Final deal amount */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Final deal amount
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-4 text-xs font-bold text-typhoon-navy border-r border-typhoon-border pr-2">
-                Rs
-              </span>
-              <input
-                type="text"
-                value={dealAmount}
-                onChange={(e) => setDealAmount(e.target.value.replace(/\D/g, ''))}
-                placeholder="2,75,000"
-                className="w-full pl-14 pr-4 py-3.5 bg-white rounded-2xl text-sm font-bold text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Section: DOCUMENTS */}
-          <div className="space-y-2 pt-1">
-            <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase px-1">
-              DOCUMENTS
-            </h3>
-
-            {/* Documents Checklist Card */}
-            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60 overflow-hidden">
-              {docs.map((doc, idx) => (
-                <div
-                  key={doc.id}
-                  onClick={() => toggleDoc(idx)}
-                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 transition-colors"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy flex-shrink-0">
-                      <FileText className="w-5 h-5 text-typhoon-navy" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-typhoon-navy">
-                        {doc.title}
-                      </h4>
-                      <p className="text-xs text-typhoon-muted font-medium">
-                        {doc.status}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                        doc.isDone
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                          : 'bg-rose-50 text-rose-800 border-rose-200'
-                      }`}
-                    >
-                      {doc.isDone ? 'Done' : 'Pending'}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-typhoon-muted" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Secondary Action: Edit and send final quotation */}
-          <button
-            type="button"
-            onClick={() => router.push('/quotations/new')}
-            className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-typhoon-sand border border-typhoon-border text-typhoon-navy font-bold text-xs shadow-soft flex items-center justify-center gap-2 transition cursor-pointer"
+      {/* 2. Form Body */}
+      <form onSubmit={handleMarkClosed} className="px-3.5 -mt-6 space-y-3 relative z-10">
+        {/* Deal Amount Card */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="p-4"
+        >
+          <label
+            style={{ color: sColor }}
+            className="block text-xs font-extrabold uppercase tracking-wider mb-2"
           >
-            <FileText className="w-4 h-4 text-typhoon-navy" />
-            <span>Edit and send final quotation</span>
-          </button>
+            Agreed Final Project Price (₹) *
+          </label>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-extrabold text-gray-500">
+              ₹
+            </span>
+            <input
+              type="text"
+              required
+              value={dealAmount}
+              onChange={(e) => setDealAmount(e.target.value.replace(/\D/g, ''))}
+              placeholder="e.g. 275000"
+              className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-300 text-lg font-extrabold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
+          <p className="text-[11px] text-gray-500 mt-1.5">
+            Customer will also receive PM Surya Ghar direct bank subsidy of ₹78,000.
+          </p>
+        </div>
 
-          {/* Primary Action Button */}
-          <div className="pt-2">
+        {/* Milestone Payment Terms Builder */}
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
+            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
+          }}
+          className="p-4"
+        >
+          <div className="flex items-center justify-between pb-2 border-b border-gray-100 mb-3">
+            <div>
+              <h3 style={{ color: sColor }} className="text-sm font-extrabold">
+                Milestone Payment Terms
+              </h3>
+              <p className="text-[11px] text-gray-500">
+                Action triggers when payments become due
+              </p>
+            </div>
             <button
-              type="submit"
-              disabled={loading}
-              style={{
-                background: theme.hex.accentGradient || theme.hex.accentBg,
-                color: theme.hex.accentTextColor,
-                boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
-              }}
-              className="w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-95 active:scale-98 cursor-pointer disabled:opacity-50"
+              type="button"
+              onClick={handleAddTerm}
+              style={{ color: aColor }}
+              className="text-xs font-bold hover:underline cursor-pointer flex items-center gap-1"
             >
-              <Check className="w-5 h-5 stroke-[2.5]" />
-              <span>{loading ? 'Closing...' : 'Mark deal closed'}</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Term</span>
             </button>
           </div>
-        </form>
-      </div>
+
+          <div className="space-y-2.5">
+            {paymentTerms.map((term, idx) => (
+              <div
+                key={term.id}
+                className="p-3 rounded-xl bg-gray-50 border border-gray-200/80 flex items-center gap-2"
+              >
+                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center font-extrabold text-xs text-gray-500 flex-none border">
+                  {idx + 1}
+                </div>
+
+                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+                      ₹
+                    </span>
+                    <input
+                      type="text"
+                      value={term.amount}
+                      onChange={(e) => handleTermChange(term.id, 'amount', e.target.value.replace(/\D/g, ''))}
+                      className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-800"
+                    />
+                  </div>
+
+                  <select
+                    value={term.trigger}
+                    onChange={(e) => handleTermChange(term.id, 'trigger', e.target.value)}
+                    className="w-full px-2 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-800 bg-white"
+                  >
+                    {triggerOptions.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {paymentTerms.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTerm(term.id)}
+                    className="p-1.5 text-gray-400 hover:text-rose-600 transition cursor-pointer flex-none"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            backgroundColor: aColor,
+            color: onColor,
+            boxShadow: `0 8px 20px color-mix(in srgb, ${aColor} 35%, transparent)`,
+          }}
+          className="w-full py-4 rounded-[18px] font-extrabold text-sm flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.98] transition cursor-pointer disabled:opacity-50 mt-4"
+        >
+          {loading ? (
+            <span>Closing Deal & Creating Project...</span>
+          ) : (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Deal Close & Proceed to Document Upload</span>
+            </>
+          )}
+        </button>
+      </form>
+
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={inquiry?.id || inquiryId}
+        stage="DEAL_CLOSED"
+        role="SALESPERSON"
+      />
     </div>
   );
 }

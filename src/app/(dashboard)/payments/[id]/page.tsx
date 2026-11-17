@@ -9,10 +9,12 @@ import {
   Upload,
   CheckCircle2,
   Receipt,
+  Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { FollowUpModal } from '@/components/FollowUpModal';
 
 export default function RecordPaymentPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -83,6 +85,8 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
     }
   };
 
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
+
   const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -92,10 +96,6 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
     }
 
     const milestoneId = ledger?.milestones?.[0]?.id;
-    if (!milestoneId) {
-      toast.error('No pending milestone found for this project.');
-      return;
-    }
 
     try {
       setLoading(true);
@@ -103,7 +103,9 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          milestoneId,
+          milestoneId: milestoneId || undefined,
+          inquiryId: params.id,
+          title: milestoneType,
           amount: Number(amount),
           paymentMode,
           transactionRef: refNumber,
@@ -380,20 +382,40 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
             </div>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 flex gap-2">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-sm rounded-2xl shadow-soft flex items-center justify-center gap-2 transition disabled:opacity-50"
+              className="flex-1 py-4 bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-sm rounded-2xl shadow-soft flex items-center justify-center gap-2 transition disabled:opacity-50"
             >
               <IndianRupee className="w-4 h-4 stroke-[2.5]" />
               <span>
-                {loading ? 'Recording Payment...' : 'Record Payment & Update Project Ledger'}
+                {loading ? 'Recording Payment...' : 'Record Payment in Ledger'}
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFollowupOpen(true)}
+              className="py-4 px-5 rounded-2xl bg-white hover:bg-typhoon-sand text-typhoon-navy font-bold text-xs border border-typhoon-border shadow-soft transition flex items-center gap-1.5"
+            >
+              <Clock className="w-4 h-4 text-typhoon-gold" />
+              <span>Follow-up</span>
             </button>
           </div>
         </form>
       </div>
+
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={params.id}
+        onSuccess={() => {
+          setIsFollowupOpen(false);
+          toast.success('Follow-up recorded!');
+        }}
+      />
     </div>
   );
 }

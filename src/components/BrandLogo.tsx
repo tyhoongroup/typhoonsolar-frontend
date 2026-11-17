@@ -9,7 +9,7 @@ interface BrandLogoProps {
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   accentColor,
   textColor,
-  size = 24,
+  size = 22,
 }) => {
   return (
     <div className="flex items-center gap-1.5 select-none">
@@ -28,7 +28,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       </svg>
       <span
         style={{ color: textColor }}
-        className="text-[10px] font-extrabold leading-[1.1] tracking-[0.04em] uppercase"
+        className="text-[9px] font-extrabold leading-[1.1] tracking-wider uppercase"
       >
         TYPHOON
         <br />
@@ -37,3 +37,4 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     </div>
   );
 };
+

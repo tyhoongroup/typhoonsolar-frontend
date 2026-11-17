@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { fetchWithAuth } from '@/lib/api';
+import { FollowUpModal } from '@/components/FollowUpModal';
 
 export default function RecordPaymentPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -50,7 +52,9 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
     toast.success('Payment follow-up remarks & promised date saved!');
   };
 
-  const handleRecordPayment = (e: React.FormEvent) => {
+  const [isFollowupOpen, setIsFollowupOpen] = useState(false);
+
+  const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!amount || Number(amount) <= 0) {
@@ -58,14 +62,31 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
       return;
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      setLoading(true);
+      const res = await fetchWithAuth('/api/v1/payments/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inquiryId: params.id,
+          title: milestoneType,
+          amount: Number(amount),
+          paymentMode,
+          transactionRef: refNumber,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to record payment');
+
       toast.success(
-        `Payment of ₹${Number(amount).toLocaleString('en-IN')} recorded successfully! Receipt generated.`
+        `Payment of ₹${Number(amount).toLocaleString('en-IN')} recorded successfully in database! Receipt generated.`
       );
       router.push('/payments');
-    }, 600);
+    } catch (err: any) {
+      toast.error(err.message || 'Error recording payment');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -325,20 +346,40 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
             </div>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 flex gap-2">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-sm rounded-2xl shadow-soft flex items-center justify-center gap-2 transition disabled:opacity-50"
+              className="flex-1 py-4 bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-sm rounded-2xl shadow-soft flex items-center justify-center gap-2 transition disabled:opacity-50"
             >
               <IndianRupee className="w-4 h-4 stroke-[2.5]" />
               <span>
-                {loading ? 'Recording Payment...' : 'Record Payment & Update Project Ledger'}
+                {loading ? 'Recording Payment...' : 'Record Payment in Ledger'}
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsFollowupOpen(true)}
+              className="py-4 px-5 rounded-2xl bg-white hover:bg-typhoon-sand text-typhoon-navy font-bold text-xs border border-typhoon-border shadow-soft transition flex items-center gap-1.5"
+            >
+              <Clock className="w-4 h-4 text-typhoon-gold" />
+              <span>Follow-up</span>
             </button>
           </div>
         </form>
       </div>
+
+      {/* Universal Follow-up Modal */}
+      <FollowUpModal
+        isOpen={isFollowupOpen}
+        onClose={() => setIsFollowupOpen(false)}
+        inquiryId={params.id}
+        onSuccess={() => {
+          setIsFollowupOpen(false);
+          toast.success('Follow-up recorded!');
+        }}
+      />
     </div>
   );
 }
