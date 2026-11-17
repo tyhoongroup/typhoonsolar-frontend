@@ -14,6 +14,10 @@ import {
   ShieldAlert,
   Send,
   X,
+  Plus,
+  AlertTriangle,
+  Briefcase,
+  Layers,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { SummaryTiles } from '@/components/SummaryTiles';
@@ -184,37 +188,291 @@ export default function TeamTrackerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-24">
-      {/* 1. Header Matching Home Layout */}
-      <Header
-        role={user?.role || 'OPS_MANAGER'}
-        initials={theme.tag}
-        roleTitle="Control tower"
-        subtitle="Team SLA commitments and daily task tracking"
-      />
+    <div className="min-h-screen bg-typhoon-sand">
+      {/* ================================================================ */}
+      {/* DESKTOP LAYOUT (Web Screen Layout - Wide 12-Column Grid)        */}
+      {/* ================================================================ */}
+      <div className="hidden lg:block max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Top Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-typhoon-navy tracking-tight">
+              Control Tower · Team SLA Tracker
+            </h1>
+            <p className="text-xs text-typhoon-muted mt-1">
+              Active staff task deadlines, department commitments & SLA delay monitoring
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedMember(teamMembers[0]);
+              setIsLogModalOpen(true);
+            }}
+            className="bg-typhoon-gold text-typhoon-navy font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-typhoon-gold-dark transition shadow-soft flex items-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Log Staff Follow-up</span>
+          </button>
+        </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 space-y-4">
-        {/* 2. Summary Tiles Matching Home Layout */}
+        {/* 4 Summary Tiles Across */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy">
+              <Users className="w-6 h-6 text-typhoon-gold" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">
+                {teamMembers.length}
+              </span>
+              <span className="text-xs text-typhoon-muted font-medium mt-1 block">Active Staff</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+              <AlertTriangle className="w-6 h-6 text-rose-600" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-rose-700 block leading-none">1</span>
+              <span className="text-xs text-rose-600 font-medium mt-1 block">Overdue SLA (&gt;2h)</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <Clock className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">2</span>
+              <span className="text-xs text-typhoon-muted font-medium mt-1 block">Due Today</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">3</span>
+              <span className="text-xs text-typhoon-muted font-medium mt-1 block">On Track</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 12-Column Split: 8-cols Main Table, 4-cols Side Panel */}
+        <div className="grid grid-cols-12 gap-6 items-start">
+          {/* Main Table (8 Cols) */}
+          <div className="col-span-8 space-y-4">
+            {/* Filter Chips */}
+            <div className="flex gap-2">
+              {['All', 'Sales', 'Portal', 'Material', 'Installation', 'Accounts'].map((chip) => {
+                const isActive = chip === activeChip;
+                return (
+                  <button
+                    key={chip}
+                    onClick={() => setActiveChip(chip)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-typhoon-navy text-white shadow-soft'
+                        : 'bg-white text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
+                    }`}
+                  >
+                    {chip}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table Container */}
+            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft overflow-hidden">
+              <div className="px-6 py-4 border-b border-typhoon-border/80 flex items-center justify-between">
+                <h3 className="text-sm font-bold tracking-widest text-typhoon-muted uppercase">
+                  ACTIVE SLA COMMITMENTS ({filteredMembers.length})
+                </h3>
+                <span className="text-xs text-typhoon-muted">Sorted by Urgency</span>
+              </div>
+
+              <div className="divide-y divide-typhoon-border/60">
+                {filteredMembers.map((m) => (
+                  <div key={m.id} className="p-5 hover:bg-typhoon-sand/30 transition-colors">
+                    <div className="flex items-start justify-between gap-4">
+                      {/* Left: Staff Avatar & Info */}
+                      <div className="flex items-center gap-3.5 min-w-[200px]">
+                        <div className="w-11 h-11 rounded-xl bg-typhoon-navy text-typhoon-gold font-serif font-bold text-sm flex items-center justify-center border border-typhoon-gold/40 shadow-soft shrink-0">
+                          {m.initials}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-typhoon-navy">{m.name}</h4>
+                          <p className="text-xs text-typhoon-muted font-medium">
+                            {m.role} · <span className="text-gray-700">{m.phone}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Middle: Task & Project */}
+                      <div className="flex-1 min-w-0 px-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 rounded-md bg-typhoon-sand text-typhoon-navy font-bold text-[11px] border border-typhoon-border">
+                            {m.inquiryCode}
+                          </span>
+                          <span className="text-xs font-bold text-typhoon-navy truncate">
+                            {m.task}
+                          </span>
+                        </div>
+                        <p className="text-xs text-typhoon-muted truncate">
+                          Remarks: {m.notes}
+                        </p>
+                      </div>
+
+                      {/* Right: Deadline & Badge */}
+                      <div className="text-right shrink-0 min-w-[130px]">
+                        <span
+                          className={`inline-block text-xs font-bold px-3 py-1 rounded-full border mb-1.5 ${getStatusBadge(
+                            m.status,
+                            m.dueLabel
+                          )}`}
+                        >
+                          {m.dueLabel}
+                        </span>
+                        <p className="text-[11px] text-typhoon-muted font-medium">
+                          {m.committedDate}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="flex items-center justify-end gap-2 pt-3 mt-3 border-t border-typhoon-border/40">
+                      <button
+                        onClick={() => {
+                          const text = encodeURIComponent(
+                            `Hi ${m.name}, regarding ${m.inquiryCode}: what is the update on "${m.task}"?`
+                          );
+                          window.open(`https://wa.me/${m.phone.replace(/\D/g, '')}?text=${text}`, '_blank');
+                        }}
+                        className="py-1 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </button>
+
+                      <a
+                        href={`tel:${m.phone.replace(/\D/g, '')}`}
+                        className="py-1 px-3 rounded-lg bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition flex items-center gap-1.5"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>Call</span>
+                      </a>
+
+                      <button
+                        onClick={() => handleOpenLogModal(m)}
+                        className="py-1 px-3.5 rounded-lg bg-typhoon-navy text-white font-bold text-xs hover:bg-typhoon-navy-light transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Update Task</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel (4 Cols) */}
+          <div className="col-span-4 space-y-4">
+            {/* Escalation Card */}
+            <div className="bg-white rounded-2xl border border-rose-200 shadow-soft p-5 space-y-3 bg-gradient-to-br from-white to-rose-50/40">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold tracking-widest text-rose-600 uppercase">
+                  URGENT SLA ESCALATION
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                  2h Overdue
+                </span>
+              </div>
+              <h4 className="text-base font-serif font-bold text-typhoon-navy">
+                Amit Patel · Site Survey F-1024
+              </h4>
+              <p className="text-xs text-typhoon-muted">
+                Terrace shadow analysis is overdue. Customer awaiting subsidy eligibility confirmation.
+              </p>
+              <button
+                onClick={() => {
+                  const m = teamMembers.find((item) => item.status === 'overdue');
+                  if (m) handleOpenLogModal(m);
+                }}
+                className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Intervene & Unblock SLA</span>
+              </button>
+            </div>
+
+            {/* Department Breakdown */}
+            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 space-y-3">
+              <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase">
+                DEPARTMENT LOAD
+              </h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center py-1 border-b border-typhoon-border/40">
+                  <span className="font-semibold text-typhoon-navy">Sales & Survey</span>
+                  <span className="font-bold text-typhoon-navy">2 active</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-typhoon-border/40">
+                  <span className="font-semibold text-typhoon-navy">Govt DISCOM Portal</span>
+                  <span className="font-bold text-typhoon-navy">1 active</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-typhoon-border/40">
+                  <span className="font-semibold text-typhoon-navy">Material & Logistics</span>
+                  <span className="font-bold text-typhoon-navy">1 active</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-typhoon-border/40">
+                  <span className="font-semibold text-typhoon-navy">Rooftop Installation</span>
+                  <span className="font-bold text-typhoon-navy">1 active</span>
+                </div>
+                <div className="flex justify-between items-center py-1">
+                  <span className="font-semibold text-typhoon-navy">Accounts & Finance</span>
+                  <span className="font-bold text-typhoon-navy">1 active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================================================================ */}
+      {/* MOBILE LAYOUT (Follows Standard Screen Layout - Matches Home)   */}
+      {/* ================================================================ */}
+      <div className="lg:hidden pb-12">
+        {/* Item 1: Control Tower Midnight Navy & Sunlight Gold Header */}
+        <Header
+          role={user?.role || 'OPS_MANAGER'}
+          initials={theme.tag}
+          roleTitle="Control tower"
+          subtitle="Team SLA commitments and daily task tracking"
+        />
+
+        {/* Item 2: Two summary tiles overlapping header (-mt-10) */}
         <SummaryTiles
           tiles={[
             {
               icon: <Users className="w-4 h-4 text-typhoon-gold" />,
               value: String(teamMembers.length),
-              label: 'Active team members',
+              label: 'Active staff',
             },
             {
               icon: <AlertCircle className="w-4 h-4 text-rose-600" />,
               value: '1',
-              label: 'Overdue SLA delays',
+              label: 'Overdue SLA',
             },
           ]}
         />
 
-        {/* 3. Priority Card Matching Home Layout */}
+        {/* Item 3: Priority Card (Midnight Navy with Gold badge) */}
         <PriorityCard
           role={user?.role || 'OPS_MANAGER'}
           icon={<Clock className="w-5 h-5 text-rose-600" />}
-          title="SLA Delay · Amit Patel (Sales)"
+          title="SLA delay · Amit Patel (Sales)"
           subtitle="Terrace survey for F-1024 is 2 hours overdue"
           badgeText="Overdue"
           onClick={() => {
@@ -223,8 +481,8 @@ export default function TeamTrackerPage() {
           }}
         />
 
-        {/* 4. Filter Chips Matching Home Style */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {/* Item 4: Scrollable filter chips */}
+        <div className="px-4 my-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {['All', 'Sales', 'Portal', 'Material', 'Installation', 'Accounts'].map((chip) => {
             const isActive = chip === activeChip;
             return (
@@ -243,112 +501,99 @@ export default function TeamTrackerPage() {
           })}
         </div>
 
-        {/* 5. Team Members List */}
-        <div className="space-y-3">
-          {filteredMembers.map((m) => (
-            <div
-              key={m.id}
-              className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-3 hover:border-typhoon-gold/50 transition-all"
-            >
-              {/* Member Row */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-typhoon-navy text-typhoon-gold font-serif font-bold text-base flex items-center justify-center border-2 border-typhoon-gold/50 shadow-soft shrink-0">
-                    {m.initials}
-                  </div>
-                  <div>
-                    <h3 className="text-base font-serif font-bold text-typhoon-navy">
-                      {m.name}
-                    </h3>
-                    <p className="text-xs text-typhoon-muted font-medium">
-                      {m.role} · <span className="text-gray-700 font-semibold">{m.phone}</span>
-                    </p>
-                  </div>
-                </div>
+        {/* Item 5: Team SLA Commitments List (Matches UpNextList structure) */}
+        <div className="px-4 my-3">
+          <div className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border">
+            <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
+              TEAM SLA COMMITMENTS
+            </h4>
 
-                <span
-                  className={`text-xs font-bold px-3 py-1 rounded-full border shrink-0 ${getStatusBadge(
-                    m.status,
-                    m.dueLabel
-                  )}`}
+            <div className="divide-y divide-typhoon-border/60">
+              {filteredMembers.map((m) => (
+                <div
+                  key={m.id}
+                  className="py-3 hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors space-y-2"
                 >
-                  {m.dueLabel}
-                </span>
-              </div>
-
-              {/* Task Details */}
-              <div className="p-3 bg-typhoon-sand/30 rounded-xl border border-typhoon-border/60 text-xs space-y-1">
-                <div className="flex items-center justify-between text-typhoon-navy font-bold">
-                  <span>Assigned Task:</span>
-                  <button
-                    onClick={() => router.push(`/inquiries/${m.inquiryCode}`)}
-                    className="text-typhoon-gold-dark hover:underline flex items-center gap-1"
-                  >
-                    <span>{m.inquiryCode}</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
-                </div>
-                <p className="text-gray-800 font-medium">{m.task}</p>
-                <p className="text-typhoon-muted text-[11px] pt-1">
-                  Latest Remarks: {m.notes}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <span className="text-xs text-typhoon-muted font-semibold flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-typhoon-gold" />
-                  Committed: <span className="text-typhoon-navy font-bold">{m.committedDate}</span>
-                </span>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      const text = encodeURIComponent(
-                        `Hi ${m.name}, this is Amit Kumar (Operations). Regarding ${m.inquiryCode}: what is the update on "${m.task}"?`
-                      );
-                      window.open(`https://wa.me/${m.phone.replace(/\D/g, '')}?text=${text}`, '_blank');
-                    }}
-                    className="py-1.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 transition flex items-center gap-1 cursor-pointer"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>WhatsApp</span>
-                  </button>
-
-                  <a
-                    href={`tel:${m.phone.replace(/\D/g, '')}`}
-                    className="py-1.5 px-3 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs border border-typhoon-border transition flex items-center gap-1"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>Call</span>
-                  </a>
-
-                  <button
+                  <div
                     onClick={() => handleOpenLogModal(m)}
-                    className="py-1.5 px-3 rounded-xl bg-typhoon-navy text-white font-bold text-xs hover:bg-typhoon-navy-light transition flex items-center gap-1 cursor-pointer"
+                    className="flex items-center justify-between cursor-pointer"
                   >
-                    <span>Update Task</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-typhoon-navy text-typhoon-gold font-bold text-xs flex items-center justify-center flex-shrink-0">
+                        {m.initials}
+                      </div>
+                      <div className="truncate">
+                        <p className="text-sm font-bold text-typhoon-navy truncate">
+                          {m.name} · <span className="text-typhoon-gold-dark">{m.inquiryCode}</span>
+                        </p>
+                        <p className="text-xs text-typhoon-muted truncate mt-0.5">
+                          {m.task}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <span
+                        className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
+                          m.status,
+                          m.dueLabel
+                        )}`}
+                      >
+                        {m.dueLabel}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                    </div>
+                  </div>
+
+                  {/* Micro action strip for mobile */}
+                  <div className="flex items-center justify-between pl-12 pr-1 pt-1 text-xs">
+                    <span className="text-[11px] text-typhoon-muted flex items-center gap-1 font-medium">
+                      <Clock className="w-3 h-3 text-typhoon-gold" />
+                      <span>{m.committedDate}</span>
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const text = encodeURIComponent(
+                            `Hi ${m.name}, regarding ${m.inquiryCode}: what is the update on "${m.task}"?`
+                          );
+                          window.open(`https://wa.me/${m.phone.replace(/\D/g, '')}?text=${text}`, '_blank');
+                        }}
+                        className="p-1 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[11px] border border-emerald-200 transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                        <span>WhatsApp</span>
+                      </button>
+
+                      <a
+                        href={`tel:${m.phone.replace(/\D/g, '')}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1 px-2.5 rounded-lg bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-[11px] border border-typhoon-border transition flex items-center gap-1"
+                      >
+                        <Phone className="w-3 h-3" />
+                        <span>Call</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* 6. Sticky Main Action Button Matching Home Layout */}
-        <div className="pt-2">
-          <MainButton
-            role={user?.role || 'OPS_MANAGER'}
-            icon={<MessageSquare className="w-4 h-4" />}
-            onClick={() => {
-              setSelectedMember(teamMembers[0]);
-              setIsLogModalOpen(true);
-            }}
-          >
-            Log a team follow-up
-          </MainButton>
-        </div>
+        {/* Item 6: Main Action (Sunlight Gold button) */}
+        <MainButton
+          role={user?.role || 'OPS_MANAGER'}
+          icon={<MessageSquare className="w-4 h-4" />}
+          onClick={() => {
+            setSelectedMember(teamMembers[0]);
+            setIsLogModalOpen(true);
+          }}
+        >
+          Log team follow-up
+        </MainButton>
       </div>
 
       {/* Team Follow-up Modal */}
@@ -366,7 +611,7 @@ export default function TeamTrackerPage() {
               </div>
               <button
                 onClick={() => setIsLogModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy hover:bg-typhoon-sand-dark"
+                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy hover:bg-typhoon-sand-dark cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -406,13 +651,13 @@ export default function TeamTrackerPage() {
                 <button
                   type="button"
                   onClick={() => setIsLogModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-typhoon-navy hover:bg-typhoon-sand transition"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-typhoon-navy hover:bg-typhoon-sand transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-xs shadow-soft transition flex items-center gap-1.5"
+                  className="px-5 py-2.5 rounded-xl bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-xs shadow-soft transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Save Team Update</span>
