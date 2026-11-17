@@ -138,7 +138,13 @@ export default function AssignSalespersonPage() {
     <div className="min-h-screen bg-typhoon-sand pb-28">
       {/* 1. Curved Header with Role Theme Colors (Screen 3) */}
       <div
-        style={{ backgroundColor: theme.hex.headerBg, color: headerText }}
+        style={{
+          background: theme.hex.headerGradient || theme.hex.headerBg,
+          color: headerText,
+          boxShadow: isLightHeader
+            ? '0 10px 30px -5px rgba(217, 162, 58, 0.3)'
+            : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
+        }}
         className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
       >
         <div
@@ -153,18 +159,25 @@ export default function AssignSalespersonPage() {
         />
 
         <div className="max-w-md mx-auto">
-          {/* Back button */}
-          <button
-            type="button"
-            onClick={() => router.back()}
-            style={{
-              color: headerText,
-              backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
-            }}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition mb-3 cursor-pointer hover:opacity-85"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+          {/* Top Bar with Back button and Big Logo */}
+          <div className="flex items-center justify-between mb-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              style={{
+                color: headerText,
+                backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition cursor-pointer hover:opacity-85"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <img
+              src={isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png'}
+              alt="Typhoon Solar"
+              className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
+            />
+          </div>
 
           <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
             Assign salesperson
@@ -272,14 +285,19 @@ export default function AssignSalespersonPage() {
             The salesperson is notified and the date is added to your tracker.
           </p>
 
-          {/* Gold Action Button Matching Screen 3 */}
+          {/* Primary Action Button */}
           <div className="pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 px-6 rounded-2xl bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-base shadow-soft flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+              style={{
+                background: theme.hex.accentGradient || theme.hex.accentBg,
+                color: theme.hex.accentTextColor,
+                boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
+              }}
+              className="w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-95 active:scale-98 cursor-pointer disabled:opacity-50"
             >
-              <Send className="w-5 h-5 fill-typhoon-navy" />
+              <Send className="w-5 h-5 text-white" />
               <span>{loading ? 'Assigning...' : 'Assign and notify'}</span>
             </button>
           </div>

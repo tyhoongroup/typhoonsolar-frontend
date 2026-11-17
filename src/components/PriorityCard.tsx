@@ -25,10 +25,11 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
       <div
         onClick={onClick}
         style={{
-          backgroundColor: theme.hex.cardDarkBg || theme.hex.headerBg,
+          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || theme.hex.headerBg,
           borderColor: theme.hex.cardDarkBg ? '#2d2f36' : theme.hex.headerBorder,
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.35)',
         }}
-        className="text-white rounded-2xl p-4 shadow-soft cursor-pointer hover:opacity-95 transition-all flex items-center justify-between border"
+        className="text-white rounded-2xl p-4 cursor-pointer hover:opacity-95 transition-all flex items-center justify-between border"
       >
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white flex-shrink-0">
@@ -50,10 +51,11 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
 
         <span
           style={{
-            backgroundColor: theme.hex.accentBg,
+            background: theme.hex.accentGradient || theme.hex.accentBg,
             color: theme.hex.accentTextColor,
+            boxShadow: theme.hex.accentShadow || '0 4px 12px -2px rgba(36, 72, 255, 0.4)',
           }}
-          className="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ml-2 shadow-xs"
+          className="text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0 ml-2"
         >
           {badgeText}
         </span>

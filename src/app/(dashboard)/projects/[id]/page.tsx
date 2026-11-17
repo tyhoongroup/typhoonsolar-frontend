@@ -186,39 +186,76 @@ export default function ProjectDetailPage() {
   const dealAmount = inquiry?.dealAmount ? Number(inquiry.dealAmount) : 275000;
   const quote = inquiry?.quotation;
 
+  const headerText = theme.hex.headerTextColor || '#ffffff';
+  const headerSubtext = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
+  const isLightHeader = headerText === '#1E1F24';
+
   return (
     <div className="min-h-screen bg-typhoon-sand pb-28">
-      {/* 1. Curved Header */}
+      {/* 1. Curved Header with Role Theme Colors & Gradient */}
       <div
-        style={{ backgroundColor: theme.hex.headerBg }}
+        style={{
+          background: theme.hex.headerGradient || theme.hex.headerBg,
+          color: headerText,
+          boxShadow: isLightHeader
+            ? '0 10px 30px -5px rgba(217, 162, 58, 0.3)'
+            : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
+        }}
         className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
-        <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
+        <div
+          className={`absolute top-0 right-0 w-64 h-64 border rounded-full pointer-events-none -mr-16 -mt-16 ${
+            isLightHeader ? 'border-black/5' : 'border-white/5'
+          }`}
+        />
+        <div
+          className={`absolute top-0 right-0 w-44 h-44 border rounded-full pointer-events-none -mr-8 -mt-8 ${
+            isLightHeader ? 'border-black/10' : 'border-white/10'
+          }`}
+        />
 
         <div className="max-w-3xl mx-auto">
-          <button
-            type="button"
-            onClick={() => router.push('/inquiries')}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-3 cursor-pointer"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+          {/* Top Bar with Back button and Big Logo */}
+          <div className="flex items-center justify-between mb-3">
+            <button
+              type="button"
+              onClick={() => router.push('/inquiries')}
+              style={{
+                color: headerText,
+                backgroundColor: isLightHeader ? 'rgba(30, 31, 36, 0.08)' : 'rgba(255, 255, 255, 0.1)',
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition cursor-pointer hover:opacity-85"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <img
+              src={isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png'}
+              alt="Typhoon Solar"
+              className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
+            />
+          </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold tracking-widest text-white/70 uppercase block">
+              <span style={{ color: headerSubtext }} className="text-[10px] font-bold tracking-widest uppercase block">
                 ACTIVE CLOSED PROJECT
               </span>
-              <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+              <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
                 {projectId}
               </h1>
-              <p className="text-xs text-white/80 mt-1 font-medium">
+              <p style={{ color: headerSubtext }} className="text-xs mt-1 font-medium">
                 {customerName} · +91 {customerPhone} · {inquiry?.city || 'Vadodara'}
               </p>
             </div>
 
-            <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
+            <span
+              style={{
+                background: theme.hex.accentGradient || theme.hex.accentBg,
+                color: theme.hex.accentTextColor,
+                boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.45)',
+              }}
+              className="px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide"
+            >
               Deal Closed
             </span>
           </div>

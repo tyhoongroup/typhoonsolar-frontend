@@ -349,9 +349,17 @@ export default function InquiriesPage() {
                 setActiveTab('inquiries');
                 setActiveChip('All');
               }}
+              style={
+                activeTab === 'inquiries'
+                  ? {
+                      background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
+                      color: '#ffffff',
+                    }
+                  : undefined
+              }
               className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'inquiries'
-                  ? 'bg-typhoon-navy text-white shadow-soft'
+                  ? 'shadow-soft'
                   : 'text-typhoon-muted hover:text-typhoon-navy'
               }`}
             >
@@ -363,9 +371,17 @@ export default function InquiriesPage() {
                 setActiveTab('projects');
                 setActiveChip('All');
               }}
+              style={
+                activeTab === 'projects'
+                  ? {
+                      background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
+                      color: '#ffffff',
+                    }
+                  : undefined
+              }
               className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'projects'
-                  ? 'bg-typhoon-navy text-white shadow-soft'
+                  ? 'shadow-soft'
                   : 'text-typhoon-muted hover:text-typhoon-navy'
               }`}
             >
@@ -374,9 +390,17 @@ export default function InquiriesPage() {
 
             <button
               onClick={() => setActiveTab('followups')}
+              style={
+                activeTab === 'followups'
+                  ? {
+                      background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
+                      color: '#ffffff',
+                    }
+                  : undefined
+              }
               className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'followups'
-                  ? 'bg-typhoon-navy text-white shadow-soft'
+                  ? 'shadow-soft'
                   : 'text-typhoon-muted hover:text-typhoon-navy'
               }`}
             >
@@ -414,9 +438,17 @@ export default function InquiriesPage() {
                 <button
                   key={chip}
                   onClick={() => setActiveChip(chip)}
+                  style={
+                    isActive
+                      ? {
+                          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
+                          color: '#ffffff',
+                        }
+                      : undefined
+                  }
                   className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-typhoon-navy text-white shadow-soft'
+                      ? 'shadow-soft border border-transparent'
                       : 'bg-white text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
                   }`}
                 >

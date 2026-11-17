@@ -1,13 +1,18 @@
 export interface RoleColors {
   headerBg: string;
+  headerGradient?: string;
   headerBorder: string;
   headerTextColor?: string;
   headerSubtextColor?: string;
   cardDarkBg?: string;
+  cardDarkGradient?: string;
   accentBg: string;
+  accentGradient?: string;
+  accentShadow?: string;
   accentHoverBg: string;
   accentTextColor: string;
   navBg: string;
+  navGradient?: string;
   lightBg: string;
   lightText: string;
   lightBorder: string;
@@ -42,14 +47,19 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
     subtitle: 'Full control and team management',
     hex: {
       headerBg: '#1e1b4b',
+      headerGradient: 'linear-gradient(135deg, #2e266d 0%, #1e1b4b 70%, #151336 100%)',
       headerBorder: '#2e2a72',
       headerTextColor: '#ffffff',
       headerSubtextColor: 'rgba(255, 255, 255, 0.7)',
       cardDarkBg: '#1e1b4b',
+      cardDarkGradient: 'linear-gradient(145deg, #26225e 0%, #1e1b4b 100%)',
       accentBg: '#7c3aed',
+      accentGradient: 'linear-gradient(135deg, #9055ff 0%, #7c3aed 70%, #6322d6 100%)',
+      accentShadow: '0 8px 24px -4px rgba(124, 58, 237, 0.4)',
       accentHoverBg: '#6d28d9',
       accentTextColor: '#ffffff',
       navBg: '#1e1b4b',
+      navGradient: 'linear-gradient(180deg, #26225e 0%, #1e1b4b 100%)',
       lightBg: '#f5f3ff',
       lightText: '#6d28d9',
       lightBorder: '#ddd6fe',
@@ -73,14 +83,19 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
     subtitle: 'Lead assignment and SLA delays',
     hex: {
       headerBg: '#D9A23A',        // 60% Butterscotch Gold
+      headerGradient: 'linear-gradient(135deg, #E6B552 0%, #D9A23A 55%, #C28C28 100%)', // Premium warm gold sheen
       headerBorder: '#B88428',    // Deep Butterscotch Gold Border
       headerTextColor: '#1E1F24', // 30% Graphite Ink Text for contrast on Gold
-      headerSubtextColor: 'rgba(30, 31, 36, 0.75)',
+      headerSubtextColor: 'rgba(30, 31, 36, 0.78)',
       cardDarkBg: '#1E1F24',      // 30% Graphite Ink
+      cardDarkGradient: 'linear-gradient(145deg, #2A2C34 0%, #1E1F24 60%, #151619 100%)', // Premium graphite ink gradient
       accentBg: '#2448FF',        // 10% Hyper Cobalt
+      accentGradient: 'linear-gradient(135deg, #3D62FF 0%, #2448FF 60%, #1539E6 100%)', // Vivid cobalt luster
+      accentShadow: '0 8px 24px -4px rgba(36, 72, 255, 0.45)', // Premium soft glow
       accentHoverBg: '#1B3AE6',
       accentTextColor: '#ffffff', // Crisp white on Cobalt
       navBg: '#1E1F24',           // 30% Graphite Ink
+      navGradient: 'linear-gradient(180deg, #282A32 0%, #1E1F24 100%)',
       lightBg: '#FDF9F2',         // Soft warm canvas tint
       lightText: '#1E1F24',
       lightBorder: '#E8D4A9',

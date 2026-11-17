@@ -69,8 +69,14 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header
-        style={{ backgroundColor: theme.hex.headerBg, color: headerTextColor }}
-        className="relative pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden shadow-soft transition-colors duration-300 border-b border-black/5"
+        style={{
+          background: theme.hex.headerGradient || theme.hex.headerBg,
+          color: headerTextColor,
+          boxShadow: isLightHeader
+            ? '0 10px 30px -5px rgba(217, 162, 58, 0.3)'
+            : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
+        }}
+        className="relative pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden transition-all duration-300 border-b border-black/5"
       >
         {/* Decorative concentric solar ripples in background */}
         <div
@@ -86,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Top Bar with Avatar and Official Brand Logo */}
         <div className="relative flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             <button
               onClick={handleAvatarClick}
               style={{
@@ -102,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
             <img
               src={isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png'}
               alt="Typhoon Solar"
-              className="h-8 sm:h-9 w-auto object-contain filter drop-shadow-xs"
+              className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
             />
           </div>
 

@@ -112,9 +112,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     <div className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto">
       <nav
         style={{
-          backgroundColor: theme.hex.navBg,
-          borderColor: theme.hex.headerBorder,
-          boxShadow: '0 10px 35px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+          background: theme.hex.navGradient || theme.hex.navBg,
+          borderColor: '#2d2f36',
+          boxShadow: '0 12px 35px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08) inset',
         }}
         className="rounded-full px-3 py-2 flex items-center justify-around border transition-all duration-300"
       >
@@ -133,8 +133,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               style={
                 isActive
                   ? {
-                      backgroundColor: theme.hex.accentBg,
+                      background: theme.hex.accentGradient || theme.hex.accentBg,
                       color: theme.hex.accentTextColor,
+                      boxShadow: theme.hex.accentShadow || '0 4px 14px -2px rgba(36, 72, 255, 0.4)',
                     }
                   : {
                       color: 'rgba(255, 255, 255, 0.75)',

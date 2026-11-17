@@ -22,10 +22,11 @@ export const MainButton: React.FC<MainButtonProps> = ({
       <button
         disabled={disabled}
         style={{
-          backgroundColor: theme.hex.accentBg,
+          background: theme.hex.accentGradient || theme.hex.accentBg,
           color: theme.hex.accentTextColor,
+          boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
         }}
-        className={`w-full py-4 px-6 rounded-2xl font-bold text-base tracking-wide shadow-soft flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-98 cursor-pointer ${className}`}
+        className={`w-full py-4 px-6 rounded-2xl font-bold text-base tracking-wide flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-98 cursor-pointer ${className}`}
         {...props}
       >
         {icon}

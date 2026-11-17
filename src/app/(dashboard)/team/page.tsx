@@ -489,9 +489,17 @@ export default function TeamTrackerPage() {
               <button
                 key={chip}
                 onClick={() => setActiveChip(chip)}
+                style={
+                  isActive
+                    ? {
+                        background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
+                        color: '#ffffff',
+                      }
+                    : undefined
+                }
                 className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-typhoon-navy text-white shadow-soft'
+                    ? 'shadow-soft border border-transparent'
                     : 'bg-white text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
                 }`}
               >
