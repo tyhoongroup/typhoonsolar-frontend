@@ -132,7 +132,8 @@ export default function AssignSalespersonPage() {
 
   const headerText = theme.hex.headerTextColor || '#ffffff';
   const headerSubtext = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
-  const isLightHeader = headerText === '#1E1F24';
+  const isLightHeader = headerText !== '#ffffff';
+  const logoSrc = theme.hex.logoSrc || (isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png');
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-28">
@@ -142,7 +143,7 @@ export default function AssignSalespersonPage() {
           background: theme.hex.headerGradient || theme.hex.headerBg,
           color: headerText,
           boxShadow: isLightHeader
-            ? '0 10px 30px -5px rgba(217, 162, 58, 0.3)'
+            ? '0 10px 30px -5px rgba(0, 0, 0, 0.12)'
             : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
         }}
         className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
@@ -173,7 +174,7 @@ export default function AssignSalespersonPage() {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <img
-              src={isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png'}
+              src={logoSrc}
               alt="Typhoon Solar"
               className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
             />

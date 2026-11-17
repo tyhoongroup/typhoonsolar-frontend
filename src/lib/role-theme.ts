@@ -16,6 +16,7 @@ export interface RoleColors {
   lightBg: string;
   lightText: string;
   lightBorder: string;
+  logoSrc?: string;
 }
 
 export interface RoleTheme {
@@ -37,6 +38,7 @@ export interface RoleTheme {
   lightBg: string;
   lightText: string;
   lightBorder: string;
+  logoSrc?: string;
 }
 
 export const ROLE_THEMES: Record<string, RoleTheme> = {
@@ -99,6 +101,7 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
       lightBg: '#FDF9F2',         // Soft warm canvas tint
       lightText: '#1E1F24',
       lightBorder: '#E8D4A9',
+      logoSrc: '/images/typhoon-logo-dark.png',
     },
     headerBg: 'bg-[#D9A23A]',
     headerBorder: 'border-[#B88428]',
@@ -111,6 +114,7 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
     lightBg: 'bg-[#FDF9F2]',
     lightText: 'text-[#1E1F24]',
     lightBorder: 'border-[#E8D4A9]',
+    logoSrc: '/images/typhoon-logo-dark.png',
   },
   SALESPERSON: {
     role: 'SALESPERSON',
@@ -118,27 +122,37 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
     tag: 'RS',
     subtitle: 'Survey, quotation and closing',
     hex: {
-      headerBg: '#0a3d7c',
-      headerBorder: '#124d99',
-      accentBg: '#00a3e0',
-      accentHoverBg: '#0284c7',
-      accentTextColor: '#ffffff',
-      navBg: '#0a3d7c',
-      lightBg: '#f0f9ff',
-      lightText: '#0369a1',
-      lightBorder: '#bae6fd',
+      headerBg: '#F3ECE9',        // 60% Warm Ivory
+      headerGradient: 'linear-gradient(135deg, #FAF6F4 0%, #F3ECE9 55%, #E6DDD9 100%)', // Premium warm ivory silk sheen
+      headerBorder: '#DDD2CD',    // Soft Ivory border
+      headerTextColor: '#234E4B', // 30% Deep Teal Text for crisp contrast on Warm Ivory
+      headerSubtextColor: 'rgba(35, 78, 75, 0.78)',
+      cardDarkBg: '#234E4B',      // 30% Deep Teal
+      cardDarkGradient: 'linear-gradient(145deg, #2D6360 0%, #234E4B 60%, #1A3A38 100%)', // Premium Deep Teal gradient
+      accentBg: '#EC6745',        // 10% Coral Orange
+      accentGradient: 'linear-gradient(135deg, #F87B5B 0%, #EC6745 60%, #D85332 100%)', // Luminous coral luster
+      accentShadow: '0 8px 24px -4px rgba(236, 103, 69, 0.45)', // Premium soft coral glow
+      accentHoverBg: '#D95634',
+      accentTextColor: '#ffffff', // Crisp white on Coral Orange
+      navBg: '#234E4B',           // 30% Deep Teal
+      navGradient: 'linear-gradient(180deg, #2D6360 0%, #234E4B 100%)',
+      lightBg: '#FBF8F6',         // Warm Ivory tint
+      lightText: '#234E4B',
+      lightBorder: '#E8DFDB',
+      logoSrc: '/images/typhoon-logo-sales.png',
     },
-    headerBg: 'bg-[#0a3d7c]',
-    headerBorder: 'border-[#124d99]',
-    accentBg: 'bg-[#00a3e0]',
-    accentHoverBg: 'hover:bg-[#0284c7]',
+    headerBg: 'bg-[#F3ECE9]',
+    headerBorder: 'border-[#DDD2CD]',
+    accentBg: 'bg-[#EC6745]',
+    accentHoverBg: 'hover:bg-[#D95634]',
     accentText: 'text-white',
-    navBg: 'bg-[#0a3d7c]',
-    navActiveBg: 'bg-[#00a3e0]',
+    navBg: 'bg-[#234E4B]',
+    navActiveBg: 'bg-[#EC6745]',
     navActiveText: 'text-white',
-    lightBg: 'bg-[#f0f9ff]',
-    lightText: 'text-[#0369a1]',
-    lightBorder: 'border-[#bae6fd]',
+    lightBg: 'bg-[#FBF8F6]',
+    lightText: 'text-[#234E4B]',
+    lightBorder: 'border-[#E8DFDB]',
+    logoSrc: '/images/typhoon-logo-sales.png',
   },
   PORTAL_USER: {
     role: 'PORTAL_USER',

@@ -64,7 +64,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   const headerTextColor = theme.hex.headerTextColor || '#ffffff';
   const headerSubtextColor = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.85)';
-  const isLightHeader = headerTextColor === '#1E1F24';
+  const isLightHeader = headerTextColor !== '#ffffff';
+  const logoSrc = theme.hex.logoSrc || (isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png');
 
   return (
     <>
@@ -73,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
           background: theme.hex.headerGradient || theme.hex.headerBg,
           color: headerTextColor,
           boxShadow: isLightHeader
-            ? '0 10px 30px -5px rgba(217, 162, 58, 0.3)'
+            ? '0 10px 30px -5px rgba(0, 0, 0, 0.12)'
             : '0 10px 30px -5px rgba(0, 0, 0, 0.25)',
         }}
         className="relative pt-6 pb-16 px-4 rounded-b-[32px] overflow-hidden transition-all duration-300 border-b border-black/5"
@@ -106,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
               {displayInitials}
             </button>
             <img
-              src={isLightHeader ? '/images/typhoon-logo-dark.png' : '/images/typhoon-logo-white.png'}
+              src={logoSrc}
               alt="Typhoon Solar"
               className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-sm"
             />
