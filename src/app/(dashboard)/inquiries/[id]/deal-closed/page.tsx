@@ -118,7 +118,7 @@ export default function DealClosedPage() {
       {/* 1. Curved Header Matching Screen 6 */}
       <div
         style={{ backgroundColor: theme.hex.headerBg }}
-        className="pt-6 pb-12 px-5 rounded-b-[36px] shadow-sm relative overflow-hidden"
+        className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
         <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
@@ -128,7 +128,7 @@ export default function DealClosedPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-4 cursor-pointer"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-3 cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -143,7 +143,7 @@ export default function DealClosedPage() {
       </div>
 
       {/* 2. Body Container Matching Screen 6 */}
-      <div className="max-w-md mx-auto px-4 -mt-4 space-y-4">
+      <div className="max-w-md mx-auto px-4 pt-4 space-y-4">
         <form onSubmit={handleMarkClosed} className="space-y-4">
           {/* Deal status Toggle */}
           <div className="space-y-1.5">

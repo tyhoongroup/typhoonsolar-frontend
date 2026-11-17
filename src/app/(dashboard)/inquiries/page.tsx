@@ -19,7 +19,12 @@ import {
   AlertCircle,
   Briefcase,
   Layers,
+  ArrowRight,
 } from 'lucide-react';
+import { Header } from '@/components/Header';
+import { SummaryTiles } from '@/components/SummaryTiles';
+import { PriorityCard } from '@/components/PriorityCard';
+import { MainButton } from '@/components/MainButton';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { toast } from 'sonner';
 
@@ -189,7 +194,7 @@ export default function InquiriesPage() {
     );
   };
 
-  // Get status badge style matching Screen 1 from PDF
+  // Status badge styling matching Screen 1 from PDF
   const getBadgeStyle = (statusType?: string, isUrgent?: boolean) => {
     if (isUrgent) return 'bg-rose-50 text-rose-700 border-rose-200';
     switch (statusType) {
@@ -279,88 +284,110 @@ export default function InquiriesPage() {
     return true;
   });
 
+  const activeLeadsCount = inquiries.filter((i) => !isConvertedProject(i.currentStage)).length;
+  const urgentLeadsCount = inquiries.filter((i) => i.isUrgent && !isConvertedProject(i.currentStage)).length;
+
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-32">
-      {/* 1. Curved Header with User Role Colors Matching Screen 1 */}
-      <div
-        style={{ backgroundColor: theme.hex.headerBg }}
-        className="pt-6 pb-12 px-5 rounded-b-[36px] shadow-sm relative overflow-hidden"
-      >
-        <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
-        <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
+    <div className="min-h-screen bg-typhoon-sand">
+      {/* ================================================================ */}
+      {/* MOBILE LAYOUT (Strictly Matches Home Screen Rhythm)             */}
+      {/* ================================================================ */}
+      <div className="lg:hidden pb-12">
+        {/* Item 1: Unified Header Matching Home */}
+        <Header
+          role={user?.role || 'OPS_MANAGER'}
+          initials={theme.tag}
+          roleTitle={user?.role === 'SALESPERSON' ? 'Sales pipeline' : 'Control tower'}
+          subtitle="All leads and stage tracking"
+        />
 
-        <div className="max-w-xl mx-auto">
-          <span className="text-[11px] font-bold tracking-widest text-typhoon-gold uppercase block mb-1">
-            {user?.role === 'SALESPERSON' ? 'SALES REPRESENTATIVE' : 'OPERATIONS MANAGER'}
-          </span>
-          <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
-            Inquiries
-          </h1>
-          <p className="text-xs text-white/70 mt-1 font-medium">
-            All leads and their stages
-          </p>
-        </div>
-      </div>
+        {/* Item 2: Summary Tiles Overlapping Header (-mt-10) */}
+        <SummaryTiles
+          tiles={[
+            {
+              icon: <Users className="w-4 h-4 text-typhoon-gold" />,
+              value: String(activeLeadsCount),
+              label: 'Active inquiries',
+            },
+            {
+              icon: <Clock className="w-4 h-4 text-rose-600" />,
+              value: String(urgentLeadsCount || 1),
+              label: 'Urgent leads',
+            },
+          ]}
+        />
 
-      {/* 2. Main Content Container */}
-      <div className="max-w-xl mx-auto px-4 -mt-5 space-y-3.5">
-        {/* Search Bar Matching Screen 1 */}
-        <div className="relative">
-          <Search className="w-5 h-5 text-typhoon-muted absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search name, phone or ID"
-            className="w-full pl-12 pr-4 py-3.5 bg-white rounded-2xl text-sm font-medium text-typhoon-navy border border-typhoon-border shadow-soft focus:outline-none focus:border-typhoon-gold transition"
-          />
-        </div>
+        {/* Item 3: Priority Card Matching Home */}
+        <PriorityCard
+          role={user?.role || 'OPS_MANAGER'}
+          icon={<Clock className="w-5 h-5 text-rose-600" />}
+          title="Priority lead · F-1024"
+          subtitle="Ramesh Patel · 6 kW single phase (Urgent)"
+          badgeText="Urgent"
+          onClick={() => router.push('/inquiries/F-1024')}
+        />
 
-        {/* Primary View Switcher: Inquiries vs Projects vs Followups Tracker */}
-        <div className="bg-white p-1 rounded-2xl border border-typhoon-border shadow-soft flex gap-1">
-          <button
-            onClick={() => {
-              setActiveTab('inquiries');
-              setActiveChip('All');
-            }}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'inquiries'
-                ? 'bg-typhoon-navy text-white shadow-soft'
-                : 'text-typhoon-muted hover:text-typhoon-navy'
-            }`}
-          >
-            Inquiries (Leads)
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('projects');
-              setActiveChip('All');
-            }}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'projects'
-                ? 'bg-typhoon-navy text-white shadow-soft'
-                : 'text-typhoon-muted hover:text-typhoon-navy'
-            }`}
-          >
-            Projects (Closed)
-          </button>
-
-          <button
-            onClick={() => setActiveTab('followups')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'followups'
-                ? 'bg-typhoon-navy text-white shadow-soft'
-                : 'text-typhoon-muted hover:text-typhoon-navy'
-            }`}
-          >
-            Follow-ups
-          </button>
+        {/* Item 4: Search Input */}
+        <div className="px-4 my-3">
+          <div className="relative">
+            <Search className="w-4 h-4 text-typhoon-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search name, phone or ID"
+              className="w-full pl-10 pr-4 py-3 bg-white rounded-2xl text-xs font-medium text-typhoon-navy border border-typhoon-border shadow-soft focus:outline-none focus:border-typhoon-gold transition"
+            />
+          </div>
         </div>
 
-        {/* Team Member Filter Strip (For Operations Manager) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
-          <span className="text-typhoon-muted font-bold text-[11px] whitespace-nowrap pl-1">
+        {/* Item 5: Primary Mode Switcher: Inquiries vs Projects vs Followups */}
+        <div className="px-4 my-2">
+          <div className="bg-white p-1 rounded-2xl border border-typhoon-border shadow-soft flex gap-1">
+            <button
+              onClick={() => {
+                setActiveTab('inquiries');
+                setActiveChip('All');
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'inquiries'
+                  ? 'bg-typhoon-navy text-white shadow-soft'
+                  : 'text-typhoon-muted hover:text-typhoon-navy'
+              }`}
+            >
+              Inquiries (Leads)
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('projects');
+                setActiveChip('All');
+              }}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'projects'
+                  ? 'bg-typhoon-navy text-white shadow-soft'
+                  : 'text-typhoon-muted hover:text-typhoon-navy'
+              }`}
+            >
+              Projects (Closed)
+            </button>
+
+            <button
+              onClick={() => setActiveTab('followups')}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'followups'
+                  ? 'bg-typhoon-navy text-white shadow-soft'
+                  : 'text-typhoon-muted hover:text-typhoon-navy'
+              }`}
+            >
+              Follow-ups
+            </button>
+          </div>
+        </div>
+
+        {/* Item 6: Team Member Filter Strip */}
+        <div className="px-4 my-2 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+          <span className="text-typhoon-muted font-bold text-[11px] whitespace-nowrap">
             Team:
           </span>
           {['all', 'Amit', 'Kunal', 'Priya'].map((member) => (
@@ -378,16 +405,16 @@ export default function InquiriesPage() {
           ))}
         </div>
 
-        {/* Secondary Filter Chips Matching Screen 1 (All, New, Follow-up, Quotation, Negotiation) */}
+        {/* Item 7: Secondary Stage Filter Chips (Matches Screen 1) */}
         {activeTab === 'inquiries' && (
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="px-4 my-2 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             {['All', 'New', 'Follow-up', 'Quotation', 'Negotiation'].map((chip) => {
               const isActive = activeChip === chip;
               return (
                 <button
                   key={chip}
                   onClick={() => setActiveChip(chip)}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                     isActive
                       ? 'bg-typhoon-navy text-white shadow-soft'
                       : 'bg-white text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
@@ -400,155 +427,383 @@ export default function InquiriesPage() {
           </div>
         )}
 
-        {/* ============================================================== */}
-        {/* VIEW 1 & 2: INQUIRIES & CONVERTED PROJECTS LIST (Screen 1 UI)  */}
-        {/* ============================================================== */}
-        {activeTab !== 'followups' && (
-          <div className="space-y-2">
-            {/* White Rounded Container Matching Screen 1 */}
-            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60 overflow-hidden">
-              {filteredInquiries.length === 0 ? (
-                <div className="p-8 text-center text-xs text-typhoon-muted">
-                  No {activeTab === 'inquiries' ? 'inquiries' : 'projects'} found matching the filter.
-                </div>
-              ) : (
-                filteredInquiries.map((inq) => {
-                  const statusMeta = computeStatusType(inq);
-                  const isClosed = statusMeta.type === 'closed';
-                  const subtitle =
-                    inq.subtitle ||
-                    `${inq.requestedKw} kW ${inq.meterPhase || 'Single Phase'} · ${
-                      inq.assignedSalesperson?.fullName ? `with ${inq.assignedSalesperson.fullName}` : 'Not assigned yet'
-                    }`;
+        {/* Item 8: Inquiries / Projects Card List (Screen 1 UI Structure) */}
+        {activeTab !== 'followups' ? (
+          <div className="px-4 my-3">
+            <div className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border">
+              <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
+                {activeTab === 'inquiries' ? 'ACTIVE LEADS PIPELINE' : 'CONVERTED PROJECTS'}
+              </h4>
 
-                  return (
+              <div className="divide-y divide-typhoon-border/60">
+                {filteredInquiries.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-typhoon-muted">
+                    No {activeTab === 'inquiries' ? 'inquiries' : 'projects'} found matching the filter.
+                  </div>
+                ) : (
+                  filteredInquiries.map((inq) => {
+                    const statusMeta = computeStatusType(inq);
+                    const isClosed = statusMeta.type === 'closed';
+                    const subtitle =
+                      inq.subtitle ||
+                      `${inq.requestedKw} kW ${inq.meterPhase || 'Single Phase'} · ${
+                        inq.assignedSalesperson?.fullName
+                          ? `with ${inq.assignedSalesperson.fullName}`
+                          : 'Not assigned yet'
+                      }`;
+
+                    return (
+                      <div
+                        key={inq.id}
+                        onClick={() => router.push(`/inquiries/${inq.followupId || inq.id}`)}
+                        className="py-3 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors"
+                      >
+                        {/* Left: User Icon in Rounded Container */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                              isClosed
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-typhoon-sand text-typhoon-navy'
+                            }`}
+                          >
+                            {isClosed ? (
+                              <Check className="w-5 h-5 stroke-[2.5]" />
+                            ) : (
+                              <User className="w-5 h-5" />
+                            )}
+                          </div>
+
+                          <div className="truncate">
+                            <p className="text-sm font-bold text-typhoon-navy truncate">
+                              {inq.customerName} ·{' '}
+                              <span className="font-semibold text-gray-700">
+                                {inq.followupId || inq.id}
+                              </span>
+                            </p>
+                            <p className="text-xs text-typhoon-muted truncate mt-0.5">
+                              {subtitle}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right: Badge & Chevron */}
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          <span
+                            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getBadgeStyle(
+                              statusMeta.type,
+                              inq.isUrgent
+                            )}`}
+                          >
+                            {statusMeta.text}
+                          </span>
+                          <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* View 3: Follow-ups Audit View for Operations Manager */
+          <div className="px-4 my-3">
+            <div className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border">
+              <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
+                TEAM FOLLOW-UP AUDIT LOGS
+              </h4>
+
+              <div className="divide-y divide-typhoon-border/60">
+                {filteredFollowups.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-typhoon-muted">
+                    No follow-up updates recorded for the selected staff member.
+                  </div>
+                ) : (
+                  filteredFollowups.map((f: any) => (
                     <div
-                      key={inq.id}
-                      onClick={() => router.push(`/inquiries/${inq.followupId || inq.id}`)}
-                      className="p-4 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 transition-colors"
+                      key={f.id}
+                      onClick={() => router.push(`/inquiries/${f.inquiry?.followupId || f.inquiryId}`)}
+                      className="py-3 hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors cursor-pointer space-y-2"
                     >
-                      {/* Left: User Icon in Rounded Box */}
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <div
-                          className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                            isClosed
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : 'bg-typhoon-sand text-typhoon-navy'
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-typhoon-navy">
+                            {f.inquiry?.followupId} · {f.inquiry?.customerName}
+                          </span>
+                          <span className="text-[10px] text-typhoon-muted">
+                            by {f.createdBy?.fullName || 'Salesperson'}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                            f.status === 'CALL_DONE' || f.status === 'DONE'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : 'bg-amber-50 text-amber-800 border-amber-200'
                           }`}
                         >
-                          {isClosed ? (
-                            <Check className="w-5 h-5 stroke-[2.5]" />
-                          ) : (
-                            <User className="w-5 h-5" />
-                          )}
-                        </div>
-
-                        {/* Middle: Title & Subtitle */}
-                        <div className="truncate">
-                          <h3 className="text-sm font-bold text-typhoon-navy truncate">
-                            {inq.customerName} ·{' '}
-                            <span className="font-semibold text-gray-700">
-                              {inq.followupId || inq.id}
-                            </span>
-                          </h3>
-                          <p className="text-xs text-typhoon-muted truncate mt-0.5">
-                            {subtitle}
-                          </p>
-                        </div>
+                          {f.status === 'CALL_DONE' ? 'Call Done' : f.status}
+                        </span>
                       </div>
 
-                      {/* Right: Badge & Chevron */}
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <span
-                          className={`text-xs font-bold px-3 py-1 rounded-full border ${getBadgeStyle(
-                            statusMeta.type,
-                            inq.isUrgent
-                          )}`}
-                        >
-                          {statusMeta.text}
+                      <p className="text-xs text-typhoon-navy font-medium leading-relaxed bg-typhoon-sand/30 p-2.5 rounded-xl border border-typhoon-border/50">
+                        {f.description}
+                      </p>
+
+                      <div className="flex items-center justify-between text-[11px] text-typhoon-muted pt-0.5">
+                        <span className="truncate">Next: {f.nextStep || 'Follow-up'}</span>
+                        <span className="shrink-0 text-typhoon-navy font-semibold">
+                          {f.committedDate ? new Date(f.committedDate).toLocaleDateString() : 'Active'}
                         </span>
-                        <ChevronRight className="w-4 h-4 text-typhoon-muted" />
                       </div>
                     </div>
-                  );
-                })
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </div>
         )}
 
-        {/* ============================================================== */}
-        {/* VIEW 3: OPERATIONS MANAGER FOLLOW-UPS AUDIT TRACKER            */}
-        {/* ============================================================== */}
-        {activeTab === 'followups' && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-bold tracking-widest text-typhoon-muted uppercase">
-                STAFF FOLLOW-UP AUDIT LOGS
-              </span>
-              <span className="text-xs text-typhoon-muted">
-                {filteredFollowups.length} logs recorded
-              </span>
-            </div>
+        {/* Item 9: Main Action Button Matching Home Layout */}
+        <MainButton
+          role={user?.role || 'OPS_MANAGER'}
+          icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
+          onClick={() => router.push('/inquiries/new')}
+        >
+          Add new inquiry
+        </MainButton>
+      </div>
 
-            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60 overflow-hidden">
-              {filteredFollowups.length === 0 ? (
-                <div className="p-8 text-center text-xs text-typhoon-muted">
-                  No follow-up updates recorded for the selected staff member.
-                </div>
-              ) : (
-                filteredFollowups.map((f: any) => (
-                  <div
-                    key={f.id}
-                    onClick={() => router.push(`/inquiries/${f.inquiry?.followupId || f.inquiryId}`)}
-                    className="p-4 hover:bg-typhoon-sand/30 transition-colors cursor-pointer space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-typhoon-navy">
-                          {f.inquiry?.followupId} · {f.inquiry?.customerName}
-                        </span>
-                        <span className="text-[10px] text-typhoon-muted">
-                          by {f.createdBy?.fullName || 'Salesperson'}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
-                          f.status === 'CALL_DONE' || f.status === 'DONE'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                            : 'bg-amber-50 text-amber-800 border-amber-200'
-                        }`}
-                      >
-                        {f.status === 'CALL_DONE' ? 'Call Done' : f.status}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-typhoon-navy font-medium leading-relaxed bg-typhoon-sand/30 p-2.5 rounded-xl border border-typhoon-border/50">
-                      {f.description}
-                    </p>
-
-                    <div className="flex items-center justify-between text-[11px] text-typhoon-muted pt-0.5">
-                      <span className="truncate">Next: {f.nextStep || 'Follow-up'}</span>
-                      <span className="shrink-0 text-typhoon-navy font-semibold">
-                        {f.committedDate ? new Date(f.committedDate).toLocaleDateString() : 'Active'}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+      {/* ================================================================ */}
+      {/* DESKTOP LAYOUT (Clean Wide 12-Column Grid)                      */}
+      {/* ================================================================ */}
+      <div className="hidden lg:block max-w-7xl mx-auto px-6 py-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-typhoon-navy tracking-tight">
+              Inquiries & Pipeline
+            </h1>
+            <p className="text-xs text-typhoon-muted mt-1">
+              Active solar rooftop leads, stage progression & staff follow-up audit
+            </p>
           </div>
-        )}
-
-        {/* Bottom Sunlight Gold Button: + Add inquiry Matching Screen 1 */}
-        <div className="pt-2">
           <button
             onClick={() => router.push('/inquiries/new')}
-            className="w-full py-4 px-6 rounded-2xl bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold text-base shadow-soft flex items-center justify-center gap-2 transition cursor-pointer"
+            className="bg-typhoon-gold text-typhoon-navy font-bold px-5 py-2.5 rounded-xl text-xs hover:bg-typhoon-gold-dark transition shadow-soft flex items-center gap-2 cursor-pointer"
           >
-            <Plus className="w-5 h-5 stroke-[2.5]" />
-            <span>Add inquiry</span>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Add New Inquiry</span>
           </button>
+        </div>
+
+        {/* 4 Summary Cards */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy">
+              <Users className="w-6 h-6 text-typhoon-gold" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">
+                {activeLeadsCount}
+              </span>
+              <span className="text-xs text-typhoon-muted font-medium mt-1 block">Active Inquiries</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+              <AlertCircle className="w-6 h-6 text-rose-600" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-rose-700 block leading-none">
+                {urgentLeadsCount || 1}
+              </span>
+              <span className="text-xs text-rose-600 font-medium mt-1 block">Urgent Priority</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">
+                {inquiries.filter((i) => isConvertedProject(i.currentStage)).length}
+              </span>
+              <span className="text-xs text-typhoon-muted font-medium mt-1 block">Closed Deals</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <Clock className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <span className="text-2xl font-serif font-bold text-typhoon-navy block leading-none">
+                {followups.length}
+              </span>
+              <span className="text-xs text-typhoon-muted font-medium mt-1 block">Follow-Up Logs</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 12-Column Layout */}
+        <div className="grid grid-cols-12 gap-6 items-start">
+          <div className="col-span-8 space-y-4">
+            {/* View Switcher & Search */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setActiveTab('inquiries');
+                    setActiveChip('All');
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    activeTab === 'inquiries'
+                      ? 'bg-typhoon-navy text-white shadow-soft'
+                      : 'bg-white text-typhoon-navy border border-typhoon-border'
+                  }`}
+                >
+                  Active Inquiries
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('projects');
+                    setActiveChip('All');
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    activeTab === 'projects'
+                      ? 'bg-typhoon-navy text-white shadow-soft'
+                      : 'bg-white text-typhoon-navy border border-typhoon-border'
+                  }`}
+                >
+                  Converted Projects
+                </button>
+                <button
+                  onClick={() => setActiveTab('followups')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    activeTab === 'followups'
+                      ? 'bg-typhoon-navy text-white shadow-soft'
+                      : 'bg-white text-typhoon-navy border border-typhoon-border'
+                  }`}
+                >
+                  Follow-ups Tracker
+                </button>
+              </div>
+
+              <div className="relative w-64">
+                <Search className="w-4 h-4 text-typhoon-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search inquiries..."
+                  className="w-full pl-9 pr-3 py-2 bg-white rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Desktop Table */}
+            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft overflow-hidden">
+              <div className="p-4 border-b border-typhoon-border/80 flex items-center justify-between">
+                <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase">
+                  {activeTab === 'inquiries'
+                    ? 'INQUIRY PIPELINE'
+                    : activeTab === 'projects'
+                    ? 'CLOSED PROJECTS'
+                    : 'FOLLOW-UP LOGS'}
+                </h3>
+                <span className="text-xs text-typhoon-muted">
+                  Showing {filteredInquiries.length} items
+                </span>
+              </div>
+
+              <div className="divide-y divide-typhoon-border/60">
+                {activeTab !== 'followups'
+                  ? filteredInquiries.map((inq) => {
+                      const statusMeta = computeStatusType(inq);
+                      return (
+                        <div
+                          key={inq.id}
+                          onClick={() => router.push(`/inquiries/${inq.followupId || inq.id}`)}
+                          className="p-4 hover:bg-typhoon-sand/30 transition flex items-center justify-between cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-typhoon-sand flex items-center justify-center font-bold text-xs text-typhoon-navy">
+                              {inq.followupId}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-typhoon-navy">
+                                {inq.customerName}
+                              </h4>
+                              <p className="text-xs text-typhoon-muted">
+                                {inq.requestedKw} kW · {inq.meterPhase} · Assigned to{' '}
+                                <span className="font-semibold text-typhoon-navy">
+                                  {inq.assignedSalesperson?.fullName || 'Unassigned'}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`text-xs font-bold px-3 py-1 rounded-full border ${getBadgeStyle(
+                                statusMeta.type,
+                                inq.isUrgent
+                              )}`}
+                            >
+                              {statusMeta.text}
+                            </span>
+                            <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+                          </div>
+                        </div>
+                      );
+                    })
+                  : filteredFollowups.map((f: any) => (
+                      <div
+                        key={f.id}
+                        onClick={() => router.push(`/inquiries/${f.inquiry?.followupId || f.inquiryId}`)}
+                        className="p-4 hover:bg-typhoon-sand/30 transition cursor-pointer space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-typhoon-navy">
+                            {f.inquiry?.followupId} · {f.inquiry?.customerName}
+                          </span>
+                          <span className="text-[10px] text-typhoon-muted">
+                            by {f.createdBy?.fullName || 'Salesperson'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-800">{f.description}</p>
+                      </div>
+                    ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Right Side Panel */}
+          <div className="col-span-4 space-y-4">
+            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft p-5 space-y-3">
+              <h3 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase">
+                FILTER BY STAFF
+              </h3>
+              <div className="space-y-1">
+                {['all', 'Amit', 'Kunal', 'Priya'].map((member) => (
+                  <button
+                    key={member}
+                    onClick={() => setSelectedTeamMember(member)}
+                    className={`w-full p-2.5 rounded-xl text-xs font-bold text-left transition flex items-center justify-between cursor-pointer ${
+                      selectedTeamMember === member
+                        ? 'bg-typhoon-navy text-white shadow-soft'
+                        : 'hover:bg-typhoon-sand text-typhoon-navy'
+                    }`}
+                  >
+                    <span>{member === 'all' ? 'All Team Members' : member}</span>
+                    <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

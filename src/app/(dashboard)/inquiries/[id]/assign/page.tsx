@@ -99,7 +99,7 @@ export default function AssignSalespersonPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/v1/inquiries/${inquiry?.id || inquiryId}/assign`, {
+      const res = await fetch(`/api/v1/inquiries/${inquiry?.followupId || inquiryId}/assign`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -132,10 +132,10 @@ export default function AssignSalespersonPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-28">
-      {/* 1. Curved Midnight Navy Header Matching Screen 3 */}
+      {/* 1. Curved Header with Role Theme Colors (Screen 3) */}
       <div
         style={{ backgroundColor: theme.hex.headerBg }}
-        className="pt-6 pb-12 px-5 rounded-b-[36px] shadow-sm relative overflow-hidden"
+        className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
         <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
@@ -145,7 +145,7 @@ export default function AssignSalespersonPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-4 cursor-pointer"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-3 cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -159,14 +159,14 @@ export default function AssignSalespersonPage() {
         </div>
       </div>
 
-      {/* 2. Body Container Matching Screen 3 */}
-      <div className="max-w-md mx-auto px-4 -mt-4 space-y-4">
+      {/* 2. Body Container (Positive Margin - Completely Clear of Header Curve) */}
+      <div className="max-w-md mx-auto px-4 pt-4 space-y-4">
         {/* Requirement & Address Summary Card */}
         <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-3">
           <div className="flex justify-between items-center text-xs">
             <span className="text-typhoon-muted font-medium">Requirement</span>
             <span className="font-bold text-typhoon-navy text-sm">
-              {inquiry?.requestedKw || 6.0} kW, {inquiry?.meterPhase || '3 phase'}
+              {inquiry?.requestedKw || 6.0} kW, {inquiry?.meterPhase || 'Single Phase'}
             </span>
           </div>
           <div className="border-t border-typhoon-border/60 pt-3 flex justify-between items-center text-xs">

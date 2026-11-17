@@ -113,12 +113,11 @@ export default function AddInquiryPage() {
 
   return (
     <div className="min-h-screen bg-typhoon-sand pb-28">
-      {/* 1. Curved Header Matching Screen 2 */}
+      {/* 1. Curved Header with Role Theme Colors (Screen 2) */}
       <div
         style={{ backgroundColor: theme.hex.headerBg }}
-        className="pt-6 pb-12 px-5 rounded-b-[36px] shadow-sm relative overflow-hidden"
+        className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden"
       >
-        {/* Subtle circular background watermark */}
         <div className="absolute top-0 right-0 w-64 h-64 border border-white/5 rounded-full pointer-events-none -mr-16 -mt-16" />
         <div className="absolute top-0 right-0 w-44 h-44 border border-white/5 rounded-full pointer-events-none -mr-8 -mt-8" />
 
@@ -127,7 +126,7 @@ export default function AddInquiryPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-4 cursor-pointer"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition mb-3 cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -141,8 +140,8 @@ export default function AddInquiryPage() {
         </div>
       </div>
 
-      {/* 2. Form Body Matching Screen 2 Layout */}
-      <div className="max-w-md mx-auto px-4 -mt-4">
+      {/* 2. Form Body (Positive Margin - Completely Clear of Header Curve) */}
+      <div className="max-w-md mx-auto px-4 pt-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Customer Name */}
           <div className="space-y-1.5">
@@ -208,7 +207,7 @@ export default function AddInquiryPage() {
             />
           </div>
 
-          {/* State, City & Pincode Dropdowns */}
+          {/* State, City & Pincode */}
           <div className="grid grid-cols-3 gap-2">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-typhoon-navy block">
@@ -259,7 +258,7 @@ export default function AddInquiryPage() {
             </div>
           </div>
 
-          {/* Requirement (kW Capacity & Phase Dropdowns) */}
+          {/* Requirement (kW Capacity & Phase) */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-typhoon-navy block">
               Requirement
@@ -293,7 +292,7 @@ export default function AddInquiryPage() {
             </div>
           </div>
 
-          {/* Urgent Segmented Buttons (Matching Screen 2 Yes / No) */}
+          {/* Urgent Segmented Buttons */}
           <div className="space-y-1.5 pt-1">
             <label className="text-xs font-bold text-typhoon-navy block">
               Urgent
@@ -302,7 +301,7 @@ export default function AddInquiryPage() {
               <button
                 type="button"
                 onClick={() => setIsUrgent(true)}
-                className={`py-3 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
+                className={`py-3.5 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
                   isUrgent
                     ? 'bg-typhoon-navy text-white border-typhoon-navy shadow-soft'
                     : 'bg-white text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
@@ -314,7 +313,7 @@ export default function AddInquiryPage() {
               <button
                 type="button"
                 onClick={() => setIsUrgent(false)}
-                className={`py-3 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
+                className={`py-3.5 rounded-2xl text-sm font-bold border transition-all cursor-pointer ${
                   !isUrgent
                     ? 'bg-typhoon-navy text-white border-typhoon-navy shadow-soft'
                     : 'bg-white text-typhoon-navy border-typhoon-border hover:bg-typhoon-sand'
@@ -325,13 +324,13 @@ export default function AddInquiryPage() {
             </div>
           </div>
 
-          {/* Auto ID Helper Note */}
+          {/* Subtext */}
           <p className="text-[11px] text-typhoon-muted pt-1">
             A Follow-up ID is created automatically when you save.
           </p>
 
-          {/* Main Action Button Matching Screen 2 */}
-          <div className="pt-3">
+          {/* Main Action Button */}
+          <div className="pt-2">
             <button
               type="submit"
               disabled={loading}
