@@ -19,6 +19,7 @@ import { SummaryTiles } from '@/components/SummaryTiles';
 import { MainButton } from '@/components/MainButton';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { toast } from 'sonner';
+import { fetchWithAuth } from '@/lib/api';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -37,21 +38,37 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
 
     try {
+      const res = await fetchWithAuth('/api/v1/auth/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update profile on server.');
+      }
+
+      const data = await res.json();
       const updatedUser = {
         ...user,
+        ...(data.user || {}),
         fullName: fullName.trim(),
         phone: phone.trim(),
         email: email.trim(),
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      toast.success('Profile details updated successfully!');
-    } catch {
-      toast.error('Failed to update profile.');
+      toast.success('Profile details updated and saved to database!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update profile.');
     } finally {
       setIsSaving(false);
     }

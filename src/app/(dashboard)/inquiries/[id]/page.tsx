@@ -24,10 +24,12 @@ import {
   Home,
   IndianRupee,
   Sparkles,
+  Edit3,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { FollowUpModal } from '@/components/FollowUpModal';
+import { fetchWithAuth } from '@/lib/api';
 
 export default function InquiryDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -36,6 +38,15 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
 
   const [inquiry, setInquiry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Edit Inquiry Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editKw, setEditKw] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // Close Deal Modal State
   const [showCloseDealModal, setShowCloseDealModal] = useState(false);
@@ -60,6 +71,12 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
         const item = data?.data || data;
         if (item) {
           setInquiry(item);
+          setEditName(item.customerName || '');
+          setEditPhone(item.customerPhone || '');
+          setEditCity(item.city || '');
+          setEditAddress(item.address || '');
+          setEditKw(String(item.requestedKw || ''));
+
           if (item.quotation?.grossCost) {
             setModalDealAmount(String(item.quotation.grossCost));
           } else if (item.dealAmount) {
@@ -186,6 +203,48 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
     };
   }
 
+  // Handle Edit Inquiry Submission
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim() || !editPhone.trim()) {
+      toast.error('Customer name and phone number are required.');
+      return;
+    }
+    try {
+      setSavingEdit(true);
+      const res = await fetchWithAuth(`/api/v1/inquiries/${inquiry?.id || inquiryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: editName.trim(),
+          customerPhone: editPhone.trim(),
+          city: editCity.trim(),
+          address: editAddress.trim(),
+          requestedKw: editKw ? Number(editKw) : undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update inquiry details.');
+      }
+
+      setInquiry((prev: any) => ({
+        ...prev,
+        customerName: editName.trim(),
+        customerPhone: editPhone.trim(),
+        city: editCity.trim(),
+        address: editAddress.trim(),
+        requestedKw: editKw ? Number(editKw) : prev?.requestedKw,
+      }));
+      setShowEditModal(false);
+      toast.success('Inquiry details updated successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'Error updating inquiry.');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   // Handle Close Deal confirmation
   const handleConfirmCloseDeal = async () => {
     const token = localStorage.getItem('accessToken');
@@ -301,9 +360,19 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
           <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60">
             <div className="flex justify-between items-center py-2 text-xs first:pt-0">
               <span className="text-typhoon-muted font-medium">Customer</span>
-              <span className="font-bold text-typhoon-navy text-sm">
-                {customerName}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-typhoon-navy text-sm">
+                  {customerName}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(true)}
+                  className="px-2 py-0.5 rounded-md bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy text-[11px] font-bold flex items-center gap-1 transition cursor-pointer"
+                >
+                  <Edit3 className="w-3 h-3 text-typhoon-gold-dark" />
+                  <span>Edit</span>
+                </button>
+              </div>
             </div>
 
             <div className="flex justify-between items-center py-2 text-xs">
@@ -873,6 +942,107 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                 <span>{closingDeal ? 'Closing...' : 'Convert to Project'}</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================ */}
+      {/* EDIT INQUIRY MODAL (Operations Manager)                          */}
+      {/* ================================================================ */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 border border-typhoon-border shadow-2xl space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-typhoon-border">
+              <h3 className="font-serif font-bold text-lg text-typhoon-navy flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-typhoon-gold-dark" />
+                <span>Edit Inquiry Details</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy hover:bg-typhoon-sand-dark transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-typhoon-navy block mb-1">Customer Full Name *</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-typhoon-border bg-white text-xs font-semibold text-typhoon-navy focus:outline-none focus:ring-2 focus:ring-typhoon-navy"
+                  placeholder="Full name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-typhoon-navy block mb-1">Mobile Phone Number *</label>
+                <input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-typhoon-border bg-white text-xs font-semibold text-typhoon-navy focus:outline-none focus:ring-2 focus:ring-typhoon-navy"
+                  placeholder="10-digit phone"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-typhoon-navy block mb-1">City / District</label>
+                  <input
+                    type="text"
+                    value={editCity}
+                    onChange={(e) => setEditCity(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-typhoon-border bg-white text-xs font-semibold text-typhoon-navy focus:outline-none focus:ring-2 focus:ring-typhoon-navy"
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-typhoon-navy block mb-1">Capacity (kW)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editKw}
+                    onChange={(e) => setEditKw(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-typhoon-border bg-white text-xs font-semibold text-typhoon-navy focus:outline-none focus:ring-2 focus:ring-typhoon-navy"
+                    placeholder="e.g. 5.5"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-typhoon-navy block mb-1">Site Address</label>
+                <textarea
+                  rows={2}
+                  value={editAddress}
+                  onChange={(e) => setEditAddress(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-typhoon-border bg-white text-xs font-medium text-typhoon-navy focus:outline-none focus:ring-2 focus:ring-typhoon-navy"
+                  placeholder="Complete address or village area"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-typhoon-sand text-typhoon-navy font-bold text-xs cursor-pointer hover:bg-typhoon-sand-dark transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-5 py-2.5 rounded-xl bg-typhoon-navy text-white font-bold text-xs shadow-soft hover:bg-typhoon-navy-light disabled:opacity-50 cursor-pointer transition"
+                >
+                  {savingEdit ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

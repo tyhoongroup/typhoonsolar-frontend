@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/lib/use-current-user';
+import { QuotationPdfPreview, QuotationData } from '@/components/QuotationPdfPreview';
 
 export default function NewQuotationPage() {
   const router = useRouter();
@@ -610,124 +611,42 @@ export default function NewQuotationPage() {
       </div>
 
       {/* ================================================================ */}
-      {/* PDF SHEET PREVIEW MODAL                                          */}
+      {/* PDF SHEET PREVIEW MODAL (Full Screen Multi-Page Layout)          */}
       {/* ================================================================ */}
       {showPdfModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 border border-typhoon-border shadow-2xl space-y-4">
-            {/* Header */}
-            <div className="flex justify-between items-start pb-3 border-b border-typhoon-border/60">
-              <div>
-                <span className="text-[10px] font-bold text-typhoon-gold-dark tracking-widest uppercase block">
-                  TYPHOON SOLAR RESIDENTIAL QUOTATION
-                </span>
-                <h3 className="text-xl font-serif font-bold text-typhoon-navy">
-                  Quotation TSS/2627/{inquiry?.followupId || '393'}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowPdfModal(false)}
-                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-navy hover:bg-typhoon-sand-dark transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* PDF Styled Sheet Content */}
-            <div className="space-y-4 text-xs">
-              {/* Customer Box */}
-              <div className="grid grid-cols-2 gap-3 bg-typhoon-sand/40 p-4 rounded-xl border border-typhoon-border/70">
-                <div>
-                  <span className="text-[10px] text-typhoon-muted block">Customer Name</span>
-                  <span className="font-bold text-typhoon-navy text-sm">{inquiry?.customerName || 'Ramesh Patel'}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-typhoon-muted block">Location</span>
-                  <span className="font-bold text-typhoon-navy text-sm">{inquiry?.city || 'Vadodara, Gujarat'}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-typhoon-muted block">System Capacity</span>
-                  <span className="font-bold text-typhoon-navy text-sm">{capacityKw} kWp</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-typhoon-muted block">Grid Meter</span>
-                  <span className="font-bold text-typhoon-navy text-sm">{meterPhase}</span>
-                </div>
-              </div>
-
-              {/* Equipment Breakdown */}
-              <div className="border border-typhoon-border rounded-xl p-3.5 space-y-2">
-                <h4 className="font-bold text-typhoon-navy text-xs border-b pb-1">Equipment Specifications</h4>
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div>Solar Panels: <span className="font-semibold text-typhoon-navy">{numPanels} × {wattage}W {panelMaker} ({panelTech})</span></div>
-                  <div>Inverter: <span className="font-semibold text-typhoon-navy">{inverterKw} kW {inverterMaker} On-Grid</span></div>
-                  <div>DISCOM Meter Charges: <span className="font-semibold text-typhoon-navy">₹{meterChargeT.toLocaleString('en-IN')}</span></div>
-                  <div>Structure: <span className="font-semibold text-typhoon-navy">Hot Dip Galvanized MS / Elevated</span></div>
-                </div>
-              </div>
-
-              {/* Financial Breakdown Table */}
-              <div className="border border-typhoon-border rounded-xl overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-typhoon-sand text-typhoon-navy font-bold">
-                    <tr>
-                      <th className="p-2.5">Component</th>
-                      <th className="p-2.5 text-right">Amount (₹)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-typhoon-border/60">
-                    <tr>
-                      <td className="p-2.5">Total Project Cost (Turnkey)</td>
-                      <td className="p-2.5 text-right font-bold text-typhoon-navy">₹{totalProjectCostQ.toLocaleString('en-IN')}</td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 text-emerald-700">Less: PM Surya Ghar Subsidy (DBT Direct)</td>
-                      <td className="p-2.5 text-right font-bold text-emerald-700">- ₹{totalSubsidyW.toLocaleString('en-IN')}</td>
-                    </tr>
-                    <tr className="bg-typhoon-sand/40 font-bold">
-                      <td className="p-2.5 text-typhoon-navy">Net Investment to Customer</td>
-                      <td className="p-2.5 text-right text-sm text-typhoon-navy">₹{costAfterSubsidyX.toLocaleString('en-IN')}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Generation & Payback */}
-              <div className="bg-emerald-50/60 border border-emerald-200 p-3.5 rounded-xl space-y-1.5">
-                <h4 className="font-bold text-emerald-900 text-xs">Benefits & Return on Investment</h4>
-                <p className="text-[11px] text-emerald-800">
-                  Estimated annual solar generation: <span className="font-bold">{annualGenerationKwhAA.toLocaleString('en-IN')} Units</span>, resulting in annual electricity bill savings of <span className="font-bold">₹{annualSavingsRsAC.toLocaleString('en-IN')}</span>.
-                </p>
-                <p className="text-[11px] text-emerald-800">
-                  Full investment payback period: <span className="font-bold">{paybackYearsAD} Years</span> with 25 years panel warranty.
-                </p>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="pt-2 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  window.print();
-                }}
-                className="px-4 py-2.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Print / Download PDF</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowPdfModal(false)}
-                className="px-4 py-2.5 rounded-xl bg-typhoon-navy text-white font-bold text-xs transition cursor-pointer hover:bg-typhoon-navy-light"
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
+        <QuotationPdfPreview
+          data={{
+            quotationNo: savedQuote?.quotationNo || `TSS/2627/${(inquiry?.followupId || queryInquiryId).replace(/\D/g, '') || '362'}`,
+            createdByName: user?.fullName || 'FAHIM SAIYED',
+            customerName: inquiry?.customerName || 'MAJIDBHAI CHAUHAN',
+            contactNo: inquiry?.customerPhone ? `+91 ${inquiry.customerPhone}` : '+91 96248 28181',
+            address: inquiry?.address || inquiry?.city || 'URAD',
+            projectType: inquiry?.requestedKw && Number(inquiry.requestedKw) > 10 ? 'Commercial Solar Project' : 'Residential Solar Project',
+            systemSizeKw: capacityKw,
+            panelWattage: wattage,
+            panelBrand: panelMaker,
+            panelTech: panelTech,
+            numPanels: numPanels,
+            inverterKw: inverterKw,
+            inverterBrand: inverterMaker,
+            meterPhase: meterPhase,
+            ratePerKw: Math.round(totalProjectCostQ / (capacityKw || 1)),
+            systemCost: systemCostR,
+            gedaFee: capacityKw > 10 ? 15463 : 2500,
+            meterCharges: meterChargeT,
+            totalCost: totalProjectCostQ,
+            subsidyAmount: totalSubsidyW,
+            netCostAfterSubsidy: costAfterSubsidyX,
+            firstPaymentAmount: firstPayment80Y,
+            finalPaymentAmount: finalPayment20Z,
+            annualGenerationKwh: annualGenerationKwhAA,
+            annualSavingsRs: annualSavingsRsAC,
+            paybackYears: paybackYearsAD,
+            treesSavedAnnually: treesSavedAE,
+            co2ReductionTonnes: co2TonnesAF,
+          }}
+          onClose={() => setShowPdfModal(false)}
+        />
       )}
     </div>
   );
