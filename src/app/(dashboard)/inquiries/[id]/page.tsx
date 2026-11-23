@@ -357,7 +357,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
               />
             </div>
 
-            <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
+            <h1 style={{ color: headerText }} className="text-3xl font-serif font-normal tracking-tight">
               Inquiry detail
             </h1>
             <p style={{ color: headerSubtext }} className="text-xs mt-1 font-medium">
@@ -661,7 +661,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
+              <h1 style={{ color: headerText }} className="text-3xl font-serif font-normal tracking-tight">
                 {customerName}
               </h1>
               <p style={{ color: headerSubtext }} className="text-xs mt-1 font-medium">
@@ -754,7 +754,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
             <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-typhoon-border/60">
                 <div>
-                  <h3 className="text-base font-serif font-bold text-typhoon-navy">
+                  <h3 className="text-base font-serif font-normal text-typhoon-navy">
                     Pipeline Stages
                   </h3>
                   <p className="text-xs text-typhoon-muted">
@@ -884,7 +884,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
             {/* Modal Header */}
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-xl font-serif font-bold text-typhoon-navy tracking-tight">
+                <h3 className="text-xl font-serif font-normal text-typhoon-navy tracking-tight">
                   Close the deal
                 </h3>
                 <p className="text-xs text-typhoon-muted mt-0.5">
@@ -965,7 +965,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 border border-typhoon-border shadow-2xl space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-typhoon-border">
-              <h3 className="font-serif font-bold text-lg text-typhoon-navy flex items-center gap-2">
+              <h3 className="font-serif font-normal text-lg text-typhoon-navy flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-typhoon-gold-dark" />
                 <span>Edit Inquiry Details</span>
               </h3>

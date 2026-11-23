@@ -261,7 +261,7 @@ export default function NewQuotationPage() {
             />
           </div>
 
-          <h1 style={{ color: headerText }} className="text-3xl font-serif font-bold tracking-tight">
+          <h1 style={{ color: headerText }} className="text-3xl font-serif font-normal tracking-tight">
             Quotation engine
           </h1>
           <p style={{ color: headerSubtext }} className="text-xs mt-1 font-medium">
