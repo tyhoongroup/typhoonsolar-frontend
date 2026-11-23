@@ -1,29 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   X,
   User,
-  FilePlus2,
-  Calculator,
-  ShieldCheck,
-  Package,
-  Wrench,
-  IndianRupee,
-  Users,
   Bell,
   LogOut,
   ChevronRight,
   ExternalLink,
-  ListFilter,
-  PhoneCall,
-  FileText,
-  Clock,
-  Layers,
-  ClipboardList,
 } from 'lucide-react';
-import { getRoleTheme } from '@/lib/role-theme';
 import { toast } from 'sonner';
 
 interface MoreMenuModalProps {
@@ -35,16 +21,25 @@ interface MoreMenuModalProps {
 }
 
 interface MenuItem {
-  label: string;
+  num: string;
+  title: string;
   desc: string;
-  icon: React.ReactNode;
   path: string;
-  badge?: string;
   isExternal?: boolean;
 }
 
-interface MenuSection {
-  title: string;
+interface RoleConfig {
+  roleTag: string;
+  primaryCta: {
+    label: string;
+    path: string;
+  };
+  metrics: {
+    val1: string;
+    label1: string;
+    val2: string;
+    label2: string;
+  };
   items: MenuItem[];
 }
 
@@ -52,14 +47,21 @@ export function MoreMenuModal({
   isOpen,
   onClose,
   user,
-  onOpenNotifications,
-  onOpenInstall,
 }: MoreMenuModalProps) {
   const router = useRouter();
 
-  if (!isOpen) return null;
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
-  const theme = getRoleTheme(user?.role);
+  if (!isOpen) return null;
 
   const handleNavigate = (path: string) => {
     onClose();
@@ -80,41 +82,34 @@ export function MoreMenuModal({
       return;
     }
 
-    // 1. Insecure Context Check (HTTP vs HTTPS)
     if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       localStorage.setItem('typhoon_inapp_notifications', 'true');
       toast.success(
-        'In-App Notifications Enabled! Live banner alerts are active for staging. (OS-level background push requires HTTPS or Chrome Flag).',
+        'In-App Notifications Enabled! Live banner alerts are active for staging.',
         { duration: 8000 }
       );
       return;
     }
 
-    // 2. Already active
     if (Notification.permission === 'granted') {
       toast.success('Push notifications are already active!');
       return;
     }
 
-    // 3. Previously blocked / denied
     if (Notification.permission === 'denied') {
       toast.error(
-        'Notifications are blocked in Chrome. Tap the lock/tune icon next to the address bar -> Permissions -> Notifications -> Allow.',
+        'Notifications are blocked in Chrome. Tap lock/tune icon in address bar -> Permissions -> Notifications -> Allow.',
         { duration: 8000 }
       );
       return;
     }
 
-    // 4. Request browser permission
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         toast.success('Push notifications enabled successfully!');
       } else {
-        toast.error(
-          'Notifications were not allowed. Tap the tune/lock icon in Chrome address bar -> Permissions -> Notifications -> Allow.',
-          { duration: 8000 }
-        );
+        toast.error('Notifications were not allowed.');
       }
     } catch {
       toast.error('Could not request notification permission.');
@@ -129,523 +124,539 @@ export function MoreMenuModal({
     router.push('/');
   };
 
-  const getRoleMenuSections = (role?: string): MenuSection[] => {
+  // Dynamic greeting based on current time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    let timeGreeting = 'Good morning,';
+    if (hour >= 12 && hour < 17) {
+      timeGreeting = 'Good afternoon,';
+    } else if (hour >= 17) {
+      timeGreeting = 'Good evening,';
+    }
+
+    const rawName = user?.fullName || 'Team Member';
+    const firstName = rawName.trim().split(' ')[0] || 'Team';
+    return { timeGreeting, firstName };
+  };
+
+  const { timeGreeting, firstName } = getGreeting();
+
+  // Role Configuration tailored according to user role
+  const getRoleConfig = (role?: string): RoleConfig => {
     switch (role) {
       case 'SALESPERSON':
-        return [
-          {
-            title: 'My Sales Pipeline',
-            items: [
-              {
-                label: 'My Assigned Inquiries',
-                desc: 'Active customer leads, site surveys & scheduled follow-ups',
-                icon: <ListFilter className="w-5 h-5 text-sky-600" />,
-                path: '/inquiries',
-                badge: 'My Leads',
-              },
-              {
-                label: 'Add New Solar Inquiry',
-                desc: 'Register customer lead with kW requirement & bill copy',
-                icon: <FilePlus2 className="w-5 h-5 text-emerald-600" />,
-                path: '/inquiries/new',
-                badge: 'New Lead',
-              },
-              {
-                label: 'Create Solar Quotation',
-                desc: 'PM Surya Ghar ₹78,000 subsidy & quotation PDF',
-                icon: <Calculator className="w-5 h-5 text-blue-600" />,
-                path: '/quotations/new',
-                badge: 'Quotation',
-              },
-            ],
+        return {
+          roleTag: 'SALESPERSON',
+          primaryCta: {
+            label: '+ Add New Solar Inquiry',
+            path: '/inquiries/new',
           },
-          {
-            title: 'Sales Utilities & Field Tools',
-            items: [
-              {
-                label: 'Customer KYC & Portal Filing',
-                desc: 'Upload customer light bill, Aadhaar KYC & roof photos',
-                icon: <ShieldCheck className="w-5 h-5 text-teal-600" />,
-                path: '/portal',
-              },
-              {
-                label: 'Milestone Payment Status',
-                desc: 'Track customer token and 80% delivery payments',
-                icon: <IndianRupee className="w-5 h-5 text-rose-600" />,
-                path: '/payments',
-              },
-              {
-                label: 'Team SLA Directory',
-                desc: 'Contact warehouse logistics & installation leads',
-                icon: <Users className="w-5 h-5 text-purple-600" />,
-                path: '/team',
-              },
-            ],
+          metrics: {
+            val1: '8',
+            label1: 'Assigned inquiries',
+            val2: '3',
+            label2: 'Live follow-ups',
           },
-        ];
+          items: [
+            {
+              num: '01',
+              title: 'My Assigned Inquiries',
+              desc: 'Active customer leads, site surveys & scheduled visits',
+              path: '/inquiries',
+            },
+            {
+              num: '02',
+              title: 'Add New Solar Inquiry',
+              desc: 'Register customer lead with kW requirement & bill copy',
+              path: '/inquiries/new',
+            },
+            {
+              num: '03',
+              title: 'Create Solar Quotation',
+              desc: 'PM Surya Ghar ₹78,000 subsidy, kW sizing & price proposal',
+              path: '/quotations/new',
+            },
+            {
+              num: '04',
+              title: 'My Scheduled Follow-ups',
+              desc: 'Customer phone calls, visits and commitment dates',
+              path: '/followups',
+            },
+            {
+              num: '05',
+              title: 'Customer Document Vault',
+              desc: 'Electricity bills, Aadhaar KYC & rooftop survey photos',
+              path: '/inquiries',
+            },
+            {
+              num: '06',
+              title: 'Milestone Payment Status',
+              desc: 'Track customer booking token & 80% delivery payments',
+              path: '/payments',
+            },
+          ],
+        };
 
       case 'PORTAL_USER':
-        return [
-          {
-            title: 'Govt Portal & Subsidies',
-            items: [
-              {
-                label: 'DISCOM Portal Worklist',
-                desc: 'Surya Gujarat KYC, SR generation & DBT claims',
-                icon: <ShieldCheck className="w-5 h-5 text-teal-600" />,
-                path: '/portal',
-                badge: 'Worklist',
-              },
-              {
-                label: 'Surya Gujarat Portal (GUVNL)',
-                desc: 'Open official GUVNL Surya Gujarat Portal in browser',
-                icon: <ExternalLink className="w-5 h-5 text-emerald-600" />,
-                path: 'https://suryagujarat.guvnl.com',
-                badge: 'External',
-                isExternal: true,
-              },
-              {
-                label: 'PM Surya Ghar National Portal',
-                desc: 'Open central rooftop solar national portal in browser',
-                icon: <ExternalLink className="w-5 h-5 text-blue-600" />,
-                path: 'https://pmsuryaghar.gov.in',
-                badge: 'External',
-                isExternal: true,
-              },
-              {
-                label: 'Customer Inquiries & Documents',
-                desc: 'View customer light bills, Aadhaar & tax receipts',
-                icon: <ListFilter className="w-5 h-5 text-amber-600" />,
-                path: '/inquiries',
-              },
-            ],
+        return {
+          roleTag: 'PORTAL USER',
+          primaryCta: {
+            label: '+ DISCOM Application Queue',
+            path: '/portal',
           },
-          {
-            title: 'Field Coordination',
-            items: [
-              {
-                label: 'Net Meter Installation Sync',
-                desc: 'Track solar bidirectional meter testing status',
-                icon: <Wrench className="w-5 h-5 text-orange-600" />,
-                path: '/installation',
-              },
-              {
-                label: 'Team Escalations & Contacts',
-                desc: 'Contact sales reps for missing customer KYC docs',
-                icon: <Users className="w-5 h-5 text-purple-600" />,
-                path: '/team',
-              },
-            ],
+          metrics: {
+            val1: '12',
+            label1: 'Active registrations',
+            val2: '4',
+            label2: 'Pending DISCOM',
           },
-        ];
+          items: [
+            {
+              num: '01',
+              title: 'Govt Portal & DISCOM Queue',
+              desc: 'Surya Gujarat KYC, SR generation & DBT claims',
+              path: '/portal',
+            },
+            {
+              num: '02',
+              title: 'SR Number Registration',
+              desc: 'Submit consumer application IDs to DISCOM portal',
+              path: '/portal',
+            },
+            {
+              num: '03',
+              title: 'CEI & Meter File Processing',
+              desc: 'Electrical inspector approvals & bidirectional meter logs',
+              path: '/portal',
+            },
+            {
+              num: '04',
+              title: 'Subsidy & DBT Claims',
+              desc: 'Central PM Surya Ghar & state direct benefit claims',
+              path: '/portal',
+            },
+            {
+              num: '05',
+              title: 'Portal Follow-ups & Reminders',
+              desc: 'Track agency deadlines, query responses & re-uploads',
+              path: '/followups',
+            },
+            {
+              num: '06',
+              title: 'Customer Documents & Bills',
+              desc: 'Review consumer light bills, tax receipts & ID proofs',
+              path: '/inquiries',
+            },
+          ],
+        };
 
       case 'MATERIAL_MANAGER':
-        return [
-          {
-            title: 'Warehouse & Logistics',
-            items: [
-              {
-                label: 'Material Dispatch Queue',
-                desc: 'BOM stock staging, vehicle loading & dispatches',
-                icon: <Package className="w-5 h-5 text-lime-600" />,
-                path: '/material',
-                badge: 'Warehouse',
-              },
-              {
-                label: 'Terrace Delivery & Unload Proofs',
-                desc: 'Verify unload photos & signed delivery challans',
-                icon: <Package className="w-5 h-5 text-teal-600" />,
-                path: '/material',
-                badge: 'Proofs',
-              },
-              {
-                label: 'Active Projects Directory',
-                desc: 'View site addresses, kW ratings & customer contacts',
-                icon: <ListFilter className="w-5 h-5 text-amber-600" />,
-                path: '/inquiries',
-              },
-            ],
+        return {
+          roleTag: 'MATERIAL MANAGER',
+          primaryCta: {
+            label: '+ Dispatch Warehouse BOM',
+            path: '/material',
           },
-          {
-            title: 'Handovers & Clearances',
-            items: [
-              {
-                label: '80% Unload Payment Check',
-                desc: 'Verify payment clearance before releasing BOM truck',
-                icon: <IndianRupee className="w-5 h-5 text-rose-600" />,
-                path: '/payments',
-              },
-              {
-                label: 'Installation Crew Handover',
-                desc: 'Notify installation leads of dispatched equipment',
-                icon: <Wrench className="w-5 h-5 text-orange-600" />,
-                path: '/installation',
-              },
-              {
-                label: 'Team Contact Directory',
-                desc: 'Contact delivery drivers and operations control',
-                icon: <Users className="w-5 h-5 text-purple-600" />,
-                path: '/team',
-              },
-            ],
+          metrics: {
+            val1: '6',
+            label1: 'Pending dispatches',
+            val2: '98%',
+            label2: 'Stock readiness',
           },
-        ];
+          items: [
+            {
+              num: '01',
+              title: 'Warehouse Dispatch Queue',
+              desc: 'Stock staging, truck loading & site dispatches',
+              path: '/material',
+            },
+            {
+              num: '02',
+              title: 'Material Planning & BOM',
+              desc: 'Panel wattages, inverters, structures & DC cables',
+              path: '/material',
+            },
+            {
+              num: '03',
+              title: 'Terrace Delivery & Unload Proofs',
+              desc: 'Driver vehicle numbers, delivery challans & site drop photos',
+              path: '/material',
+            },
+            {
+              num: '04',
+              title: '80% Unload Payment Clearance',
+              desc: 'Verify customer payment clearance before truck release',
+              path: '/payments',
+            },
+            {
+              num: '05',
+              title: 'Logistics Follow-ups',
+              desc: 'Coordinate transport transit delays & supplier stock arrivals',
+              path: '/followups',
+            },
+            {
+              num: '06',
+              title: 'Installation Crew Handover',
+              desc: 'Notify field installation leads of delivered equipment',
+              path: '/installation',
+            },
+          ],
+        };
 
       case 'INSTALLATION_TEAM':
-        return [
-          {
-            title: 'Field Work Orders',
-            items: [
-              {
-                label: 'Installation Work Orders',
-                desc: 'Structure fabrication, panel clamping & inverter wiring',
-                icon: <Wrench className="w-5 h-5 text-orange-600" />,
-                path: '/installation',
-                badge: 'Work Orders',
-              },
-              {
-                label: 'Upload Site Completion Proofs',
-                desc: 'Fabrication proofs, earthing test & inverter photo',
-                icon: <ClipboardList className="w-5 h-5 text-emerald-600" />,
-                path: '/installation',
-                badge: 'Proofs',
-              },
-              {
-                label: 'Active Site Directory',
-                desc: 'Customer rooftop address, location & project specs',
-                icon: <ListFilter className="w-5 h-5 text-amber-600" />,
-                path: '/inquiries',
-              },
-            ],
+        return {
+          roleTag: 'INSTALLATION TEAM',
+          primaryCta: {
+            label: '+ Upload Rooftop Proofs',
+            path: '/installation',
           },
-          {
-            title: 'Field Handover & Sync',
-            items: [
-              {
-                label: 'Check Unloaded BOM',
-                desc: 'Verify panels, inverter, clamps & DC cable delivery',
-                icon: <Package className="w-5 h-5 text-lime-600" />,
-                path: '/material',
-              },
-              {
-                label: 'Net Meter Testing Request',
-                desc: 'Submit work completion report for DISCOM meter',
-                icon: <ShieldCheck className="w-5 h-5 text-teal-600" />,
-                path: '/portal',
-              },
-              {
-                label: 'Team Directory & Calling',
-                desc: 'Contact operations manager, electrician & client',
-                icon: <Users className="w-5 h-5 text-purple-600" />,
-                path: '/team',
-              },
-            ],
+          metrics: {
+            val1: '3',
+            label1: 'Today’s site jobs',
+            val2: '1',
+            label2: 'Commissioning pending',
           },
-        ];
+          items: [
+            {
+              num: '01',
+              title: 'Today’s Installation Jobs',
+              desc: 'Structure fabrication, panel clamping & inverter wiring',
+              path: '/installation',
+            },
+            {
+              num: '02',
+              title: 'Upload Rooftop Proofs',
+              desc: 'Panel angles, earthing test, SPD & structure bolts photos',
+              path: '/installation',
+            },
+            {
+              num: '03',
+              title: 'Module Serial & Barcode Logging',
+              desc: 'Scan solar module serial numbers & inverter barcodes',
+              path: '/installation',
+            },
+            {
+              num: '04',
+              title: 'Safety & Quality Checklist',
+              desc: 'Checklist sign-off before DISCOM plant inspection',
+              path: '/installation',
+            },
+            {
+              num: '05',
+              title: 'Site Follow-ups & Handover',
+              desc: 'Customer rooftop availability & customer handover notes',
+              path: '/followups',
+            },
+            {
+              num: '06',
+              title: 'Check Unloaded BOM',
+              desc: 'Verify delivered panels, mounting clamps & inverter on site',
+              path: '/material',
+            },
+          ],
+        };
 
       case 'ACCOUNTANT':
-        return [
-          {
-            title: 'Payment Milestones & Accounts',
-            items: [
-              {
-                label: 'Milestone Payment Ledgers',
-                desc: '80/20 milestone collections & UTR reconciliation',
-                icon: <IndianRupee className="w-5 h-5 text-rose-600" />,
-                path: '/payments',
-                badge: 'Ledgers',
-              },
-              {
-                label: 'Record Payment Receipt',
-                desc: 'Cheque, NEFT/RTGS & cash entry with receipt generation',
-                icon: <IndianRupee className="w-5 h-5 text-emerald-600" />,
-                path: '/payments',
-                badge: 'Receipts',
-              },
-              {
-                label: 'Verify Project Quotations',
-                desc: 'Check quotation pricing, kW sizing & subsidy numbers',
-                icon: <Calculator className="w-5 h-5 text-blue-600" />,
-                path: '/quotations/new',
-              },
-            ],
+        return {
+          roleTag: 'ACCOUNTANT',
+          primaryCta: {
+            label: '+ Record Customer Payment',
+            path: '/payments',
           },
-          {
-            title: 'Financial Audit & Verification',
-            items: [
-              {
-                label: 'DISCOM DBT Subsidy Audit',
-                desc: 'Verify government subsidy release to customer account',
-                icon: <ShieldCheck className="w-5 h-5 text-teal-600" />,
-                path: '/portal',
-              },
-              {
-                label: 'Material Dispatch Clearances',
-                desc: 'Verify 80% payment clearance before truck release',
-                icon: <Package className="w-5 h-5 text-lime-600" />,
-                path: '/material',
-              },
-              {
-                label: 'All Solar Inquiries & Billings',
-                desc: 'Review project values and customer invoice status',
-                icon: <ListFilter className="w-5 h-5 text-amber-600" />,
-                path: '/inquiries',
-              },
-            ],
+          metrics: {
+            val1: '₹4.2L',
+            label1: 'Collected this week',
+            val2: '5',
+            label2: 'Overdue milestones',
           },
-        ];
+          items: [
+            {
+              num: '01',
+              title: 'Customer Ledgers & Outstanding',
+              desc: 'Milestone billing: Booking, dispatch, install & net meter',
+              path: '/payments',
+            },
+            {
+              num: '02',
+              title: 'Record Milestone Payment',
+              desc: 'Log cash, UPI, NEFT or cheque with transaction reference',
+              path: '/payments',
+            },
+            {
+              num: '03',
+              title: 'Payment Receipts & Invoices',
+              desc: 'Download branded payment receipts & GST invoices',
+              path: '/payments',
+            },
+            {
+              num: '04',
+              title: 'Overdue Milestones Follow-up',
+              desc: 'Remind customers of upcoming and pending balance payments',
+              path: '/followups',
+            },
+            {
+              num: '05',
+              title: 'Subsidy & DBT Verification',
+              desc: 'Verify central PM Surya Ghar direct benefit transfers',
+              path: '/portal',
+            },
+            {
+              num: '06',
+              title: 'All Projects & Cost Quotations',
+              desc: 'Review project kW sizing, contract value & pricing quotes',
+              path: '/inquiries',
+            },
+          ],
+        };
 
       case 'SERVICE_TECH':
-        return [
-          {
-            title: 'Service & Maintenance',
-            items: [
-              {
-                label: 'Maintenance Work Orders',
-                desc: 'Inverter errors, solar cleaning & warranty claims',
-                icon: <Wrench className="w-5 h-5 text-yellow-600" />,
-                path: '/service',
-                badge: 'Service',
-              },
-              {
-                label: 'Installed Plant Directory',
-                desc: 'Customer rooftop plants, inverter serials & contacts',
-                icon: <ListFilter className="w-5 h-5 text-amber-600" />,
-                path: '/inquiries',
-              },
-            ],
+        return {
+          roleTag: 'SERVICE TECH',
+          primaryCta: {
+            label: '+ Log Maintenance Visit',
+            path: '/service',
           },
-          {
-            title: 'Parts & Support',
-            items: [
-              {
-                label: 'Spare Parts Requisition',
-                desc: 'Request replacement inverters, SPD, MC4 & cables',
-                icon: <Package className="w-5 h-5 text-lime-600" />,
-                path: '/material',
-              },
-              {
-                label: 'Team Support Directory',
-                desc: 'Contact senior technicians and operations desk',
-                icon: <Users className="w-5 h-5 text-purple-600" />,
-                path: '/team',
-              },
-            ],
+          metrics: {
+            val1: '4',
+            label1: 'Open complaints',
+            val2: '1',
+            label2: 'Urgent maintenance',
           },
-        ];
+          items: [
+            {
+              num: '01',
+              title: 'Active Complaints Queue',
+              desc: 'Inverter fault codes, generation drops & grid tripping',
+              path: '/service',
+            },
+            {
+              num: '02',
+              title: 'Maintenance Work Orders',
+              desc: 'Schedule cleaning, earthing checks & wire inspections',
+              path: '/service',
+            },
+            {
+              num: '03',
+              title: 'Log Diagnosis & Parts Cost',
+              desc: 'Fault analysis, replaced components and service charges',
+              path: '/service',
+            },
+            {
+              num: '04',
+              title: 'Query Resolution Proofs',
+              desc: 'Upload before and after photos of rectified equipment',
+              path: '/service',
+            },
+            {
+              num: '05',
+              title: 'Warranty & Customer Follow-ups',
+              desc: 'Manufacturer warranty claims & post-service satisfaction',
+              path: '/followups',
+            },
+            {
+              num: '06',
+              title: 'Installed Plant Directory',
+              desc: 'Customer rooftop plants, inverter serials & contacts',
+              path: '/inquiries',
+            },
+          ],
+        };
 
       case 'OPS_MANAGER':
       case 'ADMIN':
       default:
-        return [
-          {
-            title: 'Control Tower & Operations',
-            items: [
-              {
-                label: 'All Inquiries & Pipeline',
-                desc: 'Filter by stage, site surveys, pending quotes & visits',
-                icon: <ListFilter className="w-5 h-5 text-amber-600" />,
-                path: '/inquiries',
-                badge: '14 Active',
-              },
-              {
-                label: 'All Follow-ups Control Tower',
-                desc: 'Filter by stage, salesperson, inquiry & project',
-                icon: <Clock className="w-5 h-5 text-indigo-600" />,
-                path: '/followups',
-                badge: 'Live SLA',
-              },
-              {
-                label: 'Add New Solar Inquiry',
-                desc: 'Register customer lead & auto-assign to sales',
-                icon: <FilePlus2 className="w-5 h-5 text-sky-600" />,
-                path: '/inquiries/new',
-                badge: 'New Lead',
-              },
-              {
-                label: 'Team SLA Tracker',
-                desc: 'Daily staff task commitments & SLA delay monitor',
-                icon: <Users className="w-5 h-5 text-purple-600" />,
-                path: '/team',
-                badge: 'SLA Monitor',
-              },
-              {
-                label: 'Create Solar Quotation',
-                desc: 'PM Surya Ghar subsidy, kW sizing & price calculation',
-                icon: <Calculator className="w-5 h-5 text-blue-600" />,
-                path: '/quotations/new',
-                badge: 'Solar Calc',
-              },
-            ],
+        return {
+          roleTag: 'OPS MANAGER',
+          primaryCta: {
+            label: '+ Add New Solar Inquiry',
+            path: '/inquiries/new',
           },
-          {
-            title: 'Cross-Department Oversight',
-            items: [
-              {
-                label: 'Govt Portal & DISCOM Queue',
-                desc: 'Surya Gujarat KYC, SR generation & DBT claims',
-                icon: <ShieldCheck className="w-5 h-5 text-teal-600" />,
-                path: '/portal',
-              },
-              {
-                label: 'Warehouse & BOM Logistics',
-                desc: 'Stock staging, truck loading & dispatches',
-                icon: <Package className="w-5 h-5 text-lime-600" />,
-                path: '/material',
-              },
-              {
-                label: 'Site Installation & Fitting',
-                desc: 'Structure grouting, panel clamping & inverter wiring',
-                icon: <Wrench className="w-5 h-5 text-orange-600" />,
-                path: '/installation',
-              },
-              {
-                label: 'Milestone Payment Ledgers',
-                desc: '80% terrace unload & 20% commissioning receipts',
-                icon: <IndianRupee className="w-5 h-5 text-rose-600" />,
-                path: '/payments',
-              },
-              {
-                label: 'Service & Maintenance',
-                desc: 'Customer complaints, repairs & resolution tickets',
-                icon: <Wrench className="w-5 h-5 text-emerald-600" />,
-                path: '/service',
-              },
-            ],
+          metrics: {
+            val1: '14',
+            label1: 'Active inquiries',
+            val2: 'Live',
+            label2: 'SLA follow-ups',
           },
-        ];
+          items: [
+            {
+              num: '01',
+              title: 'All Inquiries & Pipeline',
+              desc: 'Filter by stage, surveys, pending quotes',
+              path: '/inquiries',
+            },
+            {
+              num: '02',
+              title: 'All Follow-ups Control Tower',
+              desc: 'Filter by stage, salesperson, inquiry',
+              path: '/followups',
+            },
+            {
+              num: '03',
+              title: 'Team SLA Tracker',
+              desc: 'Daily staff commitments & delay monitor',
+              path: '/team',
+            },
+            {
+              num: '04',
+              title: 'Create Solar Quotation',
+              desc: 'PM Surya Ghar subsidy, kW sizing & price',
+              path: '/quotations/new',
+            },
+            {
+              num: '05',
+              title: 'Govt Portal & DISCOM Queue',
+              desc: 'Surya Gujarat KYC, SR generation & DBT claims',
+              path: '/portal',
+            },
+            {
+              num: '06',
+              title: 'Warehouse & BOM Logistics',
+              desc: 'Stock staging, truck loading & dispatches',
+              path: '/material',
+            },
+          ],
+        };
     }
   };
 
-  const menuSections = getRoleMenuSections(user?.role);
+  const roleConfig = getRoleConfig(user?.role);
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-t-[32px] sm:rounded-[32px] max-w-lg w-full max-h-[88vh] flex flex-col shadow-2xl border border-typhoon-border overflow-hidden animate-in slide-in-from-bottom duration-300">
-        {/* Header with User Role Signature Colors */}
-        <div
-          style={{ backgroundColor: theme.hex.headerBg }}
-          className="p-5 text-white flex items-center justify-between relative flex-shrink-0"
-        >
-          <div className="flex items-center gap-3">
-            <div
-              style={{
-                borderColor: theme.hex.accentBg,
-                color: theme.hex.accentBg,
-              }}
-              className="w-11 h-11 rounded-full border-2 bg-white/10 flex items-center justify-center font-bold text-sm"
-            >
-              {theme.tag}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base text-white leading-tight">
-                  {user?.fullName || 'Typhoon Team Member'}
-                </span>
-              </div>
-              <span
-                style={{
-                  backgroundColor: theme.hex.lightBg,
-                  color: theme.hex.lightText,
-                }}
-                className="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mt-1"
-              >
-                {theme.roleName}
-              </span>
-            </div>
-          </div>
-
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity duration-300 p-0 sm:p-4"
+    >
+      {/* Modal / Bottom Sheet Card */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-[#FBF9F5] w-full max-w-md rounded-t-[32px] sm:rounded-[32px] overflow-hidden max-h-[92vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300 border border-[#E8E2D9]"
+      >
+        {/* Grab Handle Header */}
+        <div className="pt-3 pb-1 flex flex-col items-center relative shrink-0">
+          <div className="w-12 h-1 bg-slate-300/80 rounded-full mb-1" />
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
             aria-label="Close"
+            className="absolute top-2 right-4 w-8 h-8 rounded-full flex items-center justify-center text-[#71717A] hover:text-[#18181B] hover:bg-black/5 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="p-5 overflow-y-auto space-y-5 flex-1 divide-y divide-typhoon-border/50">
-          {/* Quick Push Notification Enable Strip */}
-          <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-900 flex items-center justify-center flex-shrink-0">
-                <Bell className="w-5 h-5 text-amber-700" />
-              </div>
-              <div>
-                <span className="text-xs font-bold text-amber-950 block">
-                  Push Notifications
-                </span>
-                <span className="text-[11px] text-amber-800">
-                  Get instant project alerts & stage changes
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleNotificationRequest}
-              className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-xs transition flex-shrink-0 cursor-pointer"
-            >
-              Enable
-            </button>
+        {/* Scrollable Main Content */}
+        <div className="px-6 pb-6 overflow-y-auto flex-1">
+          {/* Role Tag */}
+          <div className="text-[11px] font-bold tracking-[0.18em] text-[#C2410C] uppercase mt-2 mb-1.5 font-sans">
+            {roleConfig.roleTag}
           </div>
 
-          {/* Grouped Department Modules */}
-          {menuSections.map((sec, sIdx) => (
-            <div key={sIdx} className={sIdx > 0 ? 'pt-4' : ''}>
-              <h4 className="text-xs font-bold tracking-wider text-typhoon-muted uppercase mb-2 px-1">
-                {sec.title}
-              </h4>
-              <div className="space-y-1.5">
-                {sec.items.map((item, iIdx) => (
-                  <button
-                    key={iIdx}
-                    onClick={() => handleItemClick(item)}
-                    className="w-full p-3 rounded-2xl hover:bg-typhoon-sand/60 transition flex items-center justify-between text-left group border border-transparent hover:border-typhoon-border/60 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-typhoon-sand flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                        {item.icon}
-                      </div>
-                      <div className="truncate">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-typhoon-navy truncate">
-                            {item.label}
-                          </span>
-                          {item.badge && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-typhoon-muted truncate mt-0.5">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </div>
-                    {item.isExternal ? (
-                      <ExternalLink className="w-4 h-4 text-typhoon-muted group-hover:text-typhoon-navy transition flex-shrink-0" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-typhoon-muted group-hover:text-typhoon-navy group-hover:translate-x-0.5 transition flex-shrink-0" />
-                    )}
-                  </button>
-                ))}
+          {/* Large Editorial Serif Greeting (matches reference image) */}
+          <h2 className="text-3xl sm:text-4xl font-serif text-[#18181B] font-normal leading-[1.15] mb-5 tracking-tight">
+            {timeGreeting}
+            <br />
+            {firstName}.
+          </h2>
+
+          {/* Full-width dark primary pill button */}
+          <button
+            onClick={() => handleNavigate(roleConfig.primaryCta.path)}
+            className="w-full bg-[#18181B] hover:bg-black active:scale-[0.99] text-white rounded-full py-3.5 px-6 font-semibold text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer"
+          >
+            <span className="text-lg leading-none font-normal">+</span>
+            <span>{roleConfig.primaryCta.label.replace(/^\+\s*/, '')}</span>
+          </button>
+
+          {/* Key Metric Counters */}
+          <div className="border-t border-b border-[#E8E2D9] my-6 py-4 grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-3xl font-serif font-normal text-[#18181B] tracking-tight">
+                {roleConfig.metrics.val1}
+              </div>
+              <div className="text-xs text-[#52525B] mt-1 font-sans">
+                {roleConfig.metrics.label1}
               </div>
             </div>
-          ))}
+            <div>
+              <div className="text-3xl font-serif font-normal text-[#18181B] tracking-tight">
+                {roleConfig.metrics.val2}
+              </div>
+              <div className="text-xs text-[#52525B] mt-1 font-sans">
+                {roleConfig.metrics.label2}
+              </div>
+            </div>
+          </div>
 
-          {/* Account Actions */}
-          <div className="pt-4 space-y-2">
+          {/* Numbered Menu Rows (01, 02, 03... exact styling to image) */}
+          <div className="divide-y divide-[#E8E2D9]">
+            {roleConfig.items.map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleItemClick(item)}
+                className="w-full py-4 flex items-start gap-5 text-left group hover:bg-black/[0.02] -mx-2 px-2 rounded-xl transition cursor-pointer"
+              >
+                {/* Number */}
+                <div className="text-2xl font-serif text-[#C2410C] font-normal w-9 shrink-0 pt-0.5 select-none">
+                  {item.num}
+                </div>
+
+                {/* Text */}
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="font-serif text-[17px] font-medium text-[#18181B] leading-snug group-hover:text-[#C2410C] transition">
+                    {item.title}
+                  </div>
+                  <div className="text-xs text-[#71717A] mt-1 leading-relaxed">
+                    {item.desc}
+                  </div>
+                </div>
+
+                {/* Right Arrow */}
+                <div className="pt-2 text-slate-300 group-hover:text-[#18181B] group-hover:translate-x-0.5 transition shrink-0">
+                  {item.isExternal ? (
+                    <ExternalLink className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Bottom Utilities Strip */}
+          <div className="mt-8 pt-5 border-t border-[#E8E2D9] space-y-3">
+            {/* Push Notifications Toggle */}
+            <div className="bg-[#F3EFE6] border border-[#E4DEC9] rounded-2xl p-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <Bell className="w-4 h-4 text-[#C2410C] shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-[#18181B] block">
+                    Push Notifications
+                  </span>
+                  <span className="text-[11px] text-[#71717A]">
+                    Live project SLA alerts
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={handleNotificationRequest}
+                className="px-3 py-1.5 rounded-xl bg-[#18181B] hover:bg-black text-white font-bold text-xs shadow-xs transition cursor-pointer"
+              >
+                Enable
+              </button>
+            </div>
+
+            {/* Profile Settings */}
             <button
               onClick={() => handleNavigate('/profile')}
-              className="w-full py-3 px-4 rounded-2xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-bold text-xs flex items-center justify-between border border-typhoon-border transition cursor-pointer"
+              className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-white/80 text-[#18181B] font-semibold text-xs flex items-center justify-between border border-[#E8E2D9] transition cursor-pointer shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
-                <User className="w-4 h-4 text-typhoon-navy" />
-                <span>Profile & Account Settings</span>
+                <User className="w-4 h-4 text-[#18181B]" />
+                <span>My Profile & Settings</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-typhoon-muted" />
+              <ChevronRight className="w-4 h-4 text-[#71717A]" />
             </button>
 
+            {/* Sign Out */}
             <button
               onClick={handleLogout}
               className="w-full py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-2 border border-rose-200 transition cursor-pointer"

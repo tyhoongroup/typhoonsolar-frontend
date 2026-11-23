@@ -166,8 +166,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex min-h-screen">
         {/* Left 55% Showcase Hero */}
         <div
-          style={{ backgroundColor: activeTheme.hex.headerBg }}
-          className="w-[55%] text-white p-16 flex flex-col justify-between relative overflow-hidden shadow-2xl transition-colors duration-500"
+          className="w-[55%] text-white p-16 flex flex-col justify-between relative overflow-hidden shadow-2xl bg-gradient-to-br from-[#071326] via-[#0B192C] to-[#122B4D]"
         >
           {/* Concentric ripples */}
           <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full border border-white/5 pointer-events-none" />
@@ -220,8 +219,7 @@ export default function LoginPage() {
               <div className="bg-white rounded-[32px] p-8 shadow-xl border border-typhoon-border text-center space-y-6">
                 {/* Header */}
                 <div
-                  style={{ backgroundColor: activeTheme.hex.headerBg }}
-                  className="rounded-2xl p-6 text-white text-center relative overflow-hidden"
+                  className="rounded-2xl p-6 text-white text-center relative overflow-hidden bg-gradient-to-br from-[#071326] via-[#0B192C] to-[#122B4D] shadow-md"
                 >
                   <div className="flex items-center justify-center mb-3">
                     <img
@@ -231,18 +229,17 @@ export default function LoginPage() {
                     />
                   </div>
                   <h2 className="text-2xl font-serif font-bold text-white">Welcome back</h2>
-                  <p className="text-xs text-white/70 mt-1">Continue with your saved profile</p>
+                  <p className="text-xs text-white/80 mt-1">Continue with your saved profile</p>
                 </div>
 
                 {/* Avatar with dynamic role ring */}
                 <div className="pt-2">
                   <div
                     style={{
-                      backgroundColor: activeTheme.hex.headerBg,
                       borderColor: activeTheme.hex.accentBg,
                       color: activeTheme.hex.accentBg,
                     }}
-                    className="w-24 h-24 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-bold shadow-lg border-4"
+                    className="w-24 h-24 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-bold shadow-lg border-4 bg-[#0B192C]"
                   >
                     {activeTheme.tag}
                   </div>
@@ -427,17 +424,16 @@ export default function LoginPage() {
         {savedProfile && !isSwitchingProfile ? (
           /* Mobile Screen 2 - Saved Profile Welcome Back */
           <div className="flex-1 flex flex-col justify-between">
-            {/* Top Brand & Title Block with dynamic role color */}
+            {/* Top Brand & Title Block with deep brand navy gradient for high contrast */}
             <div
-              style={{ backgroundColor: activeTheme.hex.headerBg }}
-              className="text-white pt-10 pb-16 px-6 rounded-b-[40px] relative transition-colors duration-500 overflow-hidden"
+              className="text-white pt-10 pb-16 px-6 rounded-b-[40px] relative overflow-hidden bg-gradient-to-br from-[#071326] via-[#0B192C] to-[#122B4D] shadow-lg"
             >
-              {/* Concentric ripples radiating from top right (exact match to Image 2) */}
+              {/* Concentric ripples radiating from top right */}
               <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full border border-white/10 pointer-events-none" />
               <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full border border-white/10 pointer-events-none" />
               <div className="absolute 0 -right-0 w-32 h-32 rounded-full border border-white/5 pointer-events-none" />
 
-              {/* Brand logo row (exact match to Image 1) */}
+              {/* Brand logo row */}
               <div className="relative z-10 flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
                   <img
@@ -460,14 +456,13 @@ export default function LoginPage() {
             {/* Floating Saved Profile Card */}
             <div className="px-5 -mt-10 relative z-20">
               <div className="bg-white rounded-[32px] p-6 sm:p-8 shadow-xl border border-gray-100/80 text-center">
-                {/* Avatar with Role Initials & Theme Colors (Image 1) */}
+                {/* Avatar with Role Initials & Theme Colors */}
                 <div
                   style={{
-                    backgroundColor: activeTheme.hex.headerBg,
                     borderColor: '#F5A623',
                     color: '#F5A623',
                   }}
-                  className="w-22 h-22 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-bold shadow-md border-[2.5px]"
+                  className="w-22 h-22 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-bold shadow-md border-[2.5px] bg-[#0B192C]"
                 >
                   {savedProfile.role === 'OPS_MANAGER' ? 'AK' : activeTheme.tag}
                 </div>
