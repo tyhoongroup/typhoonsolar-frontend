@@ -49,7 +49,7 @@ module.exports = {
         floating: '0 8px 30px rgba(14, 32, 56, 0.25)',
       },
       fontFamily: {
-        serif: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        serif: ['"Newsreader"', 'Georgia', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
     },
