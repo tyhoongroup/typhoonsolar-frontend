@@ -41,6 +41,22 @@ export default function InstallationQueuePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'ready' | 'progress' | 'done'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Sync tab with URL query parameter (e.g. /installation?tab=done)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        if (tab === 'done' || tab === 'progress' || tab === 'ready' || tab === 'all') {
+          setActiveTab(tab as any);
+        }
+      }
+    };
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
   const [projects, setProjects] = useState<InstallationProjectItem[]>([
     {
       id: 'TYP-2026-1015',

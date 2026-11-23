@@ -41,6 +41,22 @@ export default function PortalQueuePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'docs' | 'sr' | 'meter' | 'subsidy'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Sync tab with URL query parameter (e.g. /portal?tab=meter)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        if (tab === 'meter' || tab === 'subsidy' || tab === 'sr' || tab === 'docs' || tab === 'all') {
+          setActiveTab(tab as any);
+        }
+      }
+    };
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
   const [projects, setProjects] = useState<PortalProjectItem[]>([
     {
       id: 'TYP-2026-1024',

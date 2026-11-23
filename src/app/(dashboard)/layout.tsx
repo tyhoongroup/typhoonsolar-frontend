@@ -43,13 +43,35 @@ export default function DashboardLayout({
   // Keep active tab in sync with current URL pathname and enforce role route protection
   useEffect(() => {
     if (pathname.includes('/portal')) {
-      setActiveTab('portal');
+      if (typeof window !== 'undefined' && (window.location.search.includes('tab=meter') || window.location.search.includes('tab=subsidy'))) {
+        setActiveTab('meter');
+      } else {
+        setActiveTab('portal');
+      }
     } else if (pathname.includes('/material')) {
-      setActiveTab('material');
+      if (typeof window !== 'undefined' && window.location.search.includes('tab=unloaded')) {
+        setActiveTab('verify');
+      } else {
+        setActiveTab('material');
+      }
     } else if (pathname.includes('/installation')) {
-      setActiveTab('installation');
+      if (typeof window !== 'undefined' && window.location.search.includes('tab=done')) {
+        setActiveTab('serials');
+      } else {
+        setActiveTab('installation');
+      }
     } else if (pathname.includes('/payments')) {
-      setActiveTab('payments');
+      if (typeof window !== 'undefined' && window.location.search.includes('tab=due')) {
+        setActiveTab('payments');
+      } else {
+        setActiveTab('projects');
+      }
+    } else if (pathname.includes('/service')) {
+      if (typeof window !== 'undefined' && window.location.search.includes('tab=open')) {
+        setActiveTab('service');
+      } else {
+        setActiveTab('tickets');
+      }
     } else if (pathname === '/projects' || pathname.startsWith('/projects/')) {
       setActiveTab('projects');
     } else if (pathname === '/inquiries') {
@@ -232,12 +254,17 @@ export default function DashboardLayout({
     else if (id === 'pipeline' || id === 'inquiries') router.push('/inquiries');
     else if (id === 'projects') router.push('/projects');
     else if (id === 'quotations') router.push('/quotations/new');
-    else if (id === 'portal' || id === 'sr' || id === 'subsidy' || id === 'meter') router.push('/portal');
-    else if (id === 'material' || id === 'planning' || id === 'unload' || id === 'verify') router.push('/material');
-    else if (id === 'installation' || id === 'jobs' || id === 'checklist' || id === 'serials') router.push('/installation');
-    else if (id === 'payments' || id === 'milestones' || id === 'accounts') router.push('/payments');
+    else if (id === 'meter' || id === 'subsidy') router.push('/portal?tab=meter');
+    else if (id === 'portal' || id === 'sr') router.push('/portal');
+    else if (id === 'verify' || id === 'unload') router.push('/material?tab=unloaded');
+    else if (id === 'material' || id === 'planning') router.push('/material');
+    else if (id === 'serials' || id === 'checklist') router.push('/installation?tab=done');
+    else if (id === 'installation' || id === 'jobs') router.push('/installation');
+    else if (id === 'payments' || id === 'milestones') router.push('/payments?tab=due');
+    else if (id === 'accounts') router.push('/payments');
     else if (id === 'team') router.push('/team');
-    else if (id === 'tickets' || id === 'service') router.push('/service');
+    else if (id === 'service') router.push('/service?tab=open');
+    else if (id === 'tickets') router.push('/service');
     else router.push('/dashboard');
   };
 

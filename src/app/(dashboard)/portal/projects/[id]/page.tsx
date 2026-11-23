@@ -204,16 +204,15 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
       {/* Top Header with dynamic active user role theme */}
       <div
         style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
+          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#0C2A33',
         }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-white/10 transition-colors duration-300 relative overflow-hidden"
       >
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -223,7 +222,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                   backgroundColor: theme.hex.accentBg,
                   color: theme.hex.accentTextColor,
                 }}
-                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+                className="text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider"
               >
                 GOVT PORTAL FILING
               </span>
@@ -233,12 +232,12 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
+              <h1 className="text-2xl lg:text-3xl font-serif font-normal text-white tracking-tight">
                 Government Portal Workspace
               </h1>
               <p
                 style={{ color: theme.hex.accentBg }}
-                className="text-xs font-medium mt-1"
+                className="text-xs font-normal mt-1"
               >
                 Project {projectId} · Ramesh Patel (6.0 kW Single Phase · Anand)
               </p>
@@ -248,7 +247,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
               href="https://suryagujarat.guvnl.com"
               target="_blank"
               rel="noreferrer"
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition self-start md:self-auto"
+              className="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition self-start md:self-auto cursor-pointer"
             >
               <span>Open DISCOM Portal</span>
               <ExternalLink className="w-3.5 h-3.5" />

@@ -197,16 +197,15 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
       {/* Top Header with dynamic active user role theme */}
       <div
         style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
+          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1F2933',
         }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-white/10 transition-colors duration-300 relative overflow-hidden"
       >
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -216,7 +215,7 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
                   backgroundColor: theme.hex.accentBg,
                   color: theme.hex.accentTextColor,
                 }}
-                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+                className="text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider"
               >
                 STAGE 7 & 8 · MATERIAL
               </span>
@@ -226,12 +225,12 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
+              <h1 className="text-2xl lg:text-3xl font-serif font-normal text-white tracking-tight">
                 Material Planning & Unload
               </h1>
               <p
                 style={{ color: theme.hex.accentBg }}
-                className="text-xs font-semibold mt-1"
+                className="text-xs font-normal mt-1"
               >
                 Project {projectId} · Ramesh Patel (+91 98250 12345) · DISCOM SR: SR-GUJ-2026-98124
               </p>
@@ -243,7 +242,7 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
                 backgroundColor: theme.hex.accentBg,
                 color: theme.hex.accentTextColor,
               }}
-              className="font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition shadow-soft self-start md:self-auto hover:opacity-90"
+              className="font-medium px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition shadow-soft self-start md:self-auto hover:opacity-90 cursor-pointer"
             >
               <Phone className="w-4 h-4" />
               <span>Call Customer for Delivery</span>

@@ -40,6 +40,22 @@ export default function PaymentsLedgerPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'due' | 'paid'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Sync tab with URL query parameter (e.g. /payments?tab=due)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        if (tab === 'due' || tab === 'paid' || tab === 'all') {
+          setActiveTab(tab as any);
+        }
+      }
+    };
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
   const [projects, setProjects] = useState<PaymentProjectItem[]>([
     {
       id: 'TYP-2026-1024',

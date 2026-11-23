@@ -34,6 +34,22 @@ export default function ServiceMaintenancePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState<'all' | 'open' | 'resolved'>('all');
 
+  // Sync tab with URL query parameter (e.g. /service?tab=open)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        if (tab === 'open' || tab === 'resolved' || tab === 'all') {
+          setFilterTab(tab as any);
+        }
+      }
+    };
+    handleUrlChange();
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
   // Selected Ticket Resolution Drawer / Modal
   const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
   const [customerRemark, setCustomerRemark] = useState('');

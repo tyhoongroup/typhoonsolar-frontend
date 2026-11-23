@@ -176,16 +176,15 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
       {/* Top Header with dynamic active user role theme */}
       <div
         style={{
-          backgroundColor: theme.hex.headerBg,
-          borderColor: theme.hex.headerBorder,
+          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1F1235',
         }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b transition-colors duration-300"
+        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-white/10 transition-colors duration-300 relative overflow-hidden"
       >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -195,7 +194,7 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
                   backgroundColor: theme.hex.accentBg,
                   color: theme.hex.accentTextColor,
                 }}
-                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+                className="text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider"
               >
                 STAGE 3 OF 10
               </span>
@@ -205,7 +204,7 @@ export default function KycDocumentLockerPage({ params }: { params: { id: string
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-serif font-bold text-white tracking-tight">
+              <h1 className="text-2xl lg:text-3xl font-serif font-normal text-white tracking-tight">
                 KYC Document Locker
               </h1>
               <p
