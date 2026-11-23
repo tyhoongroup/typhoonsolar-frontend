@@ -50,19 +50,19 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
         <div className="flex-1 min-w-0">
           <div
             style={{ color: aColor }}
-            className="text-[10px] font-extrabold tracking-[0.08em] uppercase"
+            className="text-[10px] font-medium tracking-[0.08em] uppercase font-sans"
           >
             PRIORITY
           </div>
           <div
             style={{ color: cColor }}
-            className="text-sm font-bold mt-0.5 truncate"
+            className="text-sm font-medium mt-0.5 truncate font-sans"
           >
             {title}
           </div>
           <div
             style={{ color: cColor }}
-            className="text-[11px] opacity-75 mt-0.5 truncate"
+            className="text-[11px] opacity-75 mt-0.5 truncate font-sans"
           >
             {subtitle}
           </div>
@@ -73,7 +73,7 @@ export const PriorityCard: React.FC<PriorityCardProps> = ({
             backgroundColor: aColor,
             color: onColor,
           }}
-          className="text-[11px] font-bold px-[11px] py-[5px] rounded-full flex-none"
+          className="text-[11px] font-medium px-[11px] py-[5px] rounded-full flex-none font-sans"
         >
           {badgeText}
         </span>

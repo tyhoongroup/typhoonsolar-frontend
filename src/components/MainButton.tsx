@@ -30,7 +30,7 @@ export const MainButton: React.FC<MainButtonProps> = ({
           padding: '14px',
           boxShadow: `0 8px 20px color-mix(in srgb, ${aColor} 35%, transparent)`,
         }}
-        className={`w-full flex items-center justify-center gap-2 text-sm font-extrabold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-[0.98] cursor-pointer ${className}`}
+        className={`w-full flex items-center justify-center gap-2 text-sm font-medium tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-[0.98] cursor-pointer font-sans ${className}`}
         {...props}
       >
         {icon}

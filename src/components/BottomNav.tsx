@@ -146,13 +146,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               }
               className={`flex items-center justify-center transition-all cursor-pointer ${
                 isActive
-                  ? 'gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold'
+                  ? 'gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium'
                   : 'w-10 opacity-85 hover:opacity-100'
               }`}
               title={item.label}
             >
               {renderIcon(item.iconName, isActive)}
-              {isActive && <span className="text-xs font-bold">{item.label}</span>}
+              {isActive && <span className="text-xs font-medium font-sans">{item.label}</span>}
             </button>
           );
         })}

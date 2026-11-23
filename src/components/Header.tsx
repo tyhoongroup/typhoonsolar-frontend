@@ -84,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
               backgroundColor: 'rgba(255, 255, 255, 0.75)',
               borderColor: `color-mix(in srgb, ${sColor} 15%, transparent)`,
             }}
-            className="w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold active:scale-95 transition cursor-pointer"
+            className="w-9 h-9 rounded-full border flex items-center justify-center text-xs font-medium active:scale-95 transition cursor-pointer"
             title="Profile & Settings"
           >
             {displayInitials}
@@ -131,13 +131,13 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Date, Title, Subtitle */}
-        <div className="text-[11px] font-medium opacity-70 mt-4">
+        <div className="text-[11px] font-normal opacity-70 mt-4 font-sans">
           {todayStr}
         </div>
-        <div className="text-2xl font-extrabold tracking-[-0.02em] mt-1.5 leading-[1.1]">
+        <div className="text-2xl font-serif font-normal sm:font-medium tracking-tight mt-1.5 leading-[1.15]">
           {displayTitle}
         </div>
-        <div className="text-xs font-medium opacity-70 mt-1">
+        <div className="text-xs font-normal opacity-75 mt-1 font-sans">
           {displaySubtitle}
         </div>
       </header>

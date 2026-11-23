@@ -237,7 +237,7 @@ export default function DashboardLayout({
     else if (id === 'installation' || id === 'jobs' || id === 'checklist' || id === 'serials') router.push('/installation');
     else if (id === 'payments' || id === 'milestones' || id === 'accounts') router.push('/payments');
     else if (id === 'team') router.push('/team');
-    else if (id === 'tickets' || id === 'service') router.push('/dashboard');
+    else if (id === 'tickets' || id === 'service') router.push('/service');
     else router.push('/dashboard');
   };
 

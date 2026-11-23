@@ -42,13 +42,13 @@ export const SummaryTiles: React.FC<SummaryTilesProps> = ({ tiles, role }) => {
           <div>
             <div
               style={{ color: sColor }}
-              className="text-[26px] font-extrabold mt-2.5 leading-none"
+              className="text-[26px] font-serif font-normal mt-2.5 leading-none tracking-tight"
             >
               {tile.value}
             </div>
             <div
               style={{ color: sColor }}
-              className="text-xs font-medium opacity-70 mt-1"
+              className="text-xs font-normal opacity-75 mt-1 font-sans"
             >
               {tile.label}
             </div>

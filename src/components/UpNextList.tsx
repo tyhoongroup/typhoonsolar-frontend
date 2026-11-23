@@ -39,7 +39,7 @@ export const UpNextList: React.FC<UpNextListProps> = ({
       >
         <div
           style={{ color: sColor }}
-          className="text-[10px] font-bold tracking-[0.08em] opacity-55 mb-1"
+          className="text-[10px] font-medium tracking-[0.08em] opacity-60 mb-1 font-sans"
         >
           {title}
         </div>
@@ -100,13 +100,13 @@ export const UpNextList: React.FC<UpNextListProps> = ({
                 <div className="flex-1 min-w-0">
                   <div
                     style={{ color: sColor }}
-                    className="text-[13px] font-bold leading-snug truncate"
+                    className="text-[13px] font-medium leading-snug truncate font-sans"
                   >
                     {item.title}
                   </div>
                   <div
                     style={{ color: sColor }}
-                    className="text-[11px] opacity-65 mt-0.5 truncate"
+                    className="text-[11px] opacity-65 mt-0.5 truncate font-sans"
                   >
                     {item.subtitle}
                   </div>
@@ -117,7 +117,7 @@ export const UpNextList: React.FC<UpNextListProps> = ({
                     backgroundColor: badgeBg,
                     color: badgeText,
                   }}
-                  className="text-[11px] font-bold px-2.5 py-1 rounded-full flex-none"
+                  className="text-[11px] font-medium px-2.5 py-1 rounded-full flex-none font-sans"
                 >
                   {item.badgeText}
                 </span>

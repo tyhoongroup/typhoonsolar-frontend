@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Search, Bell } from 'lucide-react';
 import { BackendStatusBadge } from '../BackendStatusBadge';
 import { ProfileModal } from '../ProfileModal';
+import { getRoleTheme } from '@/lib/role-theme';
 
 interface TopBarProps {
   roleName: string;
@@ -21,6 +22,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   onBellClick,
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const theme = getRoleTheme(roleName);
+  const aColor = theme.hex.accentBg || '#F5A623';
+  const onColor = theme.hex.accentTextColor || '#FFFFFF';
 
   return (
     <>
@@ -33,7 +37,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search customer name, phone, or Follow-up ID..."
-            className="w-full pl-9 pr-4 py-2 bg-typhoon-sand rounded-xl text-xs text-typhoon-navy placeholder:text-typhoon-muted border border-transparent focus:border-typhoon-gold focus:outline-none transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-typhoon-sand rounded-xl text-xs text-typhoon-navy placeholder:text-typhoon-muted border border-transparent focus:border-typhoon-gold focus:outline-none transition-all font-sans"
           />
         </div>
 
@@ -43,7 +47,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           <button
             onClick={onBellClick}
-            className="w-9 h-9 rounded-full bg-typhoon-sand hover:bg-typhoon-sand-dark flex items-center justify-center text-typhoon-navy transition-colors"
+            className="w-9 h-9 rounded-full bg-typhoon-sand hover:bg-typhoon-sand-dark flex items-center justify-center text-typhoon-navy transition-colors cursor-pointer"
           >
             <Bell className="w-4 h-4" />
           </button>
@@ -53,15 +57,21 @@ export const TopBar: React.FC<TopBarProps> = ({
             className="flex items-center gap-3 pl-2 border-l border-typhoon-border hover:opacity-85 transition cursor-pointer text-left"
             title="Click for Profile & Logout"
           >
-            <div className="w-8 h-8 rounded-full bg-typhoon-navy text-typhoon-gold font-bold text-xs flex items-center justify-center">
+            <div
+              style={{
+                backgroundColor: aColor,
+                color: onColor,
+              }}
+              className="w-8 h-8 rounded-full font-medium text-xs flex items-center justify-center shadow-xs"
+            >
               {userName.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <span className="text-xs font-bold text-typhoon-navy block leading-tight">
+              <span className="text-xs font-medium text-typhoon-navy block leading-tight font-sans">
                 {userName}
               </span>
               <span className="text-[10px] text-typhoon-muted block">
-                {roleName}
+                {theme.roleName}
               </span>
             </div>
           </button>
