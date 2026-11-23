@@ -546,7 +546,7 @@ export function MoreMenuModal({
         {/* Scrollable Main Content */}
         <div className="px-6 pb-6 overflow-y-auto flex-1">
           {/* Role Tag */}
-          <div className="text-[11px] font-bold tracking-[0.18em] text-[#C2410C] uppercase mt-2 mb-1.5 font-sans">
+          <div className="text-[11px] font-medium tracking-[0.18em] text-[#C2410C] uppercase mt-2 mb-1.5 font-sans">
             {roleConfig.roleTag}
           </div>
 
@@ -560,7 +560,7 @@ export function MoreMenuModal({
           {/* Full-width dark primary pill button */}
           <button
             onClick={() => handleNavigate(roleConfig.primaryCta.path)}
-            className="w-full bg-[#18181B] hover:bg-black active:scale-[0.99] text-white rounded-full py-3.5 px-6 font-semibold text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer"
+            className="w-full bg-[#18181B] hover:bg-black active:scale-[0.99] text-white rounded-full py-3.5 px-6 font-medium text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer"
           >
             <span className="text-lg leading-none font-normal">+</span>
             <span>{roleConfig.primaryCta.label.replace(/^\+\s*/, '')}</span>
@@ -628,7 +628,7 @@ export function MoreMenuModal({
               <div className="flex items-center gap-2.5">
                 <Bell className="w-4 h-4 text-[#C2410C] shrink-0" />
                 <div>
-                  <span className="text-xs font-bold text-[#18181B] block">
+                  <span className="text-xs font-medium text-[#18181B] block">
                     Push Notifications
                   </span>
                   <span className="text-[11px] text-[#71717A]">
@@ -638,7 +638,7 @@ export function MoreMenuModal({
               </div>
               <button
                 onClick={handleNotificationRequest}
-                className="px-3 py-1.5 rounded-xl bg-[#18181B] hover:bg-black text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#18181B] hover:bg-black text-white font-medium text-xs shadow-xs transition cursor-pointer"
               >
                 Enable
               </button>
@@ -647,7 +647,7 @@ export function MoreMenuModal({
             {/* Profile Settings */}
             <button
               onClick={() => handleNavigate('/profile')}
-              className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-white/80 text-[#18181B] font-semibold text-xs flex items-center justify-between border border-[#E8E2D9] transition cursor-pointer shadow-2xs"
+              className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-white/80 text-[#18181B] font-medium text-xs flex items-center justify-between border border-[#E8E2D9] transition cursor-pointer shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
                 <User className="w-4 h-4 text-[#18181B]" />
@@ -659,7 +659,7 @@ export function MoreMenuModal({
             {/* Sign Out */}
             <button
               onClick={handleLogout}
-              className="w-full py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-2 border border-rose-200 transition cursor-pointer"
+              className="w-full py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium text-xs flex items-center justify-center gap-2 border border-rose-200 transition cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign Out from Workspace</span>

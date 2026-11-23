@@ -228,7 +228,7 @@ export default function LoginPage() {
                       className="h-8 w-auto object-contain"
                     />
                   </div>
-                  <h2 className="text-2xl font-serif font-bold text-white">Welcome back</h2>
+                  <h2 className="text-2xl font-serif font-normal text-white">Welcome back</h2>
                   <p className="text-xs text-white/80 mt-1">Continue with your saved profile</p>
                 </div>
 
@@ -239,11 +239,11 @@ export default function LoginPage() {
                       borderColor: activeTheme.hex.accentBg,
                       color: activeTheme.hex.accentBg,
                     }}
-                    className="w-24 h-24 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-bold shadow-lg border-4 bg-[#0B192C]"
+                    className="w-24 h-24 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-normal shadow-lg border-4 bg-[#0B192C]"
                   >
                     {activeTheme.tag}
                   </div>
-                  <h3 className="text-2xl font-serif font-bold text-typhoon-navy mt-4 tracking-tight">
+                  <h3 className="text-2xl font-serif font-normal text-typhoon-navy mt-4 tracking-tight">
                     {savedProfile.fullName}
                   </h3>
                   <div className="mt-1.5">
@@ -445,10 +445,10 @@ export default function LoginPage() {
                 <BackendStatusBadge />
               </div>
 
-              <h1 className="text-3xl font-serif font-bold text-white tracking-tight relative z-10">
+              <h1 className="text-3xl font-serif font-normal text-white tracking-tight relative z-10">
                 Welcome back
               </h1>
-              <p className="text-xs text-white/80 mt-1 relative z-10 font-medium">
+              <p className="text-xs text-white/80 mt-1 relative z-10 font-normal">
                 Continue with your saved profile
               </p>
             </div>
@@ -462,12 +462,12 @@ export default function LoginPage() {
                     borderColor: '#F5A623',
                     color: '#F5A623',
                   }}
-                  className="w-22 h-22 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-bold shadow-md border-[2.5px] bg-[#0B192C]"
+                  className="w-22 h-22 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-normal shadow-md border-[2.5px] bg-[#0B192C]"
                 >
                   {savedProfile.role === 'OPS_MANAGER' ? 'AK' : activeTheme.tag}
                 </div>
 
-                <h3 className="text-2xl font-serif font-bold text-typhoon-navy mt-4 tracking-tight">
+                <h3 className="text-2xl font-serif font-normal text-typhoon-navy mt-4 tracking-tight">
                   {savedProfile.fullName}
                 </h3>
 
