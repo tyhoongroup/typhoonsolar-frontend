@@ -134,31 +134,43 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
   const quoteDueDays = inquiry?.quoteDueDays || 3;
 
   // Pipeline 3 Core Stages computation
+  const hasLoggedCall = Boolean(
+    inquiry?.followups?.some(
+      (f: any) =>
+        f.status === 'CALL_DONE' ||
+        (f.description && f.description.toLowerCase().includes('call'))
+    )
+  );
+
   const isCallDone = Boolean(
-    inquiry?.followups?.some((f: any) => f.status === 'CALL_DONE' || f.stage !== 'INQUIRY_RECEIVED') ||
-    (inquiry?.currentStage && inquiry.currentStage !== 'INQUIRY_RECEIVED') ||
+    hasLoggedCall ||
     inquiry?.siteVisit ||
     inquiry?.quotation ||
+    (inquiry?.currentStage &&
+      !['INQUIRY_RECEIVED', 'NEW', 'ASSIGNED'].includes(inquiry.currentStage)) ||
     inquiry?.dealAmount
   );
 
-  const isSiteVisitDone = Boolean(
+  const hasSiteVisit = Boolean(
     inquiry?.siteVisit ||
-    inquiry?.currentStage === 'QUOTATION_SENT' ||
-    inquiry?.currentStage === 'DEAL_CLOSED' ||
-    inquiry?.quotation ||
-    inquiry?.dealAmount ||
     inquiry?.followups?.some(
       (f: any) =>
-        f.description?.toLowerCase().includes('site visit') ||
-        f.nextStep?.toLowerCase().includes('quotation')
+        f.stage === 'SITE_VISIT_DONE' ||
+        (f.description && f.description.toLowerCase().includes('site visit'))
     )
+  );
+
+  const isSiteVisitDone = Boolean(
+    hasSiteVisit ||
+    inquiry?.quotation ||
+    (inquiry?.currentStage &&
+      !['INQUIRY_RECEIVED', 'NEW', 'ASSIGNED', 'SITE_VISIT_PLANNED'].includes(inquiry.currentStage)) ||
+    inquiry?.dealAmount
   );
 
   const isQuotationDone = Boolean(
     inquiry?.quotation ||
-    inquiry?.currentStage === 'QUOTATION_SENT' ||
-    inquiry?.currentStage === 'DEAL_CLOSED' ||
+    ['QUOTATION_SENT', 'DEAL_CLOSED', 'COMPLETED'].includes(inquiry?.currentStage) ||
     inquiry?.dealAmount
   );
 
@@ -459,7 +471,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                     </h4>
                     <p className="text-xs text-typhoon-muted truncate mt-0.5">
                       {isCallDone
-                        ? inquiry?.followups?.[0]?.description || 'Call completed with customer'
+                        ? inquiry?.followups?.find((f: any) => f.status === 'CALL_DONE' || f.description?.toLowerCase().includes('call'))?.description || 'Call completed with customer'
                         : 'Initial call pending'}
                     </p>
                   </div>
