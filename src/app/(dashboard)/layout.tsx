@@ -189,8 +189,8 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'tickets', label: 'Tickets', iconName: 'tickets', href: '/dashboard' },
-          { id: 'service', label: 'Service Action', iconName: 'jobs', href: '/dashboard' },
+          { id: 'tickets', label: 'Tickets', iconName: 'tickets', href: '/service' },
+          { id: 'service', label: 'Resolve Query', iconName: 'jobs', href: '/service' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [

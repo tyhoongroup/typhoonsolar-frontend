@@ -404,7 +404,7 @@ export function MoreMenuModal({
                 label: 'Maintenance Work Orders',
                 desc: 'Inverter errors, solar cleaning & warranty claims',
                 icon: <Wrench className="w-5 h-5 text-yellow-600" />,
-                path: '/installation',
+                path: '/service',
                 badge: 'Service',
               },
               {
