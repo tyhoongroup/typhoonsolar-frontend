@@ -127,6 +127,11 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
     }
   };
 
+  const customerName = inquiry?.customerName || 'Customer Project';
+  const customerPhone = inquiry?.customerPhone || '';
+  const customerAddress = inquiry?.address ? `${inquiry.address}, ${inquiry.city || ''}` : 'Terrace Site Location';
+  const requestedKw = inquiry?.requestedKw ? Number(inquiry.requestedKw) : 6.0;
+
   return (
     <div className="min-h-screen bg-typhoon-sand pb-16">
       {/* Top Header with dynamic active user role theme */}
@@ -167,13 +172,13 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                 style={{ color: theme.hex.accentBg }}
                 className="text-xs font-normal mt-1"
               >
-                Project {projectId} · Ramesh Patel (+91 98250 12345)
+                Project {projectId} · {customerName} ({customerPhone ? `+91 ${customerPhone}` : ''})
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <a
-                href="https://maps.google.com/?q=B-42+Shivalik+Residency+Anand"
+                href={`https://maps.google.com/?q=${encodeURIComponent(customerAddress)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition"
@@ -219,11 +224,11 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-typhoon-gold shrink-0" />
                 <h3 className="text-sm font-medium text-typhoon-navy">
-                  B-42 Shivalik Residency, Anand
+                  {customerAddress}
                 </h3>
               </div>
               <p className="text-xs text-typhoon-muted mt-1 font-normal">
-                6.0 kW · 12x 550W Panels · Single Phase · Flat RCC Terrace
+                {requestedKw} kW · {inquiry?.meterPhase || 'Single Phase'} · Terrace Site
               </p>
             </div>
 

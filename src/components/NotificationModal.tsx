@@ -98,19 +98,22 @@ export function NotificationModal({ isOpen, onClose }: NotificationModalProps) {
       return;
     }
 
-    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
-      toast.info(
-        'In-App Notification Mode active. OS-level push notifications require HTTPS or localhost.',
-        { duration: 6000 }
-      );
-      return;
-    }
-
     try {
       const perm = await Notification.requestPermission();
       setPushStatus(perm);
       if (perm === 'granted') {
         toast.success('Push notifications enabled!');
+        // Register service worker if available
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+        // Send a test confirmation notification
+        try {
+          new Notification('Typhoon Solar Notifications Active', {
+            body: 'You will receive instant alerts for customer inquiries, milestones, and task handovers.',
+            icon: '/icons/icon-192x192.png',
+          });
+        } catch (e) {}
       } else {
         toast.error('Notifications were not granted.');
       }

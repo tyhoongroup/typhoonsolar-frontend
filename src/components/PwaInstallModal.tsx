@@ -50,7 +50,13 @@ export function PwaInstallModal() {
         setDeferredPrompt(null);
       });
 
-      // 5. On page refresh / load: if not standalone and not installed, show modal after brief delay
+      // 5. Allow manual trigger event from anywhere in the app
+      const handleOpenTrigger = () => {
+        setIsOpen(true);
+      };
+      window.addEventListener('open-pwa-install', handleOpenTrigger);
+
+      // 6. On page refresh / load: if not standalone and not installed, show modal after brief delay
       const timer = setTimeout(() => {
         const dismissedRecently = sessionStorage.getItem('typhoon_pwa_dismissed');
         if (!dismissedRecently) {
@@ -60,6 +66,7 @@ export function PwaInstallModal() {
 
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.removeEventListener('open-pwa-install', handleOpenTrigger);
         clearTimeout(timer);
       };
     }

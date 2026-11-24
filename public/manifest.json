@@ -2,13 +2,15 @@
   "id": "/",
   "name": "Typhoon Solar Team App",
   "short_name": "Typhoon Solar",
-  "description": "Typhoon Solar Rooftop ERP, CRM & Lifecycle Management",
+  "description": "Typhoon Solar Rooftop ERP, CRM & Lifecycle Management Platform",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay"],
   "orientation": "portrait-primary",
   "background_color": "#0B192C",
   "theme_color": "#0B192C",
+  "categories": ["business", "productivity", "utilities"],
   "prefer_related_applications": false,
   "icons": [
     {
@@ -34,6 +36,18 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Inquiries",
+      "url": "/inquiries",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }

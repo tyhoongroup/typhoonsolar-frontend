@@ -98,11 +98,35 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
     loadData();
   }, [params.id]);
 
+  const customerName = inquiry?.customerName || 'Customer Project';
+  const customerPhone = inquiry?.customerPhone || '';
+  const requestedKw = inquiry?.requestedKw ? Number(inquiry.requestedKw) : 6.0;
+
   const docs = [
-    { id: 'bill', name: 'DISCOM Electricity Bill', file: 'Ramesh_Patel_MGVCL_Bill.pdf', status: 'Verified' },
-    { id: 'aadhaar', name: 'Aadhaar Card (Front/Back)', file: 'Ramesh_Patel_Aadhaar.pdf', status: 'Verified' },
-    { id: 'tax', name: 'Property Tax Receipt (Index-2)', file: 'Shivalik_Property_Tax_2026.pdf', status: 'Verified' },
-    { id: 'cheque', name: 'Canceled Cheque (HDFC Bank)', file: 'HDFC_Cheque_Ramesh_Patel.jpg', status: 'Verified' },
+    {
+      id: 'bill',
+      name: 'DISCOM Electricity Bill',
+      file: inquiry?.documents?.find((d: any) => d.type === 'bill')?.fileName || `${customerName.replace(/\s+/g, '_')}_Electricity_Bill.pdf`,
+      status: 'Verified',
+    },
+    {
+      id: 'aadhaar',
+      name: 'Aadhaar Card (Front/Back)',
+      file: inquiry?.documents?.find((d: any) => d.type === 'aadhaar')?.fileName || `${customerName.replace(/\s+/g, '_')}_Aadhaar.pdf`,
+      status: 'Verified',
+    },
+    {
+      id: 'tax',
+      name: 'Property Tax Receipt (Index-2)',
+      file: inquiry?.documents?.find((d: any) => d.type === 'tax')?.fileName || `${customerName.replace(/\s+/g, '_')}_Property_Tax.pdf`,
+      status: 'Verified',
+    },
+    {
+      id: 'cheque',
+      name: 'Canceled Cheque (Bank Proof)',
+      file: inquiry?.documents?.find((d: any) => d.type === 'cheque')?.fileName || `${customerName.replace(/\s+/g, '_')}_Bank_Cheque.jpg`,
+      status: 'Verified',
+    },
   ];
 
   const handleFlagQuery = (docName: string) => {
@@ -253,7 +277,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                 style={{ color: theme.hex.accentBg }}
                 className="text-xs font-normal mt-1"
               >
-                Project {projectId} · Ramesh Patel (6.0 kW Single Phase · Anand)
+                Project {projectId} · {customerName} ({requestedKw} kW {inquiry?.meterPhase || 'Single Phase'} · {inquiry?.city || 'Vadodara'})
               </p>
             </div>
 
