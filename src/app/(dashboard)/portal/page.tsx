@@ -136,6 +136,10 @@ export default function PortalQueuePage() {
                 stage = 'SR_PENDING';
                 stageLabel = 'SR Number Issued';
                 stageBadgeStyle = 'bg-blue-50 text-blue-700 border-blue-200';
+              } else if (inq.currentStage === 'INSTALLATION_DONE') {
+                stage = 'METER_FILE_DUE';
+                stageLabel = 'Installation Done · Prepare Meter File';
+                stageBadgeStyle = 'bg-emerald-50 text-emerald-800 border-emerald-300 font-medium';
               } else if (inq.currentStage === 'METER_FILE_SUBMITTED') {
                 stage = 'METER_FILE_DUE';
                 stageLabel = 'Meter File Submitted';

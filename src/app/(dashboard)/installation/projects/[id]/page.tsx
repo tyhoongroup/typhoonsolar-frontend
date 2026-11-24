@@ -431,7 +431,7 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
                     ? 'Finalizing Installation...'
                     : isCompleted
                     ? 'Installation Complete'
-                    : 'Done (Notify Portal for Meter File)'}
+                    : 'Done (Notify Rahul Bhai for Meter File)'}
                 </span>
               </button>
 
