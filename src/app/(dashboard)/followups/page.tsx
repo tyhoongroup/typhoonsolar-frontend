@@ -85,7 +85,6 @@ export default function FollowupsControlTowerPage() {
               stage: 'SITE_VISIT_PLANNED',
               status: 'PENDING',
               description: 'Customer confirmed roof survey at 3:00 PM.',
-              nextStep: 'Complete shadow analysis',
               committedDate: new Date().toISOString(),
               isOverdue: true,
               inquiry: {
@@ -107,7 +106,6 @@ export default function FollowupsControlTowerPage() {
               stage: 'QUOTATION_SENT',
               status: 'CALL_DONE',
               description: 'Sent 6 kW quotation via WhatsApp. Customer reviewing subsidy details.',
-              nextStep: 'Follow up on payment mode',
               committedDate: new Date(Date.now() + 86400000).toISOString(),
               isOverdue: false,
               inquiry: {
@@ -129,7 +127,6 @@ export default function FollowupsControlTowerPage() {
               stage: 'MATERIAL_PLANNED',
               status: 'CALL_DONE',
               description: 'Discussed unloading time. Customer asked for morning delivery.',
-              nextStep: 'Dispatch truck from warehouse',
               committedDate: new Date().toISOString(),
               isOverdue: false,
               inquiry: {
@@ -422,12 +419,7 @@ export default function FollowupsControlTowerPage() {
 
                   {/* Follow-up Note */}
                   <div className="p-3 bg-typhoon-sand/40 rounded-xl border border-typhoon-border/80 text-xs">
-                    <p className="font-semibold text-typhoon-navy">{item.description}</p>
-                    {item.nextStep && (
-                      <p className="text-[11px] text-typhoon-muted mt-1">
-                        Next action: <span className="font-semibold">{item.nextStep}</span>
-                      </p>
-                    )}
+                    <p className="font-medium text-typhoon-navy">{item.description}</p>
                   </div>
 
                   {/* Creator and Action Footer */}

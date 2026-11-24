@@ -46,8 +46,6 @@ export default function NewQuotationPage() {
 
   // Follow-up & Description fields
   const [description, setDescription] = useState('Quotation prepared based on terrace survey and 580W Topcon modules.');
-  const [nextStep, setNextStep] = useState('Share quotation on WhatsApp and discuss financing');
-  const [nextFollowupDate, setNextFollowupDate] = useState('8 November 2026');
 
   // Load Inquiry data
   useEffect(() => {
@@ -56,16 +54,6 @@ export default function NewQuotationPage() {
       router.push('/');
       return;
     }
-
-    const d = new Date();
-    d.setDate(d.getDate() + 2);
-    setNextFollowupDate(
-      d.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    );
 
     fetch(`/api/v1/inquiries/${queryInquiryId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -523,38 +511,23 @@ export default function NewQuotationPage() {
           </div>
         </div>
 
-        {/* SECTION 3: NEXT STEPS & NOTES */}
+        {/* SECTION 3: QUOTATION REMARKS */}
         <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-3">
-          <span className="text-[10px] font-bold tracking-widest text-typhoon-muted uppercase block">
-            NEXT STEPS & FOLLOW-UP
+          <span className="text-[10px] font-medium tracking-widest text-typhoon-muted uppercase block">
+            QUOTATION NOTES & REMARKS
           </span>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Quotation notes & next step
+            <label className="text-xs font-medium text-typhoon-navy block">
+              Remarks
             </label>
             <input
               type="text"
-              value={nextStep}
-              onChange={(e) => setNextStep(e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full p-3 rounded-xl border border-typhoon-border bg-typhoon-sand/30 font-medium text-xs text-typhoon-navy outline-none"
-              placeholder="e.g. Share quotation on WhatsApp"
+              placeholder="e.g. Quotation prepared for 580W Topcon modules"
             />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Follow-up commitment date
-            </label>
-            <div className="p-3 rounded-xl border border-typhoon-border bg-typhoon-sand/30 flex items-center justify-between text-xs">
-              <input
-                type="text"
-                value={nextFollowupDate}
-                onChange={(e) => setNextFollowupDate(e.target.value)}
-                className="bg-transparent font-medium text-typhoon-navy outline-none w-full"
-              />
-              <Calendar className="w-4 h-4 text-typhoon-muted ml-2 flex-shrink-0" />
-            </div>
           </div>
         </div>
 

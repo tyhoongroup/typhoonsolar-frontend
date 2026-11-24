@@ -71,7 +71,6 @@ export default function RecordPaymentPage({ params }: { params: { id: string } }
           stage: 'MATERIAL_UNLOADED',
           status: 'CALL_DONE',
           description: followupNotes,
-          nextStep: 'Collect cheque / online payment',
           committedDate: new Date(promisedDate).toISOString(),
         }),
       });

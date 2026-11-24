@@ -187,9 +187,9 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
       </div>
 
       {/* Main Container */}
-      <div className="max-w-4xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
+      <div className="max-w-4xl mx-auto px-4 lg:px-6 pt-6 sm:pt-8 pb-10 space-y-5">
         {/* Section Navigation Tabs (Quick section switcher buttons) */}
-        <div className="bg-white p-2 rounded-2xl border border-typhoon-border shadow-soft flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap shrink-0">
+        <div className="mt-2 mb-4 bg-white p-2 rounded-2xl border border-typhoon-border shadow-soft flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap shrink-0">
           {[
             { id: 'all', label: 'All Sections' },
             { id: 'site', label: '1. Site & Location' },

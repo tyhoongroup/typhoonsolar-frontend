@@ -589,7 +589,7 @@ export default function InquiriesPage() {
                       </p>
 
                       <div className="flex items-center justify-between text-[11px] text-typhoon-muted pt-0.5">
-                        <span className="truncate">Next: {f.nextStep || 'Follow-up'}</span>
+                        <span className="truncate">Stage: {f.stage || 'Active'}</span>
                         <span className="shrink-0 text-typhoon-navy font-semibold">
                           {f.committedDate ? new Date(f.committedDate).toLocaleDateString() : 'Active'}
                         </span>

@@ -65,7 +65,11 @@ export function MoreMenuModal({
 
   const handleNavigate = (path: string) => {
     onClose();
-    router.push(path);
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    } else {
+      router.push(path);
+    }
   };
 
   const handleItemClick = (item: MenuItem) => {
@@ -184,15 +188,15 @@ export function MoreMenuModal({
             },
             {
               num: '05',
-              title: 'Customer Document Vault',
+              title: 'Customer Documents & Projects',
               desc: 'Electricity bills, Aadhaar KYC & rooftop survey photos',
-              path: '/inquiries',
+              path: '/projects',
             },
             {
               num: '06',
               title: 'Milestone Payment Status',
               desc: 'Track customer booking token & 80% delivery payments',
-              path: '/payments',
+              path: '/payments?tab=due',
             },
           ],
         };
@@ -215,25 +219,25 @@ export function MoreMenuModal({
               num: '01',
               title: 'Govt Portal & DISCOM Queue',
               desc: 'Surya Gujarat KYC, SR generation & DBT claims',
-              path: '/portal',
+              path: '/portal?tab=docs',
             },
             {
               num: '02',
               title: 'SR Number Registration',
               desc: 'Submit consumer application IDs to DISCOM portal',
-              path: '/portal',
+              path: '/portal?tab=sr',
             },
             {
               num: '03',
               title: 'CEI & Meter File Processing',
               desc: 'Electrical inspector approvals & bidirectional meter logs',
-              path: '/portal',
+              path: '/portal?tab=meter',
             },
             {
               num: '04',
               title: 'Subsidy & DBT Claims',
               desc: 'Central PM Surya Ghar & state direct benefit claims',
-              path: '/portal',
+              path: '/portal?tab=subsidy',
             },
             {
               num: '05',
@@ -245,7 +249,7 @@ export function MoreMenuModal({
               num: '06',
               title: 'Customer Documents & Bills',
               desc: 'Review consumer light bills, tax receipts & ID proofs',
-              path: '/inquiries',
+              path: '/projects',
             },
           ],
         };
@@ -274,19 +278,19 @@ export function MoreMenuModal({
               num: '02',
               title: 'Material Planning & BOM',
               desc: 'Panel wattages, inverters, structures & DC cables',
-              path: '/material',
+              path: '/material?tab=pending',
             },
             {
               num: '03',
               title: 'Terrace Delivery & Unload Proofs',
               desc: 'Driver vehicle numbers, delivery challans & site drop photos',
-              path: '/material',
+              path: '/material?tab=unloaded',
             },
             {
               num: '04',
               title: '80% Unload Payment Clearance',
               desc: 'Verify customer payment clearance before truck release',
-              path: '/payments',
+              path: '/payments?tab=due',
             },
             {
               num: '05',
@@ -298,7 +302,7 @@ export function MoreMenuModal({
               num: '06',
               title: 'Installation Crew Handover',
               desc: 'Notify field installation leads of delivered equipment',
-              path: '/installation',
+              path: '/installation?tab=ready',
             },
           ],
         };
@@ -325,21 +329,21 @@ export function MoreMenuModal({
             },
             {
               num: '02',
-              title: 'Upload Rooftop Proofs',
-              desc: 'Panel angles, earthing test, SPD & structure bolts photos',
-              path: '/installation',
+              title: 'Ready to Fit Sites',
+              desc: 'Sites with verified material unloads ready for mounting',
+              path: '/installation?tab=ready',
             },
             {
               num: '03',
-              title: 'Module Serial & Barcode Logging',
-              desc: 'Scan solar module serial numbers & inverter barcodes',
-              path: '/installation',
+              title: 'Upload Rooftop Proofs',
+              desc: 'Panel angles, earthing test, SPD & structure bolts photos',
+              path: '/installation?tab=progress',
             },
             {
               num: '04',
-              title: 'Safety & Quality Checklist',
+              title: 'Safety & Completed Installations',
               desc: 'Checklist sign-off before DISCOM plant inspection',
-              path: '/installation',
+              path: '/installation?tab=done',
             },
             {
               num: '05',
@@ -351,7 +355,7 @@ export function MoreMenuModal({
               num: '06',
               title: 'Check Unloaded BOM',
               desc: 'Verify delivered panels, mounting clamps & inverter on site',
-              path: '/material',
+              path: '/material?tab=unloaded',
             },
           ],
         };
@@ -378,15 +382,15 @@ export function MoreMenuModal({
             },
             {
               num: '02',
-              title: 'Record Milestone Payment',
+              title: 'Pending Milestone Payments',
               desc: 'Log cash, UPI, NEFT or cheque with transaction reference',
-              path: '/payments',
+              path: '/payments?tab=due',
             },
             {
               num: '03',
               title: 'Payment Receipts & Invoices',
               desc: 'Download branded payment receipts & GST invoices',
-              path: '/payments',
+              path: '/payments?tab=paid',
             },
             {
               num: '04',
@@ -398,13 +402,13 @@ export function MoreMenuModal({
               num: '05',
               title: 'Subsidy & DBT Verification',
               desc: 'Verify central PM Surya Ghar direct benefit transfers',
-              path: '/portal',
+              path: '/portal?tab=subsidy',
             },
             {
               num: '06',
               title: 'All Projects & Cost Quotations',
               desc: 'Review project kW sizing, contract value & pricing quotes',
-              path: '/inquiries',
+              path: '/projects',
             },
           ],
         };
@@ -427,7 +431,7 @@ export function MoreMenuModal({
               num: '01',
               title: 'Active Complaints Queue',
               desc: 'Inverter fault codes, generation drops & grid tripping',
-              path: '/service',
+              path: '/service?tab=open',
             },
             {
               num: '02',
@@ -437,27 +441,27 @@ export function MoreMenuModal({
             },
             {
               num: '03',
-              title: 'Log Diagnosis & Parts Cost',
-              desc: 'Fault analysis, replaced components and service charges',
-              path: '/service',
+              title: 'Resolved Service Tickets',
+              desc: 'Fault analysis, replaced components and closed cases',
+              path: '/service?tab=resolved',
             },
             {
               num: '04',
-              title: 'Query Resolution Proofs',
-              desc: 'Upload before and after photos of rectified equipment',
-              path: '/service',
-            },
-            {
-              num: '05',
-              title: 'Warranty & Customer Follow-ups',
-              desc: 'Manufacturer warranty claims & post-service satisfaction',
+              title: 'Service Follow-ups & Reminders',
+              desc: 'Customer rooftop availability & satisfaction follow-ups',
               path: '/followups',
             },
             {
-              num: '06',
-              title: 'Installed Plant Directory',
+              num: '05',
+              title: 'Installed Customer Projects',
               desc: 'Customer rooftop plants, inverter serials & contacts',
-              path: '/inquiries',
+              path: '/projects',
+            },
+            {
+              num: '06',
+              title: 'Log New Solar Inquiry',
+              desc: 'Register referral lead from existing service customer',
+              path: '/inquiries/new',
             },
           ],
         };

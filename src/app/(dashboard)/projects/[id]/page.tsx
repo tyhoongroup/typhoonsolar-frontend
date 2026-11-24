@@ -608,8 +608,8 @@ export default function ProjectDetailPage() {
                   className="p-3 rounded-xl bg-gray-50 border border-gray-100"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-gray-800">
-                      {f.nextStep || f.description?.split('-')[0] || 'Follow-up'}
+                    <span className="text-xs font-medium text-gray-800">
+                      {f.description?.split('-')[0] || 'Follow-up'}
                     </span>
                     <span className="text-[10px] text-gray-500">
                       {new Date(f.committedDate || f.createdAt).toLocaleDateString('en-IN', {

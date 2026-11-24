@@ -260,7 +260,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
       </div>
 
       {/* Main Form Body */}
-      <div className="max-w-5xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
+      <div className="max-w-5xl mx-auto px-4 lg:px-6 pt-6 sm:pt-8 pb-10 space-y-5">
         {(() => {
           const isDocsUploaded =
             isApplicationSubmitted ||

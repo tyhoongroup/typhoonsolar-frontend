@@ -29,8 +29,6 @@ export default function SiteVisitPage() {
   const [description, setDescription] = useState(
     'Terrace has south-facing shadow-free area of 500 sq.ft. Meter wiring & earthing space verified.'
   );
-  const [nextStep, setNextStep] = useState('Prepare solar quotation & sizing');
-  const [nextFollowupDate, setNextFollowupDate] = useState('7 November 2026');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,16 +37,6 @@ export default function SiteVisitPage() {
       router.push('/');
       return;
     }
-
-    const d = new Date();
-    d.setDate(d.getDate() + 2);
-    setNextFollowupDate(
-      d.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    );
 
     fetch(`/api/v1/inquiries/${inquiryId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -89,8 +77,6 @@ export default function SiteVisitPage() {
           meterWiringSeen,
           notes: `${roofType} - ${description.trim()}`,
           photos: [],
-          nextStep: nextStep.trim() || 'Send quotation',
-          nextFollowupDate,
         }),
       });
 
@@ -260,39 +246,6 @@ export default function SiteVisitPage() {
             </div>
           </div>
 
-          {/* Next Step */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Next step
-            </label>
-            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft px-4 py-3 focus-within:ring-2 focus-within:ring-typhoon-gold">
-              <input
-                type="text"
-                value={nextStep}
-                onChange={(e) => setNextStep(e.target.value)}
-                className="w-full text-sm font-medium text-typhoon-navy outline-none bg-transparent"
-                placeholder="e.g. Prepare quotation breakdown"
-              />
-            </div>
-          </div>
-
-          {/* Next Follow-up Date */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Next follow-up date
-            </label>
-            <div className="bg-white rounded-2xl border border-typhoon-border shadow-soft px-4 py-3 flex items-center justify-between focus-within:ring-2 focus-within:ring-typhoon-gold">
-              <input
-                type="text"
-                value={nextFollowupDate}
-                onChange={(e) => setNextFollowupDate(e.target.value)}
-                className="text-sm font-medium text-typhoon-navy outline-none bg-transparent w-full"
-                placeholder="e.g. 7 November 2026"
-              />
-              <Calendar className="w-4 h-4 text-typhoon-muted flex-shrink-0 ml-2" />
-            </div>
-          </div>
-
           {/* Submit Button */}
           <div className="pt-2">
             <button
@@ -303,7 +256,7 @@ export default function SiteVisitPage() {
                 color: theme.hex.accentTextColor,
                 boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
               }}
-              className="w-full py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition hover:opacity-95 active:scale-98 disabled:opacity-50 cursor-pointer"
+              className="w-full py-4 px-6 rounded-2xl font-medium text-sm flex items-center justify-center gap-2 transition hover:opacity-95 active:scale-98 disabled:opacity-50 cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{loading ? 'Saving...' : 'Save site visit update'}</span>

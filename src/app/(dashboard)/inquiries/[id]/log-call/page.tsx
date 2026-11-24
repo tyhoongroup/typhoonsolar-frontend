@@ -15,8 +15,6 @@ export default function LogCallPage() {
   const [inquiry, setInquiry] = useState<any>(null);
   const [callResult, setCallResult] = useState<'Call done' | 'Not reachable'>('Call done');
   const [description, setDescription] = useState('Customer wants a site visit this week.');
-  const [nextStep, setNextStep] = useState('Salesperson visit');
-  const [nextFollowupDate, setNextFollowupDate] = useState('6 November 2026');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -25,17 +23,6 @@ export default function LogCallPage() {
       router.push('/');
       return;
     }
-
-    // Default next follow-up date formatted
-    const d = new Date();
-    d.setDate(d.getDate() + 2);
-    setNextFollowupDate(
-      d.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    );
 
     fetch(`/api/v1/inquiries/${inquiryId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -74,8 +61,6 @@ export default function LogCallPage() {
         body: JSON.stringify({
           callResult: callResult === 'Call done' ? 'CALL_DONE' : 'NOT_REACHABLE',
           description: description.trim(),
-          nextStep: nextStep.trim() || 'Customer follow-up',
-          nextFollowupDate,
         }),
       });
 
@@ -202,34 +187,6 @@ export default function LogCallPage() {
             />
           </div>
 
-          {/* Next step */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Next step
-            </label>
-            <input
-              type="text"
-              value={nextStep}
-              onChange={(e) => setNextStep(e.target.value)}
-              placeholder="e.g. Salesperson visit"
-              className="w-full px-4 py-3.5 bg-white rounded-2xl text-sm font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
-            />
-          </div>
-
-          {/* Next follow-up date */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-typhoon-navy block">
-              Next follow-up date
-            </label>
-            <input
-              type="text"
-              value={nextFollowupDate}
-              onChange={(e) => setNextFollowupDate(e.target.value)}
-              placeholder="e.g. 6 November 2026"
-              className="w-full px-4 py-3.5 bg-white rounded-2xl text-sm font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none shadow-soft transition"
-            />
-          </div>
-
           {/* Primary Action Button */}
           <div className="pt-4">
             <button
@@ -240,7 +197,7 @@ export default function LogCallPage() {
                 color: theme.hex.accentTextColor,
                 boxShadow: theme.hex.accentShadow || '0 8px 24px -4px rgba(36, 72, 255, 0.4)',
               }}
-              className="w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center gap-2 transition hover:opacity-95 active:scale-98 cursor-pointer disabled:opacity-50"
+              className="w-full py-4 px-6 rounded-2xl font-medium text-base flex items-center justify-center gap-2 transition hover:opacity-95 active:scale-98 cursor-pointer disabled:opacity-50"
             >
               <Check className="w-5 h-5 stroke-[2.5]" />
               <span>{loading ? 'Saving...' : 'Save call update'}</span>

@@ -112,7 +112,6 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
           stage: 'MATERIAL_PLANNED',
           status: 'CALL_DONE',
           description: deliveryNotes,
-          nextStep: 'Unload material on site',
           committedDate: new Date(deliveryDate).toISOString(),
         }),
       });
@@ -253,9 +252,9 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
       </div>
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
+      <div className="max-w-5xl mx-auto px-4 lg:px-6 pt-6 sm:pt-8 pb-10 space-y-5">
         {/* Section Navigation Tabs (Quick section buttons) */}
-        <div className="bg-white p-2 rounded-2xl border border-typhoon-border shadow-soft flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+        <div className="mt-2 mb-4 bg-white p-2 rounded-2xl border border-typhoon-border shadow-soft flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap shrink-0">
           {[
             { id: 'all', label: 'All Sections' },
             { id: 'bom', label: '1. Staged BOM' },

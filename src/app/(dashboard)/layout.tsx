@@ -89,20 +89,20 @@ export default function DashboardLayout({
     // Role Route Protection: Prevent unauthorized roles from entering other department pages
     if (user && user.role !== 'ADMIN' && user.role !== 'OPS_MANAGER') {
       const role = user.role;
-      const allowedPrefixes = ['/dashboard', '/track', '/profile'];
+      const allowedPrefixes = ['/dashboard', '/track', '/profile', '/followups'];
 
       if (role === 'SALESPERSON') {
-        allowedPrefixes.push('/inquiries', '/projects', '/quotations');
+        allowedPrefixes.push('/inquiries', '/projects', '/quotations', '/payments');
       } else if (role === 'PORTAL_USER') {
-        allowedPrefixes.push('/portal', '/projects');
+        allowedPrefixes.push('/portal', '/projects', '/inquiries');
       } else if (role === 'MATERIAL_MANAGER') {
-        allowedPrefixes.push('/material', '/projects');
+        allowedPrefixes.push('/material', '/projects', '/payments', '/installation');
       } else if (role === 'INSTALLATION_TEAM') {
-        allowedPrefixes.push('/installation', '/projects');
+        allowedPrefixes.push('/installation', '/projects', '/material');
       } else if (role === 'ACCOUNTANT') {
-        allowedPrefixes.push('/payments', '/projects');
+        allowedPrefixes.push('/payments', '/projects', '/portal', '/inquiries');
       } else if (role === 'SERVICE_TECH') {
-        allowedPrefixes.push('/service');
+        allowedPrefixes.push('/service', '/projects', '/inquiries');
       }
 
       const isAllowed = allowedPrefixes.some((prefix) => pathname.startsWith(prefix));

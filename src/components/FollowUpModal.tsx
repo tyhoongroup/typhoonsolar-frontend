@@ -70,7 +70,6 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
         stage,
         status: 'ON_TRACK',
         description: description.trim() ? `${title.trim()} - ${description.trim()}` : title.trim(),
-        nextStep: title.trim(),
         committedDate: new Date(selectedDate).toISOString(),
       };
 
