@@ -724,17 +724,17 @@ export default function DashboardPage() {
                 activeChip={activeFilter}
                 onChipSelect={setActiveFilter}
                 items={desktopMaterialRows}
-                onRowClick={(id) => router.push(`/inquiries/${id}`)}
+                onRowClick={(id) => router.push(`/material/projects/${id}`)}
               />
             </div>
 
             <div className="col-span-4">
               <SidePanel
                 priorityTask={{
-                  title: 'SR No. Received · F-1018',
-                  subtitle: 'Allocate panels and arrange tempo for Bhavna Joshi',
+                  title: 'SR No. Received · F-1024',
+                  subtitle: 'Allocate panels and arrange tempo for Ramesh Patel',
                   badgeText: 'PLAN DISPATCH',
-                  onClick: () => router.push('/inquiries/F-1018'),
+                  onClick: () => router.push('/material/projects/F-1024'),
                 }}
                 teamStatuses={[
                   { id: '1', name: 'Diwan Zakirbhai (F-1015)', role: '10 kW', statusText: 'Unloaded, awaiting photo proof', isOverdue: false },
@@ -765,7 +765,7 @@ export default function DashboardPage() {
             title="Dispatch · F-1024"
             subtitle="Ramesh Patel · 12 panels, 1 inverter"
             badgeText="Today"
-            onClick={() => router.push('/material')}
+            onClick={() => router.push('/material/projects/F-1024')}
           />
           <UpNextList
             role="MATERIAL_MANAGER"
@@ -777,7 +777,7 @@ export default function DashboardPage() {
                 subtitle: '6 kW · Panels, inverter · Pack items',
                 badgeText: 'Urgent',
                 badgeType: 'urgent',
-                onClick: () => router.push('/material'),
+                onClick: () => router.push('/material/projects/F-1024'),
               },
               {
                 id: '2',
@@ -786,7 +786,7 @@ export default function DashboardPage() {
                 subtitle: '7 kW · Cables · Awaiting stock',
                 badgeText: 'New',
                 badgeType: 'bn',
-                onClick: () => router.push('/material'),
+                onClick: () => router.push('/material/projects/F-1026'),
               },
               {
                 id: '3',
@@ -795,14 +795,14 @@ export default function DashboardPage() {
                 subtitle: '6 kW · Structure · Verify count',
                 badgeText: 'New',
                 badgeType: 'bn',
-                onClick: () => router.push('/material'),
+                onClick: () => router.push('/material/projects/F-1025'),
               },
             ]}
           />
           <MainButton
             role="MATERIAL_MANAGER"
             icon={<Scan className="w-4 h-4" />}
-            onClick={() => router.push('/material')}
+            onClick={() => router.push('/material/projects/F-1024')}
           >
             Scan material
           </MainButton>

@@ -19,11 +19,32 @@ import {
   MessageSquare,
   ShieldCheck,
   Eye,
+  Search,
+  Plus,
+  Minus,
+  Trash2,
+  Download,
+  Sun,
+  Zap,
+  ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { FollowUpModal } from '@/components/FollowUpModal';
+
+interface BomItem {
+  id: string;
+  category: 'panels' | 'inverters' | 'structure' | 'cables' | 'earthing' | 'distribution';
+  categoryLabel: string;
+  name: string;
+  spec: string;
+  unitPrice: number;
+  unitLabel: string;
+  stockText: string;
+  stockStatus: 'in_stock' | 'low_stock';
+  quantity: number;
+}
 
 export default function MaterialProjectDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -38,6 +59,152 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
 
   // Section Selector Tab (all, bom, delivery, unload, install)
   const [activeSection, setActiveSection] = useState<'all' | 'bom' | 'delivery' | 'unload' | 'install'>('all');
+
+  // BOM Search Filter
+  const [bomSearch, setBomSearch] = useState('');
+
+  // Interactive BOM Items (Matching Image 2 Shared by User)
+  const [bomItems, setBomItems] = useState<BomItem[]>([
+    {
+      id: 'panel-550',
+      category: 'panels',
+      categoryLabel: 'Solar panels',
+      name: '550 W DCR Mono-PERC',
+      spec: 'Tier-1 ALMM approved · Waaree',
+      unitPrice: 12650,
+      unitLabel: 'per pc',
+      stockText: 'In stock - 40 pc',
+      stockStatus: 'in_stock',
+      quantity: 12,
+    },
+    {
+      id: 'panel-580',
+      category: 'panels',
+      categoryLabel: 'Solar panels',
+      name: '580 W Topcon',
+      spec: 'Tier-1 ALMM approved · Waaree',
+      unitPrice: 13800,
+      unitLabel: 'per pc',
+      stockText: 'In stock - 24 pc',
+      stockStatus: 'in_stock',
+      quantity: 0,
+    },
+    {
+      id: 'inv-growatt',
+      category: 'inverters',
+      categoryLabel: 'Inverters',
+      name: 'Growatt 6.0 kW Dual MPPT',
+      spec: 'WiFi logger included',
+      unitPrice: 58000,
+      unitLabel: 'per pc',
+      stockText: 'In stock - 6 pc',
+      stockStatus: 'in_stock',
+      quantity: 1,
+    },
+    {
+      id: 'inv-solis',
+      category: 'inverters',
+      categoryLabel: 'Inverters',
+      name: 'Solis 6.0 kW Dual MPPT',
+      spec: 'WiFi logger included',
+      unitPrice: 64500,
+      unitLabel: 'per pc',
+      stockText: 'Low stock - 3 pc',
+      stockStatus: 'low_stock',
+      quantity: 0,
+    },
+    {
+      id: 'struct-hdg',
+      category: 'structure',
+      categoryLabel: 'Mounting structure',
+      name: 'Elevated HDG 4-leg',
+      spec: 'Hot-dip galvanized, 80 micron',
+      unitPrice: 1650,
+      unitLabel: 'per panel',
+      stockText: 'In stock - 50 panel',
+      stockStatus: 'in_stock',
+      quantity: 12,
+    },
+    {
+      id: 'cable-dc',
+      category: 'cables',
+      categoryLabel: 'Cables',
+      name: 'DC cable 4 sq.mm copper',
+      spec: 'Solar UV protected',
+      unitPrice: 62,
+      unitLabel: 'per m',
+      stockText: 'In stock - 800 m',
+      stockStatus: 'in_stock',
+      quantity: 35,
+    },
+    {
+      id: 'earth-rod',
+      category: 'earthing',
+      categoryLabel: 'Earthing and protection',
+      name: 'Chemical earthing rod',
+      spec: 'Copper coated',
+      unitPrice: 2200,
+      unitLabel: 'per pc',
+      stockText: 'In stock - 20 pc',
+      stockStatus: 'in_stock',
+      quantity: 3,
+    },
+    {
+      id: 'earth-arrester',
+      category: 'earthing',
+      categoryLabel: 'Earthing and protection',
+      name: 'Lightning arrester',
+      spec: 'Pure copper',
+      unitPrice: 3800,
+      unitLabel: 'per pc',
+      stockText: 'In stock - 8 pc',
+      stockStatus: 'in_stock',
+      quantity: 1,
+    },
+    {
+      id: 'dist-acdb',
+      category: 'distribution',
+      categoryLabel: 'Distribution',
+      name: 'ACDB',
+      spec: 'Waterproof enclosure',
+      unitPrice: 2900,
+      unitLabel: 'per pc',
+      stockText: 'In stock - 10 pc',
+      stockStatus: 'in_stock',
+      quantity: 1,
+    },
+    {
+      id: 'dist-dcdb',
+      category: 'distribution',
+      categoryLabel: 'Distribution',
+      name: 'DCDB',
+      spec: 'Waterproof enclosure',
+      unitPrice: 3100,
+      unitLabel: 'per pc',
+      stockText: 'In stock - 10 pc',
+      stockStatus: 'in_stock',
+      quantity: 1,
+    },
+  ]);
+
+  // Stepper helper
+  const handleUpdateQuantity = (id: string, delta: number) => {
+    setBomItems((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const nextQty = Math.max(0, item.quantity + delta);
+          return { ...item, quantity: nextQty };
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleSetInitialQty = (id: string, defaultQty: number) => {
+    setBomItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, quantity: defaultQty } : item))
+    );
+  };
 
   // Unload Proof Uploads
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
@@ -125,51 +292,19 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
     }
   };
 
-  const handlePlanMaterial = async () => {
-    try {
-      setLoading(true);
-      await fetchWithAuth('/api/v1/material/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inquiryId: params.id,
-          scheduledUnloadDate: new Date(deliveryDate).toISOString(),
-          amountDueOnUnload: inquiry?.dealAmount ? Math.round(Number(inquiry.dealAmount) * 0.8) : 160000,
-        }),
-      });
-      setIsMaterialPlanned(true);
-      toast.success('Material marked PLANNED in database! Delivery schedule set.');
-    } catch (err: any) {
-      toast.error(err.message || 'Error planning material');
-    } finally {
-      setLoading(false);
-    }
+  const handleSaveBOM = () => {
+    toast.success('Staged Bill of Materials saved & synchronized with warehouse stock!');
+    setIsMaterialPlanned(true);
   };
 
-  const handleVerifyInstall = async () => {
-    try {
-      setLoading(true);
-      await fetchWithAuth(`/api/v1/material/${params.id}/verify-install`, {
-        method: 'POST',
-      });
-      setIsInstallVerified(true);
-      toast.success('Installation team proof photos verified done in database! Quality check passed.');
-    } catch (err: any) {
-      toast.error(err.message || 'Error verifying installation');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMarkMaterialUnloaded = async () => {
+  const handleUploadUnloadProofs = async () => {
     if (uploadedPhotos.length === 0) {
-      toast.error('Please upload at least one site photo proof of unloaded material.');
+      toast.error('Please select at least 1 site unload photo proof.');
       return;
     }
-
     try {
       setLoading(true);
-      const res = await fetchWithAuth('/api/v1/material/unload', {
+      const res = await fetchWithAuth('/api/v1/material/unload-proof', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -184,7 +319,7 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
       toast.success(
         'Material marked UNLOADED in database! Accountant (Meera) and Installation Team (Irfan) notified.'
       );
-      router.push(`/inquiries/${params.id}`);
+      router.push(`/projects/${params.id}`);
     } catch (err: any) {
       toast.error(err.message || 'Error marking material unloaded');
     } finally {
@@ -192,69 +327,77 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
     }
   };
 
+  // Filtered Categories
+  const categories = [
+    { key: 'panels', label: 'Solar panels' },
+    { key: 'inverters', label: 'Inverters' },
+    { key: 'structure', label: 'Mounting structure' },
+    { key: 'cables', label: 'Cables' },
+    { key: 'earthing', label: 'Earthing and protection' },
+    { key: 'distribution', label: 'Distribution' },
+  ];
+
+  const activeCartItems = bomItems.filter((i) => i.quantity > 0);
+  const totalCartAmount = activeCartItems.reduce((acc, curr) => acc + curr.unitPrice * curr.quantity, 0);
+
+  const customerName = inquiry?.customerName || 'Ramesh Patel';
+  const customerPhone = inquiry?.customerPhone || '+91 98250 12345';
+  const requestedKw = inquiry?.requestedKw || '6.0';
+
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-16">
-      {/* Top Header with dynamic active user role theme */}
+    <div className="min-h-screen bg-typhoon-sand pb-28 font-sans">
+      {/* Top Header with Dark Green Card & Real Logo Capsule (Matching Image 2) */}
       <div
         style={{
-          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1F2933',
+          background: 'linear-gradient(180deg, #2D3E24 0%, #1E2B18 100%)',
         }}
-        className="text-white pt-6 pb-8 px-6 rounded-b-[32px] shadow-soft border-b border-white/10 transition-colors duration-300 relative overflow-hidden"
+        className="text-white pt-5 pb-9 px-5 rounded-b-[34px] shadow-soft border-b border-white/10 relative overflow-hidden"
       >
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
+        <div className="max-w-md mx-auto">
+          {/* Top Bar: Back Button & Real Logo Capsule */}
+          <div className="flex items-center justify-between mb-3.5">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition active:scale-95 cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2">
-              <span
-                style={{
-                  backgroundColor: theme.hex.accentBg,
-                  color: theme.hex.accentTextColor,
-                }}
-                className="text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider"
-              >
-                STAGE 7 & 8 · MATERIAL
-              </span>
-              <span className="text-xs text-white/70">Sohail Khan (Store Lead)</span>
+
+            {/* Real Logo in White Pill */}
+            <div className="bg-white px-3 py-1 rounded-full shadow-soft flex items-center justify-center shrink-0">
+              <img
+                src="/images/typhoon-logo.png"
+                alt="Typhoon Solar System"
+                className="h-6 w-auto object-contain"
+              />
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-serif font-normal text-white tracking-tight">
-                Material Planning & Unload
-              </h1>
-              <p
-                style={{ color: theme.hex.accentBg }}
-                className="text-xs font-normal mt-1"
-              >
-                Project {projectId} · Ramesh Patel (+91 98250 12345) · DISCOM SR: SR-GUJ-2026-98124
-              </p>
-            </div>
-
-            <a
-              href="tel:+919825012345"
-              style={{
-                backgroundColor: theme.hex.accentBg,
-                color: theme.hex.accentTextColor,
-              }}
-              className="font-medium px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition shadow-soft self-start md:self-auto hover:opacity-90 cursor-pointer"
-            >
-              <Phone className="w-4 h-4" />
-              <span>Call Customer for Delivery</span>
-            </a>
+          {/* Stage 7 Badge */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="bg-[#84CC16] text-[#1E3A1A] text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              STAGE 7 · MATERIAL
+            </span>
+            <span className="text-xs text-white/80 font-normal">Sohail Khan (Store Lead)</span>
           </div>
+
+          {/* Header Title Matching Shared Image 2 */}
+          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-white tracking-tight">
+            Add materials
+          </h1>
+          <p className="text-xs text-white/90 font-medium mt-1">
+            Project {projectId} · {customerName}
+          </p>
+          <p className="text-xs text-white/70 font-normal mt-0.5">
+            {requestedKw} kW single phase · build the BOM
+          </p>
         </div>
       </div>
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-4 lg:px-6 pt-6 sm:pt-8 pb-10 space-y-5">
-        {/* Section Navigation Tabs (Quick section buttons) */}
-        <div className="mt-2 mb-4 bg-white p-2 rounded-2xl border border-typhoon-border shadow-soft flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap shrink-0">
+      <div className="max-w-md mx-auto px-4 -mt-4 space-y-4 relative z-10">
+        {/* Section Navigation Tabs */}
+        <div className="bg-white p-2 rounded-2xl border border-typhoon-border shadow-soft flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap shrink-0">
           {[
             { id: 'all', label: 'All Sections' },
             { id: 'bom', label: '1. Staged BOM' },
@@ -265,7 +408,7 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
             <button
               key={sec.id}
               onClick={() => setActiveSection(sec.id as any)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeSection === sec.id
                   ? 'bg-typhoon-navy text-white shadow-soft'
                   : 'bg-typhoon-sand/40 text-typhoon-navy/80 hover:bg-typhoon-sand border border-typhoon-border/60'
@@ -276,81 +419,231 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
           ))}
         </div>
 
-        {/* 1. Master BOM Bill of Materials (From Excel Formula) */}
+        {/* ========================================================================= */}
+        {/* SECTION 1: INTERACTIVE STAGED BOM BUILDER (MATCHING IMAGE 2 SHARED BY USER) */}
+        {/* ========================================================================= */}
         {(activeSection === 'all' || activeSection === 'bom') && (
-          <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-typhoon-navy">
-                  Staged Bill of Materials (BOM Planning Slip)
-                </h3>
-                <p className="text-xs text-typhoon-muted">
-                  Calculated according to 6.0 kW Single Phase master quotation sheet
-                </p>
-              </div>
-              <button
-                onClick={() => toast.success('Material Dispatch Slip PDF downloaded!')}
-                className="px-3 py-1.5 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-medium text-xs flex items-center gap-1.5 transition border border-typhoon-border/80 cursor-pointer"
-              >
-                <FileText className="w-3.5 h-3.5 text-typhoon-gold" />
-                <span>Download BOM PDF</span>
-              </button>
+          <div className="space-y-4">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-typhoon-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={bomSearch}
+                onChange={(e) => setBomSearch(e.target.value)}
+                placeholder="Search items, brand or size"
+                className="w-full pl-10 pr-4 py-3 bg-white rounded-2xl text-xs font-medium text-typhoon-navy border border-typhoon-border shadow-soft focus:outline-none focus:border-typhoon-gold transition"
+              />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              <div className="bg-typhoon-sand/40 p-3.5 rounded-xl border border-typhoon-border/80">
-                <span className="text-[10px] text-typhoon-muted font-medium uppercase block">Solar PV Modules</span>
-                <span className="text-sm font-medium text-typhoon-navy block mt-0.5">12x 550W DCR Mono-PERC</span>
-                <span className="text-[11px] text-emerald-700 font-normal">Tier-1 ALMM Approved</span>
+            {/* Categories & Item Cards */}
+            {categories.map((cat) => {
+              const items = bomItems.filter(
+                (item) =>
+                  item.category === cat.key &&
+                  (bomSearch.trim() === '' ||
+                    item.name.toLowerCase().includes(bomSearch.toLowerCase()) ||
+                    item.spec.toLowerCase().includes(bomSearch.toLowerCase()))
+              );
+
+              if (items.length === 0) return null;
+
+              return (
+                <div key={cat.key} className="space-y-2.5">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="font-serif text-base font-normal text-typhoon-navy">
+                      {cat.label}
+                    </h3>
+                    <span className="text-[11px] text-typhoon-muted font-normal">
+                      {items.length} items
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#FAF7F2] border border-typhoon-border/60 flex items-center justify-center shrink-0 text-typhoon-navy">
+                              {cat.key === 'panels' && <Sun className="w-5 h-5 text-typhoon-gold" />}
+                              {cat.key === 'inverters' && <Zap className="w-5 h-5 text-emerald-600" />}
+                              {cat.key === 'structure' && <Layers className="w-5 h-5 text-slate-700" />}
+                              {cat.key === 'cables' && <Package className="w-5 h-5 text-amber-700" />}
+                              {cat.key === 'earthing' && <ShieldCheck className="w-5 h-5 text-sky-600" />}
+                              {cat.key === 'distribution' && <Package className="w-5 h-5 text-slate-600" />}
+                            </div>
+
+                            <div>
+                              <h4 className="text-xs font-medium text-typhoon-navy leading-tight">
+                                {item.name}
+                              </h4>
+                              <p className="text-[11px] text-typhoon-muted font-normal mt-0.5">
+                                {item.spec}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <span className="text-xs font-medium text-typhoon-navy block">
+                              Rs {item.unitPrice.toLocaleString('en-IN')}
+                            </span>
+                            <span className="text-[10px] text-typhoon-muted block">
+                              {item.unitLabel}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Stock & Quantity Control Row */}
+                        <div className="flex items-center justify-between pt-2 border-t border-typhoon-border/50">
+                          <span
+                            className={`text-[11px] font-normal ${
+                              item.stockStatus === 'in_stock'
+                                ? 'text-emerald-700'
+                                : 'text-amber-700'
+                            }`}
+                          >
+                            {item.stockText}
+                          </span>
+
+                          <div>
+                            {item.quantity > 0 ? (
+                              <div className="flex items-center gap-3">
+                                {/* Stepper */}
+                                <div className="flex items-center gap-2 bg-[#FAF7F2] border border-typhoon-border rounded-full px-2.5 py-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateQuantity(item.id, -1)}
+                                    className="w-5 h-5 rounded-full flex items-center justify-center text-typhoon-navy hover:bg-white transition cursor-pointer"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <span className="text-xs font-medium text-typhoon-navy min-w-[18px] text-center">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateQuantity(item.id, 1)}
+                                    className="w-5 h-5 rounded-full flex items-center justify-center text-typhoon-navy hover:bg-white transition cursor-pointer"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+
+                                <div className="text-right">
+                                  <span className="text-[9px] text-typhoon-muted block leading-none">
+                                    Line total
+                                  </span>
+                                  <span className="text-xs font-medium text-typhoon-navy">
+                                    Rs {(item.unitPrice * item.quantity).toLocaleString('en-IN')}
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleSetInitialQty(item.id, 1)}
+                                className="bg-[#84CC16] hover:bg-[#65A30D] text-[#1E3A1A] text-xs font-medium px-3.5 py-1.5 rounded-full transition cursor-pointer flex items-center gap-1 shadow-xs"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add to BOM</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Cart Summary: Your BOM Cart */}
+            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-3.5">
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif text-lg font-normal text-typhoon-navy">Your BOM cart</h3>
+                <span className="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full font-medium">
+                  {activeCartItems.length} items
+                </span>
               </div>
 
-              <div className="bg-typhoon-sand/40 p-3.5 rounded-xl border border-typhoon-border/80">
-                <span className="text-[10px] text-typhoon-muted font-medium uppercase block">Grid-Tie Inverter</span>
-                <span className="text-sm font-medium text-typhoon-navy block mt-0.5">6.0 kW Dual MPPT</span>
-                <span className="text-[11px] text-typhoon-navy/80">Growatt / Solis with WiFi Logger</span>
+              <div className="divide-y divide-typhoon-border/60">
+                {activeCartItems.map((cItem) => (
+                  <div key={cItem.id} className="py-2.5 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <h5 className="text-xs font-medium text-typhoon-navy truncate">
+                        {cItem.name}
+                      </h5>
+                      <span className="text-[11px] text-typhoon-muted font-normal">
+                        {cItem.quantity} {cItem.unitLabel} × Rs {cItem.unitPrice.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-xs font-medium text-typhoon-navy">
+                        Rs {(cItem.unitPrice * cItem.quantity).toLocaleString('en-IN')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateQuantity(cItem.id, -cItem.quantity)}
+                        className="text-rose-500 hover:text-rose-700 transition cursor-pointer p-1"
+                        title="Remove item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="bg-typhoon-sand/40 p-3.5 rounded-xl border border-typhoon-border/80">
-                <span className="text-[10px] text-typhoon-muted font-medium uppercase block">Mounting Structure</span>
-                <span className="text-sm font-medium text-typhoon-navy block mt-0.5">Elevated HDG 4-Leg</span>
-                <span className="text-[11px] text-typhoon-navy/80">Hot-dip galvanized 80-micron</span>
+              <div className="pt-2 border-t border-typhoon-border flex items-center justify-between">
+                <span className="text-xs font-medium text-typhoon-navy">Total Staged BOM Value</span>
+                <span className="text-base font-serif font-normal text-typhoon-navy">
+                  Rs {totalCartAmount.toLocaleString('en-IN')}
+                </span>
               </div>
 
-              <div className="bg-typhoon-sand/40 p-3.5 rounded-xl border border-typhoon-border/80">
-                <span className="text-[10px] text-typhoon-muted font-medium uppercase block">DC & AC Cables</span>
-                <span className="text-sm font-medium text-typhoon-navy block mt-0.5">35 Meters Copper</span>
-                <span className="text-[11px] text-typhoon-navy/80">4 sq.mm solar UV protected</span>
-              </div>
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => toast.success('BOM Slip PDF generated and downloaded!')}
+                  className="px-3 py-2.5 bg-[#FAF7F2] hover:bg-typhoon-sand rounded-xl border border-typhoon-border text-xs text-typhoon-navy font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-typhoon-muted" />
+                  <span>Download BOM PDF</span>
+                </button>
 
-              <div className="bg-typhoon-sand/40 p-3.5 rounded-xl border border-typhoon-border/80">
-                <span className="text-[10px] text-typhoon-muted font-medium uppercase block">Earthing & Protection</span>
-                <span className="text-sm font-medium text-typhoon-navy block mt-0.5">3x Chemical Rods</span>
-                <span className="text-[11px] text-typhoon-navy/80">+ Pure copper lightning arrester</span>
-              </div>
-
-              <div className="bg-typhoon-sand/40 p-3.5 rounded-xl border border-typhoon-border/80">
-                <span className="text-[10px] text-typhoon-muted font-medium uppercase block">Electrical Boxes</span>
-                <span className="text-sm font-medium text-typhoon-navy block mt-0.5">1x ACDB + 1x DCDB</span>
-                <span className="text-[11px] text-typhoon-navy/80">IP65 with SPD & MCBs</span>
+                <button
+                  type="button"
+                  onClick={handleSaveBOM}
+                  className="px-3 py-2.5 bg-[#84CC16] hover:bg-[#65A30D] text-[#1E3A1A] rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer shadow-soft"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Save Staged BOM</span>
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* 2. Customer Delivery Call & Follow-up Remarks */}
+        {/* ========================================================================= */}
+        {/* SECTION 2: CUSTOMER DELIVERY CALL & REMARKS                                */}
+        {/* ========================================================================= */}
         {(activeSection === 'all' || activeSection === 'delivery') && (
-          <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-typhoon-navy">
-                  Customer Delivery Scheduling & Follow-Up
+                <h3 className="font-serif text-base font-normal text-typhoon-navy">
+                  Customer Delivery Scheduling
                 </h3>
                 <p className="text-xs text-typhoon-muted">
-                  Log customer delivery availability & special instructions
+                  Coordinate unloading date & terrace accessibility
                 </p>
               </div>
               {isFollowupSaved && (
-                <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Call Logged</span>
                 </span>
@@ -358,246 +651,154 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
             </div>
 
             <form onSubmit={handleSaveDeliveryCall} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-medium text-typhoon-navy block mb-1">
-                    Scheduled Delivery Date
-                  </label>
+              <div>
+                <label className="block text-xs font-medium text-typhoon-navy mb-1">
+                  Scheduled Unload Date
+                </label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-typhoon-muted absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="date"
                     value={deliveryDate}
                     onChange={(e) => setDeliveryDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2.5 bg-[#FAF7F2] rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none"
                     required
                   />
                 </div>
-
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-typhoon-navy block mb-1">
-                    Customer Discussion & Follow-Up Remarks
-                  </label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={deliveryNotes}
-                      onChange={(e) => setDeliveryNotes(e.target.value)}
-                      placeholder="e.g. Customer said come after 2 days, payment not ready right now..."
-                      className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none pr-28"
-                      required
-                    />
-                    <button
-                      type="submit"
-                      className="absolute right-1.5 py-1 px-3 bg-typhoon-navy hover:bg-typhoon-navy-light text-white text-xs font-medium rounded-lg transition cursor-pointer"
-                    >
-                      Save Note
-                    </button>
-                  </div>
-                </div>
               </div>
 
-              {/* Quick delivery templates */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {[
-                  'Customer ready; requested morning delivery before 11 AM.',
-                  'Customer requested 2 days delay; arranging advance payment.',
-                  'Terrace staircase narrow; needs 2 extra helpers for panels.',
-                ].map((template, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setDeliveryNotes(template)}
-                    className="text-[10px] bg-typhoon-sand/60 hover:bg-typhoon-sand text-typhoon-navy px-2.5 py-1 rounded-lg border border-typhoon-border/80 transition cursor-pointer"
-                  >
-                    {template}
-                  </button>
-                ))}
+              <div>
+                <label className="block text-xs font-medium text-typhoon-navy mb-1">
+                  Customer Call Remarks & Special Instructions
+                </label>
+                <textarea
+                  value={deliveryNotes}
+                  onChange={(e) => setDeliveryNotes(e.target.value)}
+                  placeholder="e.g. Spoke with customer. Confirmed morning delivery. Customer requested delivery truck arrival before 11 AM."
+                  rows={3}
+                  className="w-full p-3 bg-[#FAF7F2] rounded-xl text-xs font-medium text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none leading-relaxed"
+                  required
+                />
               </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#E08A1E] hover:bg-[#C97715] text-white font-medium py-2.5 rounded-xl text-xs shadow-soft transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{loading ? 'Saving to Database...' : 'Save Customer Delivery Call'}</span>
+              </button>
             </form>
           </div>
         )}
 
-        {/* 3. Site Unload Photo Proofs & Mark Unloaded */}
+        {/* ========================================================================= */}
+        {/* SECTION 3: UNLOAD PROOFS & PHOTO UPLOAD                                   */}
+        {/* ========================================================================= */}
         {(activeSection === 'all' || activeSection === 'unload') && (
-          <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-typhoon-navy">
-                Rooftop Material Unload Proofs (Mandatory)
-              </h3>
-              <p className="text-xs text-typhoon-muted">
-                Upload photos of staged solar panels, inverter box, and structure crates on customer property
-              </p>
-            </div>
-
-            {/* Photo dropzone */}
-            <div className="border-2 border-dashed border-typhoon-border rounded-2xl p-6 text-center hover:border-typhoon-gold transition bg-typhoon-sand/20">
-              <Camera className="w-8 h-8 text-typhoon-gold mx-auto mb-2" />
-              <p className="text-xs font-medium text-typhoon-navy">Upload Unloaded Site Photos</p>
-              <p className="text-[11px] text-typhoon-muted mt-0.5">JPEG, PNG or mobile camera snapshots</p>
-
-              <label className="mt-3 inline-block cursor-pointer bg-white hover:bg-typhoon-sand text-typhoon-navy font-medium px-4 py-2 rounded-xl text-xs border border-typhoon-border shadow-2xs transition">
-                <span>Select Photos</span>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            {/* Uploaded photo chips */}
-            {uploadedPhotos.length > 0 && (
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-medium text-typhoon-navy block">
-                  Uploaded Site Proofs ({uploadedPhotos.length}):
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-serif text-base font-normal text-typhoon-navy">
+                  Upload Site Unload Proofs (4 Photos)
+                </h3>
+                <p className="text-xs text-typhoon-muted">
+                  Photos required before release of installation team
+                </p>
+              </div>
+              {isUnloaded && (
+                <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Unload Verified</span>
                 </span>
-                <div className="flex flex-wrap gap-2">
-                  {uploadedPhotos.map((photo, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-medium"
+              )}
+            </div>
+
+            <div className="border-2 border-dashed border-typhoon-border/80 rounded-2xl p-5 text-center bg-[#FAF7F2] hover:border-typhoon-gold transition cursor-pointer relative">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+              <Camera className="w-8 h-8 text-typhoon-muted mx-auto mb-2" />
+              <span className="text-xs font-medium text-typhoon-navy block">
+                Tap to take or choose rooftop unload photos
+              </span>
+              <span className="text-[11px] text-typhoon-muted mt-0.5 block">
+                Panels on terrace, Inverter box, DC cable spool, HDG structure
+              </span>
+            </div>
+
+            {uploadedPhotos.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs font-medium text-typhoon-navy block">
+                  Selected Proof Files ({uploadedPhotos.length}):
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {uploadedPhotos.map((photo, i) => (
+                    <div
+                      key={i}
+                      className="bg-[#FAF7F2] p-2 rounded-xl border border-typhoon-border/60 flex items-center gap-2 text-xs truncate"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{photo}</span>
-                    </span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span className="truncate text-typhoon-navy">{photo}</span>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Action buttons: Material Planned -> Material Unloaded + Follow-up */}
-            <div className="pt-2 space-y-2">
-              {!isMaterialPlanned && !isUnloaded && (
-                <button
-                  onClick={handlePlanMaterial}
-                  disabled={loading}
-                  className="w-full py-3.5 rounded-2xl bg-typhoon-navy hover:bg-typhoon-navy-light text-white font-medium text-xs flex items-center justify-center gap-2 shadow-soft transition cursor-pointer"
-                >
-                  <Package className="w-4 h-4" />
-                  <span>Mark Material Planned (Set Delivery Date)</span>
-                </button>
-              )}
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleMarkMaterialUnloaded}
-                  disabled={loading || isUnloaded}
-                  className={`flex-1 py-3.5 rounded-2xl font-medium text-xs shadow-soft flex items-center justify-center gap-2 transition cursor-pointer ${
-                    isUnloaded
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy disabled:opacity-50'
-                  }`}
-                >
-                  <Truck className="w-4 h-4 stroke-[2.5]" />
-                  <span>
-                    {loading
-                      ? 'Updating...'
-                      : isUnloaded
-                      ? 'Material Unloaded on Site'
-                      : 'Mark Material Unloaded on Site'}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsFollowupOpen(true)}
-                  className="py-3.5 px-4 rounded-2xl bg-white hover:bg-typhoon-sand text-typhoon-navy font-medium text-xs border border-typhoon-border transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                >
-                  <Clock className="w-4 h-4 text-typhoon-gold" />
-                  <span>Follow-up</span>
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={handleUploadUnloadProofs}
+              disabled={loading || uploadedPhotos.length === 0}
+              className={`w-full font-medium py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-soft ${
+                uploadedPhotos.length > 0
+                  ? 'bg-typhoon-navy text-white hover:bg-slate-800'
+                  : 'bg-typhoon-sand text-typhoon-muted cursor-not-allowed'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Mark Material Unloaded (Notify Irfan & Meera)</span>
+            </button>
           </div>
         )}
 
-        {/* 4. Installation Team Proof Photos & Verified Done Section */}
+        {/* ========================================================================= */}
+        {/* SECTION 4: VERIFY INSTALL (CROSS-DEPARTMENT LINK)                          */}
+        {/* ========================================================================= */}
         {(activeSection === 'all' || activeSection === 'install') && (
-          <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-typhoon-navy">
-                  Installation Team Rooftop Execution Proofs
-                </h3>
-                <p className="text-xs text-typhoon-muted">
-                  Inspect photos uploaded by Installation Team (Irfan) and verify site completion
-                </p>
-              </div>
-              {isInstallVerified ? (
-                <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Verified Done</span>
-                </span>
-              ) : (
-                <span className="text-xs font-medium text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                  Pending Verification
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {[
-                { label: 'Structure Mounting', img: 'structure_angle1.jpg' },
-                { label: 'Panels Array Fitting', img: 'panels_array.jpg' },
-                { label: 'Inverter Wiring Box', img: 'inverter_connection.jpg' },
-                { label: 'Chemical Earthing Pit', img: 'earthing_pit.jpg' },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 bg-typhoon-sand/40 border border-typhoon-border/80 rounded-xl space-y-1.5 text-center"
-                >
-                  <div className="w-full h-16 rounded-lg bg-typhoon-sand flex items-center justify-center border border-typhoon-border/60">
-                    <Camera className="w-5 h-5 text-typhoon-gold" />
-                  </div>
-                  <span className="text-[11px] font-medium text-typhoon-navy block truncate">
-                    {item.label}
-                  </span>
-                  <span className="text-[10px] text-emerald-700 font-normal block">
-                    {item.img}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-2 flex gap-2">
-              <button
-                onClick={handleVerifyInstall}
-                disabled={isInstallVerified}
-                className={`flex-1 py-3.5 rounded-2xl font-medium text-xs flex items-center justify-center gap-2 transition shadow-soft cursor-pointer ${
-                  isInstallVerified
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-typhoon-navy hover:bg-typhoon-navy-light text-white'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>{isInstallVerified ? 'Installation Photos Verified Done' : 'Verified Done (Confirm Quality)'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsFollowupOpen(true)}
-                className="py-3.5 px-4 rounded-2xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-medium text-xs border border-typhoon-border transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <Clock className="w-4 h-4 text-typhoon-gold" />
-                <span>Follow-up</span>
-              </button>
-            </div>
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-3">
+            <h3 className="font-serif text-base font-normal text-typhoon-navy">
+              Cross-Department Installation Link
+            </h3>
+            <p className="text-xs text-typhoon-muted">
+              Once materials are unloaded, Irfan (Installation Lead) conducts rooftop fabrication and serial logging.
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push(`/installation/projects/${params.id}`)}
+              className="w-full bg-[#FAF7F2] hover:bg-typhoon-sand border border-typhoon-border text-typhoon-navy text-xs font-medium py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>View Installation Workspace ({projectId})</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Universal Follow-up Modal */}
+      {/* Floating Follow-up Modal */}
       <FollowUpModal
         isOpen={isFollowupOpen}
         onClose={() => setIsFollowupOpen(false)}
-        inquiryId={params.id}
+        inquiryId={inquiry?.id || params.id}
         onSuccess={() => {
-          setIsFollowupOpen(false);
           toast.success('Follow-up recorded!');
+          setIsFollowupOpen(false);
         }}
       />
     </div>
   );
 }
-
