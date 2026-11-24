@@ -26,39 +26,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSignOut,
 }) => {
   const theme = getRoleTheme(roleName);
-  const sColor = theme.hex.cardDarkBg || '#0B192C';
-  const aColor = theme.hex.accentBg || '#F5A623';
-  const onColor = theme.hex.accentTextColor || '#FFFFFF';
+  const brandNavy = '#0E2038';
+  const brandGold = '#F5A623';
 
   const renderIcon = (name: string, isActive: boolean) => {
-    const cls = `w-4 h-4 ${isActive ? '' : 'text-white/70'}`;
-    const activeStyle = isActive ? { color: onColor } : undefined;
+    const cls = `w-4 h-4 ${isActive ? 'text-[#0E2038]' : 'text-white/70'}`;
     switch (name) {
       case 'dashboard':
       case 'inquiries':
-        return <LayoutDashboard className={cls} style={activeStyle} />;
+        return <LayoutDashboard className={cls} />;
       case 'team':
-        return <Users className={cls} style={activeStyle} />;
+        return <Users className={cls} />;
       case 'portal':
-        return <FileText className={cls} style={activeStyle} />;
+        return <FileText className={cls} />;
       case 'material':
-        return <Package className={cls} style={activeStyle} />;
+        return <Package className={cls} />;
       case 'install':
       case 'service':
-        return <Wrench className={cls} style={activeStyle} />;
+        return <Wrench className={cls} />;
       case 'accounts':
-        return <CreditCard className={cls} style={activeStyle} />;
+        return <CreditCard className={cls} />;
       default:
-        return <HelpCircle className={cls} style={activeStyle} />;
+        return <HelpCircle className={cls} />;
     }
   };
 
   return (
     <aside
       style={{
-        backgroundColor: sColor,
+        backgroundColor: brandNavy,
       }}
-      className="w-[240px] flex flex-col justify-between h-screen fixed left-0 top-0 text-white z-40 border-r border-white/10 transition-colors duration-300"
+      className="w-[240px] flex flex-col justify-between h-screen fixed left-0 top-0 text-white z-40 border-r border-white/10"
     >
       {/* Brand Header */}
       <div>
@@ -70,9 +68,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           />
           <span
             style={{
-              backgroundColor: `color-mix(in srgb, ${aColor} 20%, transparent)`,
-              color: aColor,
-              borderColor: `color-mix(in srgb, ${aColor} 30%, transparent)`,
+              backgroundColor: 'rgba(245, 166, 35, 0.15)',
+              color: brandGold,
+              borderColor: 'rgba(245, 166, 35, 0.3)',
             }}
             className="text-[10px] uppercase font-medium px-2 py-0.5 rounded-full border"
           >
@@ -91,16 +89,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 style={
                   isActive
                     ? {
-                        backgroundColor: aColor,
-                        color: onColor,
-                        boxShadow: `0 4px 14px color-mix(in srgb, ${aColor} 35%, transparent)`,
+                        backgroundColor: brandGold,
+                        color: '#0E2038',
+                        boxShadow: '0 4px 14px rgba(245, 166, 35, 0.35)',
                       }
                     : undefined
                 }
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                   isActive
-                    ? ''
-                    : 'text-white/70 hover:bg-white/5 hover:text-white'
+                    ? 'font-medium'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 {renderIcon(item.iconName, isActive)}

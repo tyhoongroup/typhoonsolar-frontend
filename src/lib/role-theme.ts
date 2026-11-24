@@ -367,16 +367,26 @@ export const ROLE_THEMES: Record<string, RoleTheme> = {
 };
 
 export function getRoleTheme(role?: string): RoleTheme {
-  if (!role) return ROLE_THEMES.OPS_MANAGER;
-  const upper = role.toUpperCase();
-  if (ROLE_THEMES[upper]) return ROLE_THEMES[upper];
-  if (upper.includes('MATERIAL')) return ROLE_THEMES.MATERIAL_MANAGER;
-  if (upper.includes('INSTALL')) return ROLE_THEMES.INSTALLATION_TEAM;
-  if (upper.includes('ACCOUNT')) return ROLE_THEMES.ACCOUNTANT;
-  if (upper.includes('PORTAL')) return ROLE_THEMES.PORTAL_USER;
-  if (upper.includes('SALES')) return ROLE_THEMES.SALESPERSON;
-  if (upper.includes('OPS') || upper.includes('OPERAT') || upper.includes('CONTROL') || upper.includes('ADMIN')) {
+  const base = (() => {
+    if (!role) return ROLE_THEMES.OPS_MANAGER;
+    const upper = role.toUpperCase();
+    if (ROLE_THEMES[upper]) return ROLE_THEMES[upper];
+    if (upper.includes('MATERIAL')) return ROLE_THEMES.MATERIAL_MANAGER;
+    if (upper.includes('INSTALL')) return ROLE_THEMES.INSTALLATION_TEAM;
+    if (upper.includes('ACCOUNT')) return ROLE_THEMES.ACCOUNTANT;
+    if (upper.includes('PORTAL')) return ROLE_THEMES.PORTAL_USER;
+    if (upper.includes('SALES')) return ROLE_THEMES.SALESPERSON;
+    if (upper.includes('OPS') || upper.includes('OPERAT') || upper.includes('CONTROL') || upper.includes('ADMIN')) {
+      return ROLE_THEMES.OPS_MANAGER;
+    }
     return ROLE_THEMES.OPS_MANAGER;
-  }
-  return ROLE_THEMES.OPS_MANAGER;
+  })();
+
+  return {
+    ...base,
+    hex: {
+      ...base.hex,
+      logoSrc: '/images/typhoon-logo.png',
+    },
+  };
 }

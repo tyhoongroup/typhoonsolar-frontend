@@ -44,6 +44,7 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
   const [loading, setLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isFollowupOpen, setIsFollowupOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<'all' | 'site' | 'serials' | 'photos' | 'complete'>('all');
 
   useEffect(() => {
     async function loadData() {
@@ -186,231 +187,264 @@ export default function InstallationExecutionPage({ params }: { params: { id: st
       </div>
 
       {/* Main Container */}
-      <div className="max-w-4xl mx-auto px-4 lg:px-6 -mt-3 space-y-5">
-        {/* Site Location & Arrived Button Card */}
-        <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-typhoon-gold shrink-0" />
-              <h3 className="text-sm font-bold text-typhoon-navy">
-                B-42 Shivalik Residency, Anand
-              </h3>
-            </div>
-            <p className="text-xs text-typhoon-muted mt-1">
-              6.0 kW · 12x 550W Panels · Single Phase · Flat RCC Terrace
-            </p>
-          </div>
-
-          <div>
-            {hasArrived ? (
-              <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Arrived at {arrivalTime}</span>
-              </span>
-            ) : (
-              <button
-                onClick={handleArrive}
-                className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-bold px-5 py-2.5 rounded-xl text-xs shadow-soft transition flex items-center gap-1.5"
-              >
-                <Clock className="w-4 h-4" />
-                <span>Mark Arrived on Location</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Mandatory Form */}
-        <form onSubmit={handleFinishInstallation} className="space-y-5">
-          {/* 1. Mandatory Inverter & Panel Serial Numbers */}
-          <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
-            <div className="flex items-center gap-2">
-              <Barcode className="w-4 h-4 text-typhoon-gold" />
-              <h3 className="text-sm font-bold text-typhoon-navy">
-                Mandatory Equipment Serial Numbers (For DISCOM CEI File)
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Inverter Serial Number <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={inverterSerial}
-                  onChange={(e) => setInverterSerial(e.target.value)}
-                  placeholder="e.g. GW-2026-6K-99281"
-                  className="w-full px-4 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-bold text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-typhoon-navy block mb-1">
-                  Panel Barcodes / Serials (12 Panels) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={panelBarcodes}
-                  onChange={(e) => setPanelBarcodes(e.target.value)}
-                  placeholder="e.g. 550W-TYP-001 through 012"
-                  className="w-full px-4 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-bold text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Mandatory Installation Photo Proofs */}
-          <div className="bg-white rounded-2xl p-6 border border-typhoon-border shadow-soft space-y-4">
-            <div className="flex items-center gap-2">
-              <Camera className="w-4 h-4 text-typhoon-gold" />
-              <h3 className="text-sm font-bold text-typhoon-navy">
-                Mandatory Installation Proof Photos (4 Angles)
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Photo 1: Structure */}
-              <div className="p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
-                <span className="text-xs font-bold text-typhoon-navy block">
-                  1. Elevated Structure Mounting
-                </span>
-                <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-bold rounded-lg border border-typhoon-border shadow-2xs">
-                  <span>Upload Photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setStructurePhotos([e.target.files[0].name]);
-                        toast.success('Structure photo saved!');
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-                {structurePhotos.length > 0 && (
-                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{structurePhotos[0]}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Photo 2: Panel Array */}
-              <div className="p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
-                <span className="text-xs font-bold text-typhoon-navy block">
-                  2. Solar Panel Array (12 Panels)
-                </span>
-                <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-bold rounded-lg border border-typhoon-border shadow-2xs">
-                  <span>Upload Photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setPanelsPhotos([e.target.files[0].name]);
-                        toast.success('Panel array photo saved!');
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-                {panelsPhotos.length > 0 && (
-                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{panelsPhotos[0]}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Photo 3: Inverter & ACDB/DCDB */}
-              <div className="p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
-                <span className="text-xs font-bold text-typhoon-navy block">
-                  3. Inverter Mounting & ACDB/DCDB
-                </span>
-                <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-bold rounded-lg border border-typhoon-border shadow-2xs">
-                  <span>Upload Photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setInverterPhotos([e.target.files[0].name]);
-                        toast.success('Inverter photo saved!');
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-                {inverterPhotos.length > 0 && (
-                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{inverterPhotos[0]}</span>
-                  </p>
-                )}
-              </div>
-
-              {/* Photo 4: Earthing Pit */}
-              <div className="p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
-                <span className="text-xs font-bold text-typhoon-navy block">
-                  4. Earthing Pit & Lightning Rod
-                </span>
-                <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-bold rounded-lg border border-typhoon-border shadow-2xs">
-                  <span>Upload Photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setEarthingPhotos([e.target.files[0].name]);
-                        toast.success('Earthing photo saved!');
-                      }
-                    }}
-                    className="hidden"
-                  />
-                </label>
-                {earthingPhotos.length > 0 && (
-                  <p className="text-xs text-emerald-700 font-semibold flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{earthingPhotos[0]}</span>
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Action Button: Mark Installation Done & Follow-up */}
-          <div className="flex gap-2">
+      <div className="max-w-4xl mx-auto px-4 lg:px-6 -mt-3 space-y-4">
+        {/* Section Navigation Tabs (Quick section switcher buttons) */}
+        <div className="bg-white p-2 rounded-2xl border border-typhoon-border shadow-soft flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap shrink-0">
+          {[
+            { id: 'all', label: 'All Sections' },
+            { id: 'site', label: '1. Site & Location' },
+            { id: 'serials', label: '2. Equipment Serials' },
+            { id: 'photos', label: '3. Photo Proofs (4)' },
+            { id: 'complete', label: '4. Checklist & Submit' },
+          ].map((sec) => (
             <button
-              type="submit"
-              disabled={loading || isCompleted}
-              className={`flex-1 py-4 rounded-2xl font-bold text-sm shadow-soft flex items-center justify-center gap-2 transition ${
-                isCompleted
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy disabled:opacity-50'
+              key={sec.id}
+              type="button"
+              onClick={() => setActiveSection(sec.id as any)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer shrink-0 ${
+                activeSection === sec.id
+                  ? 'bg-typhoon-navy text-white shadow-soft'
+                  : 'bg-typhoon-sand/40 text-typhoon-navy/80 hover:bg-typhoon-sand border border-typhoon-border/60'
               }`}
             >
-              <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-              <span>
-                {loading
-                  ? 'Finalizing Installation...'
-                  : isCompleted
-                  ? 'Installation Complete'
-                  : 'Done (Notify Portal for Meter File)'}
-              </span>
+              {sec.label}
             </button>
+          ))}
+        </div>
 
-            <button
-              type="button"
-              onClick={() => setIsFollowupOpen(true)}
-              className="py-4 px-5 rounded-2xl bg-white hover:bg-typhoon-sand text-typhoon-navy font-bold text-xs border border-typhoon-border shadow-soft transition flex items-center gap-1.5"
-            >
-              <Clock className="w-4 h-4 text-typhoon-gold" />
-              <span>Follow-up</span>
-            </button>
+        {/* Site Location & Arrived Button Card */}
+        {(activeSection === 'all' || activeSection === 'site') && (
+          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-typhoon-gold shrink-0" />
+                <h3 className="text-sm font-medium text-typhoon-navy">
+                  B-42 Shivalik Residency, Anand
+                </h3>
+              </div>
+              <p className="text-xs text-typhoon-muted mt-1 font-normal">
+                6.0 kW · 12x 550W Panels · Single Phase · Flat RCC Terrace
+              </p>
+            </div>
+
+            <div>
+              {hasArrived ? (
+                <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Arrived at {arrivalTime}</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleArrive}
+                  className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-medium px-5 py-2.5 rounded-xl text-xs shadow-soft transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>Mark Arrived on Location</span>
+                </button>
+              )}
+            </div>
           </div>
+        )}
+
+        {/* Mandatory Form */}
+        <form onSubmit={handleFinishInstallation} className="space-y-4">
+          {/* 1. Mandatory Inverter & Panel Serial Numbers */}
+          {(activeSection === 'all' || activeSection === 'serials') && (
+            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft space-y-4">
+              <div className="flex items-center gap-2">
+                <Barcode className="w-4 h-4 text-typhoon-gold" />
+                <h3 className="text-sm font-medium text-typhoon-navy">
+                  Mandatory Equipment Serial Numbers (For DISCOM CEI File)
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-typhoon-navy block mb-1">
+                    Inverter Serial Number <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={inverterSerial}
+                    onChange={(e) => setInverterSerial(e.target.value)}
+                    placeholder="e.g. GW-2026-6K-99281"
+                    className="w-full px-4 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-medium text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-typhoon-navy block mb-1">
+                    Panel Barcodes / Serials (12 Panels) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={panelBarcodes}
+                    onChange={(e) => setPanelBarcodes(e.target.value)}
+                    placeholder="e.g. 550W-TYP-001 through 012"
+                    className="w-full px-4 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-medium text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. Mandatory Installation Photo Proofs */}
+          {(activeSection === 'all' || activeSection === 'photos') && (
+            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft space-y-4">
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4 text-typhoon-gold" />
+                <h3 className="text-sm font-medium text-typhoon-navy">
+                  Mandatory Installation Proof Photos (4 Angles)
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {/* Photo 1: Structure */}
+                <div className="p-3 sm:p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
+                  <span className="text-xs font-medium text-typhoon-navy block">
+                    1. Elevated Structure Mounting
+                  </span>
+                  <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-medium rounded-lg border border-typhoon-border shadow-2xs">
+                    <span>Upload Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          setStructurePhotos([e.target.files[0].name]);
+                          toast.success('Structure photo saved!');
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  {structurePhotos.length > 0 && (
+                    <p className="text-xs text-emerald-700 font-medium flex items-center justify-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{structurePhotos[0]}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Photo 2: Panel Array */}
+                <div className="p-3 sm:p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
+                  <span className="text-xs font-medium text-typhoon-navy block">
+                    2. Solar Panel Array (12 Panels)
+                  </span>
+                  <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-medium rounded-lg border border-typhoon-border shadow-2xs">
+                    <span>Upload Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          setPanelsPhotos([e.target.files[0].name]);
+                          toast.success('Panel array photo saved!');
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  {panelsPhotos.length > 0 && (
+                    <p className="text-xs text-emerald-700 font-medium flex items-center justify-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{panelsPhotos[0]}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Photo 3: Inverter & ACDB/DCDB */}
+                <div className="p-3 sm:p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
+                  <span className="text-xs font-medium text-typhoon-navy block">
+                    3. Inverter Mounting & ACDB/DCDB
+                  </span>
+                  <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-medium rounded-lg border border-typhoon-border shadow-2xs">
+                    <span>Upload Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          setInverterPhotos([e.target.files[0].name]);
+                          toast.success('Inverter photo saved!');
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  {inverterPhotos.length > 0 && (
+                    <p className="text-xs text-emerald-700 font-medium flex items-center justify-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{inverterPhotos[0]}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Photo 4: Earthing Pit */}
+                <div className="p-3 sm:p-4 bg-typhoon-sand/30 border border-typhoon-border rounded-xl text-center space-y-2">
+                  <span className="text-xs font-medium text-typhoon-navy block">
+                    4. Earthing Pit & Lightning Rod
+                  </span>
+                  <label className="cursor-pointer inline-block px-3 py-1.5 bg-white hover:bg-typhoon-sand text-typhoon-navy text-xs font-medium rounded-lg border border-typhoon-border shadow-2xs">
+                    <span>Upload Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          setEarthingPhotos([e.target.files[0].name]);
+                          toast.success('Earthing photo saved!');
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                  {earthingPhotos.length > 0 && (
+                    <p className="text-xs text-emerald-700 font-medium flex items-center justify-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{earthingPhotos[0]}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Button: Mark Installation Done & Follow-up */}
+          {(activeSection === 'all' || activeSection === 'complete') && (
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                type="submit"
+                disabled={loading || isCompleted}
+                className={`flex-1 py-3.5 rounded-2xl font-medium text-sm shadow-soft flex items-center justify-center gap-2 transition cursor-pointer ${
+                  isCompleted
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy disabled:opacity-50'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                <span>
+                  {loading
+                    ? 'Finalizing Installation...'
+                    : isCompleted
+                    ? 'Installation Complete'
+                    : 'Done (Notify Portal for Meter File)'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFollowupOpen(true)}
+                className="py-3.5 px-5 rounded-2xl bg-white hover:bg-typhoon-sand text-typhoon-navy font-medium text-xs border border-typhoon-border shadow-soft transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Clock className="w-4 h-4 text-typhoon-gold" />
+                <span>Follow-up</span>
+              </button>
+            </div>
+          )}
         </form>
       </div>
 
