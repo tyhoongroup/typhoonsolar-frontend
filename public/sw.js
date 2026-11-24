@@ -1,5 +1,5 @@
-// Typhoon Solar - Unified Service Worker (PWA Offline Caching + Background Push Notifications)
-const CACHE_NAME = 'typhoon-pwa-v3';
+// Typhoon Solar - Unified Service Worker (PWA Offline Caching + WebAPK + Background Push)
+const CACHE_NAME = 'typhoon-pwa-v4';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -12,31 +12,33 @@ const STATIC_ASSETS = [
 
 // 1. Install Event: Cache Shell
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('[SW] Cache addAll skipped failed items:', err);
+        console.warn('[SW] Cache addAll warning:', err);
       });
     })
   );
-  self.skipWaiting();
 });
 
-// 2. Activate Event: Clean up stale caches
+// 2. Activate Event: Claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        })
-      )
-    )
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((keys) =>
+        Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) return caches.delete(key);
+          })
+        )
+      ),
+    ])
   );
-  self.clients.claim();
 });
 
-// 3. Fetch Event: Cache first for static assets, network-first/bypass for APIs
+// 3. Fetch Event: Standard WebAPK fetch handler
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -45,7 +47,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for images, fonts, and static assets
+  // Network first for HTML navigation so users get latest updates, fallback to cache
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/')))
+    );
+    return;
+  }
+
+  // Cache-first for static icons, images, and static assets
   if (
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/images/') ||
@@ -67,26 +85,9 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-
-  // Stale-while-revalidate for HTML pages
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return networkResponse;
-        })
-        .catch(() => cached);
-
-      return cached || fetchPromise;
-    })
-  );
 });
 
-// 4. Push Event: Show OS Notification even when browser is closed or backgrounded
+// 4. Push Event: Android system notification
 self.addEventListener('push', (event) => {
   let data = {};
   try {
@@ -106,15 +107,12 @@ self.addEventListener('push', (event) => {
     data: {
       url: data.url || data.data?.url || '/dashboard',
     },
-    actions: [
-      { action: 'open', title: 'Open App' },
-    ],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// 5. Notification Click Event: Focus or Open App Window
+// 5. Notification Click Event
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const targetUrl = event.notification.data?.url || '/dashboard';
