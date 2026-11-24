@@ -275,6 +275,10 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
         {(() => {
           const isDocsUploaded =
             isApplicationSubmitted ||
+            !!inquiry?.portalApplication?.docsSubmittedDate ||
+            !!inquiry?.portalApplication?.srNumber ||
+            !!srNumber ||
+            isSrSaved ||
             [
               'GOVT_DOCS_SUBMITTED',
               'SR_NUMBER_ISSUED',
@@ -291,6 +295,7 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
           const isSrIssued =
             isSrSaved ||
             !!srNumber ||
+            !!inquiry?.portalApplication?.srNumber ||
             [
               'SR_NUMBER_ISSUED',
               'MATERIAL_PLANNED',
@@ -325,9 +330,9 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                 {[
                   { id: 'all', label: 'All Active Steps' },
                   { id: 'kyc', label: '1. KYC Documents', done: isDocsUploaded },
-                  { id: 'sr', label: '2. DISCOM SR Number', done: isSrIssued, locked: !isDocsUploaded },
-                  { id: 'meter', label: '3. CEI & Net Meter', done: isMeterFileSubmitted, locked: !isInstallationCompleted },
-                  { id: 'subsidy', label: '4. Subsidy Claim', done: isSubsidyClaimed, locked: !isInstallationCompleted },
+                  { id: 'sr', label: '2. DISCOM SR Number', done: isSrIssued },
+                  { id: 'meter', label: '3. CEI & Net Meter', done: isMeterFileSubmitted },
+                  { id: 'subsidy', label: '4. Subsidy Claim', done: isSubsidyClaimed },
                 ].map((sec) => (
                   <button
                     key={sec.id}
@@ -336,14 +341,11 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
                       activeSection === sec.id
                         ? 'bg-typhoon-navy text-white shadow-soft'
-                        : sec.locked
-                        ? 'bg-typhoon-sand/30 text-typhoon-muted border border-typhoon-border/40 opacity-70'
                         : 'bg-typhoon-sand/40 text-typhoon-navy/80 hover:bg-typhoon-sand border border-typhoon-border/60'
                     }`}
                   >
                     <span>{sec.label}</span>
                     {sec.done && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
-                    {sec.locked && <Lock className="w-3 h-3 text-typhoon-muted" />}
                   </button>
                 ))}
               </div>
@@ -462,61 +464,53 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                 </div>
               )}
 
-              {/* 2. DISCOM Service Request (SR) Number Generation (Shows after docs are uploaded) */}
+              {/* 2. DISCOM Service Request (SR) Number Generation */}
               {(activeSection === 'all' || activeSection === 'sr') && (
-                isDocsUploaded ? (
-                  <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-typhoon-sand text-typhoon-navy text-[11px] font-medium flex items-center justify-center">
-                          2
-                        </span>
-                        <h3 className="text-sm font-medium text-typhoon-navy">
-                          DISCOM Service Request (SR) Number
-                        </h3>
-                      </div>
-                      <p className="text-xs text-typhoon-muted font-normal mt-1">
-                        Enter the approved SR number issued by DISCOM after technical feasibility verification
-                      </p>
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-typhoon-sand text-typhoon-navy text-[11px] font-medium flex items-center justify-center">
+                        2
+                      </span>
+                      <h3 className="text-sm font-medium text-typhoon-navy">
+                        DISCOM Service Request (SR) Number
+                      </h3>
                     </div>
-
-                    <form onSubmit={handleSaveSrNumber} className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="text"
-                        value={srNumber}
-                        onChange={(e) => setSrNumber(e.target.value)}
-                        placeholder="e.g. SR-GUJ-2026-98124"
-                        className="flex-1 px-4 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-medium text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                      />
-                      <button
-                        type="submit"
-                        className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-medium px-6 py-3 rounded-xl text-xs shadow-soft transition flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Send className="w-4 h-4" />
-                        <span>Save SR Number (Notify Material Team)</span>
-                      </button>
-                    </form>
-
                     {isSrIssued && (
-                      <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span>SR Number verified. Sohail Bhai (Material Manager) is notified for BOM staging & dispatch.</span>
-                      </p>
+                      <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>SR Verified</span>
+                      </span>
                     )}
                   </div>
-                ) : (
-                  <div className="bg-white/70 rounded-2xl p-5 border border-dashed border-typhoon-border text-center space-y-2 opacity-80">
-                    <div className="w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                    <h4 className="text-xs font-medium text-typhoon-navy">
-                      Step 2: DISCOM SR Number Locked
-                    </h4>
-                    <p className="text-[11px] text-typhoon-muted max-w-md mx-auto">
-                      First inspect the customer KYC documents above and tap <strong>"Docs Uploaded on Govt Portal"</strong>. Once submitted, you can enter the issued SR number here.
+                  <p className="text-xs text-typhoon-muted font-normal">
+                    Enter the approved SR number issued by DISCOM after technical feasibility verification
+                  </p>
+
+                  <form onSubmit={handleSaveSrNumber} className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={srNumber}
+                      onChange={(e) => setSrNumber(e.target.value)}
+                      placeholder="e.g. SR-GUJ-2026-98124"
+                      className="flex-1 px-4 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-medium text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-typhoon-gold hover:bg-typhoon-gold-dark text-typhoon-navy font-medium px-6 py-3 rounded-xl text-xs shadow-soft transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Save SR Number (Notify Material Team)</span>
+                    </button>
+                  </form>
+
+                  {isSrIssued && (
+                    <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>SR Number {srNumber || 'recorded'} verified. Sohail Bhai (Material Manager) is notified for BOM staging & dispatch.</span>
                     </p>
-                  </div>
-                )
+                  )}
+                </div>
               )}
 
               {/* 3. Rooftop Installation Verified Proof Photos & CEI Meter File */}
