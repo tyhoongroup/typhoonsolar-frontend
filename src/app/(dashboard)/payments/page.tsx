@@ -160,6 +160,9 @@ export default function PaymentsLedgerPage() {
       .catch(() => {});
   }, []);
 
+  const dueCount = projects.filter((p) => p.firstMilestoneStatus === 'DUE').length;
+  const paidCount = projects.filter((p) => p.firstMilestoneStatus === 'PAID').length;
+
   const filtered = projects.filter((p) => {
     const matchesSearch =
       p.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -173,45 +176,41 @@ export default function PaymentsLedgerPage() {
   });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-20">
+    <div className="min-h-screen bg-typhoon-sand pb-24 font-sans">
       {/* 1. Unified Responsive Header matching Home */}
       <Header
-        role={user?.role || 'OPS_MANAGER'}
+        role={user?.role || 'ACCOUNTANT'}
         initials={theme.tag}
-        roleTitle="Control tower"
-        subtitle="Customer Milestone Ledgers & Payment Collections"
+        roleTitle="Accounts & Finance"
+        subtitle="Customer Milestone Ledgers & Collections"
       />
 
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
-        {/* 2. Summary Tiles matching Home */}
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-1 space-y-4">
+        {/* 2. Summary Tiles matching Home - 3 responsive tiles */}
         <SummaryTiles
+          role={user?.role || 'ACCOUNTANT'}
           tiles={[
             {
-              icon: <IndianRupee className="w-4 h-4 text-typhoon-gold" />,
-              value: '₹9.70L',
-              label: 'Total order book',
-            },
-            {
               icon: <AlertCircle className="w-4 h-4 text-rose-600" />,
-              value: '₹2.20L',
-              label: '1st payment due (80%)',
-            },
-            {
-              icon: <Clock className="w-4 h-4 text-sky-600" />,
-              value: '₹1.51L',
-              label: 'Final balance (20%)',
+              value: String(dueCount),
+              label: '1st payment due',
             },
             {
               icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
-              value: '₹2.34L',
-              label: 'PM Surya Ghar DBT',
+              value: String(paidCount),
+              label: 'Collections done',
+            },
+            {
+              icon: <IndianRupee className="w-4 h-4 text-typhoon-gold" />,
+              value: String(projects.length),
+              label: 'Active ledgers',
             },
           ]}
         />
 
-        {/* Title row */}
-        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft">
-          <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
+        {/* Title row (Desktop only to keep mobile clean) */}
+        <div className="hidden md:block bg-white p-5 rounded-2xl border border-typhoon-border shadow-soft">
+          <h1 className="text-xl sm:text-2xl font-serif font-normal text-typhoon-navy tracking-tight">
             Accounts & Payment Collections
           </h1>
           <p className="text-xs text-typhoon-muted mt-0.5">
@@ -219,18 +218,18 @@ export default function PaymentsLedgerPage() {
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3">
+        {/* Filters & Search */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-typhoon-border shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5 text-xs">
             {[
-              { id: 'all', label: 'All Projects (3)' },
-              { id: 'due', label: '1st Payment Due (1)' },
-              { id: 'paid', label: 'Collections Done (2)' },
+              { id: 'all', label: `All Ledgers (${projects.length})` },
+              { id: 'due', label: `1st Payment Due (${dueCount})` },
+              { id: 'paid', label: `Collections Done (${paidCount})` },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl font-medium text-xs transition cursor-pointer ${
                   activeTab === tab.id
                     ? 'bg-typhoon-navy text-white shadow-soft'
                     : 'bg-typhoon-sand/40 text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
@@ -241,68 +240,80 @@ export default function PaymentsLedgerPage() {
             ))}
           </div>
 
-          <div className="relative flex items-center min-w-[240px]">
+          <div className="relative flex items-center min-w-[220px]">
             <Search className="w-4 h-4 text-typhoon-muted absolute left-3" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by customer or project ID..."
-              className="w-full pl-9 pr-3 py-2 bg-typhoon-sand/40 rounded-xl text-xs text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 bg-typhoon-sand/40 rounded-xl text-xs text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none font-sans"
             />
           </div>
         </div>
 
         {/* Ledger List */}
         <div className="space-y-3">
-          {filtered.map((proj) => (
-            <div
-              key={proj.id}
-              onClick={() => router.push(`/payments/${proj.inquiryCode}`)}
-              className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft hover:border-typhoon-gold transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy font-bold text-sm shrink-0">
-                  <CreditCard className="w-6 h-6 text-typhoon-gold" />
-                </div>
-
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-bold text-typhoon-navy group-hover:text-typhoon-gold transition-colors">
-                      {proj.id} · {proj.customerName}
-                    </h3>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        proj.firstMilestoneStatus === 'DUE'
-                          ? 'bg-rose-50 text-rose-700 border-rose-200'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      }`}
-                    >
-                      80% Milestone: {proj.firstMilestoneStatus === 'DUE' ? '₹' + proj.firstMilestoneAmount.toLocaleString('en-IN') + ' Due' : 'Paid'}
-                    </span>
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-2xl p-8 border border-typhoon-border text-center space-y-2">
+              <IndianRupee className="w-10 h-10 text-typhoon-muted mx-auto opacity-40" />
+              <h4 className="text-sm font-medium text-typhoon-navy">No payment records found</h4>
+              <p className="text-xs text-typhoon-muted max-w-sm mx-auto">
+                {activeTab === 'due'
+                  ? 'No customer projects with overdue milestone payments right now.'
+                  : 'No projects match your current search criteria.'}
+              </p>
+            </div>
+          ) : (
+            filtered.map((proj) => (
+              <div
+                key={proj.id}
+                onClick={() => router.push(`/payments/${proj.inquiryCode}`)}
+                className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft hover:border-typhoon-gold transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy font-medium text-sm shrink-0">
+                    <CreditCard className="w-6 h-6 text-typhoon-gold" />
                   </div>
 
-                  <p className="text-xs text-typhoon-muted mt-1">
-                    {proj.capacityKw} kW · {proj.city} · Deal Value: ₹{proj.totalDealAmount.toLocaleString('en-IN')} · Phone: {proj.phone}
-                  </p>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-medium text-typhoon-navy group-hover:text-typhoon-gold transition-colors">
+                        {proj.id} · {proj.customerName}
+                      </h3>
+                      <span
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
+                          proj.firstMilestoneStatus === 'DUE'
+                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}
+                      >
+                        80% Milestone: {proj.firstMilestoneStatus === 'DUE' ? '₹' + proj.firstMilestoneAmount.toLocaleString('en-IN') + ' Due' : 'Paid'}
+                      </span>
+                    </div>
 
-                  {proj.lastFollowupNote && (
-                    <p className="text-[11px] text-typhoon-navy bg-typhoon-sand/50 p-2 rounded-lg border border-typhoon-border/60 mt-2">
-                      <strong>Follow-up Note: </strong>
-                      <span className="italic">"{proj.lastFollowupNote}"</span>
+                    <p className="text-xs text-typhoon-muted mt-1">
+                      {proj.capacityKw} kW · {proj.city} · Deal Value: ₹{proj.totalDealAmount.toLocaleString('en-IN')} · Phone: {proj.phone}
                     </p>
-                  )}
+
+                    {proj.lastFollowupNote && (
+                      <p className="text-[11px] text-typhoon-navy bg-typhoon-sand/50 p-2 rounded-lg border border-typhoon-border/60 mt-2">
+                        <strong className="font-medium">Follow-up Note: </strong>
+                        <span className="italic">"{proj.lastFollowupNote}"</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end md:self-center">
+                  <span className="text-xs font-medium text-typhoon-gold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    <span>Record Payment</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </span>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 self-end md:self-center">
-                <span className="text-xs font-bold text-typhoon-gold group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                  <span>Record Payment</span>
-                  <ChevronRight className="w-4 h-4" />
-                </span>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

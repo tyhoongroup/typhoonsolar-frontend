@@ -462,7 +462,7 @@ export default function LoginPage() {
                     borderColor: '#F5A623',
                     color: '#F5A623',
                   }}
-                  className="w-22 h-22 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-normal shadow-md border-[2.5px] bg-[#0B192C]"
+                  className="w-18 h-22 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-normal shadow-md border-[2.5px] bg-[#0B192C]"
                 >
                   {savedProfile.role === 'OPS_MANAGER' ? 'AK' : activeTheme.tag}
                 </div>

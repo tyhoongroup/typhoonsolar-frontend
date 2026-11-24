@@ -156,6 +156,10 @@ export default function MaterialQueuePage() {
       .catch(() => {});
   }, []);
 
+  const pendingCount = projects.filter((p) => p.stage === 'PLANNING_PENDING').length;
+  const scheduledCount = projects.filter((p) => p.stage === 'DELIVERY_SCHEDULED').length;
+  const unloadedCount = projects.filter((p) => p.stage === 'UNLOADED').length;
+
   const filtered = projects.filter((p) => {
     const matchesSearch =
       p.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -170,45 +174,41 @@ export default function MaterialQueuePage() {
   });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-20">
+    <div className="min-h-screen bg-typhoon-sand pb-24 font-sans">
       {/* 1. Unified Responsive Header matching Home */}
       <Header
-        role={user?.role || 'OPS_MANAGER'}
+        role={user?.role || 'MATERIAL_MANAGER'}
         initials={theme.tag}
-        roleTitle="Control tower"
-        subtitle="Warehouse BOM Logistics & Terrace Unloading"
+        roleTitle="Warehouse & BOM"
+        subtitle="Logistics & Terrace Unloading"
       />
 
-      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-3 space-y-4">
-        {/* 2. Summary Tiles matching Home */}
+      <div className="max-w-6xl mx-auto px-4 lg:px-6 pt-1 space-y-4">
+        {/* 2. Summary Tiles matching Home - 3 responsive tiles */}
         <SummaryTiles
+          role={user?.role || 'MATERIAL_MANAGER'}
           tiles={[
             {
               icon: <Clock className="w-4 h-4 text-amber-600" />,
-              value: '1',
+              value: String(pendingCount),
               label: 'Planning pending',
             },
             {
               icon: <Truck className="w-4 h-4 text-sky-600" />,
-              value: '1',
+              value: String(scheduledCount),
               label: 'Delivery scheduled',
             },
             {
               icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
-              value: '1',
-              label: 'Unloaded on site',
-            },
-            {
-              icon: <Package className="w-4 h-4 text-typhoon-gold" />,
-              value: '42',
-              label: 'Panels in stock',
+              value: String(unloadedCount),
+              label: 'Verify proofs',
             },
           ]}
         />
 
-        {/* Title row */}
-        <div className="bg-white p-4 rounded-2xl border border-typhoon-border shadow-soft">
-          <h1 className="text-xl sm:text-2xl font-serif font-bold text-typhoon-navy tracking-tight">
+        {/* Title row (Desktop only to keep mobile clean) */}
+        <div className="hidden md:block bg-white p-5 rounded-2xl border border-typhoon-border shadow-soft">
+          <h1 className="text-xl sm:text-2xl font-serif font-normal text-typhoon-navy tracking-tight">
             Material Planning & Dispatch Queue
           </h1>
           <p className="text-xs text-typhoon-muted mt-0.5">
@@ -216,19 +216,19 @@ export default function MaterialQueuePage() {
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3">
+        {/* Filters & Search */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-typhoon-border shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5 text-xs">
             {[
-              { id: 'all', label: 'All Projects (3)' },
-              { id: 'pending', label: 'Planning Pending (1)' },
-              { id: 'scheduled', label: 'Delivery Scheduled (1)' },
-              { id: 'unloaded', label: 'Unloaded (1)' },
+              { id: 'all', label: `All (${projects.length})` },
+              { id: 'pending', label: `Planning (${pendingCount})` },
+              { id: 'scheduled', label: `Scheduled (${scheduledCount})` },
+              { id: 'unloaded', label: `Verify Proofs (${unloadedCount})` },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl font-medium text-xs transition cursor-pointer ${
                   activeTab === tab.id
                     ? 'bg-typhoon-navy text-white shadow-soft'
                     : 'bg-typhoon-sand/40 text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
@@ -239,66 +239,78 @@ export default function MaterialQueuePage() {
             ))}
           </div>
 
-          <div className="relative flex items-center min-w-[240px]">
+          <div className="relative flex items-center min-w-[220px]">
             <Search className="w-4 h-4 text-typhoon-muted absolute left-3" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by customer or SR no..."
-              className="w-full pl-9 pr-3 py-2 bg-typhoon-sand/40 rounded-xl text-xs text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none"
+              placeholder="Search customer or SR no..."
+              className="w-full pl-9 pr-3 py-2 bg-typhoon-sand/40 rounded-xl text-xs text-typhoon-navy border border-typhoon-border focus:border-typhoon-gold focus:outline-none font-sans"
             />
           </div>
         </div>
 
         {/* Project List */}
         <div className="space-y-3">
-          {filtered.map((proj) => (
-            <div
-              key={proj.id}
-              onClick={() => router.push(`/material/projects/${proj.inquiryCode}`)}
-              className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft hover:border-typhoon-gold transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy font-bold text-sm shrink-0">
-                  <Truck className="w-6 h-6 text-typhoon-gold" />
-                </div>
-
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-bold text-typhoon-navy group-hover:text-typhoon-gold transition-colors">
-                      {proj.id} · {proj.customerName}
-                    </h3>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${proj.stageBadgeStyle}`}>
-                      {proj.stageLabel}
-                    </span>
-                    <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200">
-                      SR: {proj.srNumber}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-typhoon-muted mt-1">
-                    {proj.capacityKw} kW · {proj.city} · {proj.panelsCount}x Panels · {proj.inverterModel} · Phone: {proj.phone}
-                  </p>
-
-                  <div className="flex items-center gap-3 mt-2 text-[11px] text-typhoon-navy/80">
-                    <span className="font-semibold text-typhoon-gold">
-                      {proj.deliveryDate ? `Delivery: ${proj.deliveryDate}` : 'Action: Call customer to set delivery date'}
-                    </span>
-                    <span>•</span>
-                    <span className="text-typhoon-muted">Click to open BOM & upload unload proofs</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 self-end md:self-center">
-                <span className="text-xs font-bold text-typhoon-gold group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                  <span>Open Material Workspace</span>
-                  <ChevronRight className="w-4 h-4" />
-                </span>
-              </div>
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-2xl p-8 border border-typhoon-border text-center space-y-2">
+              <Package className="w-10 h-10 text-typhoon-muted mx-auto opacity-40" />
+              <h4 className="text-sm font-medium text-typhoon-navy">No projects in this tab</h4>
+              <p className="text-xs text-typhoon-muted max-w-sm mx-auto">
+                {activeTab === 'unloaded'
+                  ? 'No projects waiting for unload verification right now. When materials are delivered and site photos are uploaded, they will appear here.'
+                  : 'No projects match your current filter criteria.'}
+              </p>
             </div>
-          ))}
+          ) : (
+            filtered.map((proj) => (
+              <div
+                key={proj.id}
+                onClick={() => router.push(`/material/projects/${proj.inquiryCode}`)}
+                className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft hover:border-typhoon-gold transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-typhoon-sand flex items-center justify-center text-typhoon-navy font-medium text-sm shrink-0">
+                    <Truck className="w-6 h-6 text-typhoon-gold" />
+                  </div>
+
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-medium text-typhoon-navy group-hover:text-typhoon-gold transition-colors">
+                        {proj.id} · {proj.customerName}
+                      </h3>
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${proj.stageBadgeStyle}`}>
+                        {proj.stageLabel}
+                      </span>
+                      <span className="text-[10px] font-medium bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200">
+                        SR: {proj.srNumber}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-typhoon-muted mt-1">
+                      {proj.capacityKw} kW · {proj.city} · {proj.panelsCount}x Panels · {proj.inverterModel} · Phone: {proj.phone}
+                    </p>
+
+                    <div className="flex items-center gap-3 mt-2 text-[11px] text-typhoon-navy/80">
+                      <span className="font-medium text-typhoon-gold">
+                        {proj.deliveryDate ? `Delivery: ${proj.deliveryDate}` : 'Action: Call customer to set delivery date'}
+                      </span>
+                      <span>•</span>
+                      <span className="text-typhoon-muted">Click to open BOM & upload unload proofs</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end md:self-center">
+                  <span className="text-xs font-medium text-typhoon-gold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    <span>Open Material Workspace</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
