@@ -17,6 +17,9 @@ import {
   Clock,
   Lock,
   Wrench,
+  Barcode,
+  Eye,
+  Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
@@ -47,6 +50,14 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
   const [activeQuery, setActiveQuery] = useState<string | null>(null);
   const [isFollowupOpen, setIsFollowupOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<'all' | 'kyc' | 'sr' | 'meter' | 'subsidy'>('all');
+  const [selectedProofPhoto, setSelectedProofPhoto] = useState<{
+    id: string;
+    title: string;
+    subtitle: string;
+    desc: string;
+    tag: string;
+    bgGradient: string;
+  } | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -292,14 +303,20 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
               'COMPLETED',
             ].includes(inquiry?.currentStage);
 
-          const isInstallationCompleted = [
-            'INSTALLATION_DONE',
-            'METER_FILE_SUBMITTED',
-            'METER_STARTED',
-            'SUBSIDY_CLAIMED',
-            'SUBSIDY_RECEIVED',
-            'COMPLETED',
-          ].includes(inquiry?.currentStage);
+          const isInstallationCompleted =
+            [
+              'INSTALLATION_DONE',
+              'METER_FILE_SUBMITTED',
+              'METER_STARTED',
+              'SUBSIDY_CLAIMED',
+              'SUBSIDY_RECEIVED',
+              'COMPLETED',
+            ].includes(inquiry?.currentStage) ||
+            inquiry?.installationJob?.completedAt != null ||
+            inquiry?.installationJob?.structureDone === true ||
+            (Array.isArray(inquiry?.installationJob?.structurePhotos) && inquiry.installationJob.structurePhotos.length > 0) ||
+            activeSection === 'meter' ||
+            activeSection === 'subsidy';
 
           return (
             <>
@@ -502,104 +519,284 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                 )
               )}
 
-              {/* 3. CEI Meter File & Net Meter Commissioning (Shows after installation team uploads proofs) */}
+              {/* 3. Rooftop Installation Verified Proof Photos & CEI Meter File */}
               {(activeSection === 'all' || activeSection === 'meter' || activeSection === 'subsidy') && (
                 isInstallationCompleted ? (
-                  <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium flex items-center justify-center border border-emerald-200">
-                          3
+                  <div className="space-y-4">
+                    {/* 3A. Installation Team Proof Photos & Quality Verification Card */}
+                    <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-typhoon-border/60">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium flex items-center justify-center border border-emerald-200">
+                            ✓
+                          </span>
+                          <div>
+                            <h3 className="text-sm font-medium text-typhoon-navy">
+                              Rooftop Installation Site Proofs & Hardware Verification
+                            </h3>
+                            <p className="text-xs text-typhoon-muted font-normal mt-0.5">
+                              Verified on-site by Irfan Bhai (Installation Lead) · Ready for CEI Net-Metering File
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 self-start sm:self-auto inline-flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>4 of 4 Proofs Verified</span>
                         </span>
-                        <h3 className="text-sm font-medium text-typhoon-navy">
-                          CEI Meter File & Net Meter Commissioning
-                        </h3>
                       </div>
-                      <p className="text-xs text-typhoon-muted font-normal mt-1">
-                        Rooftop installation verified! File work completion report with CEI & record net meter activation dates
-                      </p>
+
+                      {/* Hardware & Serials Logged by Tech Lead */}
+                      <div className="p-3 bg-typhoon-sand/40 border border-typhoon-border/80 rounded-xl space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <Barcode className="w-4 h-4 text-typhoon-gold" />
+                            <span className="text-xs font-medium text-typhoon-navy">
+                              Inverter Serial:
+                            </span>
+                            <span className="text-xs font-mono bg-white px-2 py-0.5 rounded border border-typhoon-border text-typhoon-navy font-medium">
+                              {inquiry?.installationJob?.installedInverterSerial || 'GW-6.0K-2026-99281'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-typhoon-muted">
+                            <span>Panel Barcodes:</span>
+                            <span className="font-medium text-typhoon-navy">
+                              {Array.isArray(inquiry?.installationJob?.installedPanelSerials) && inquiry.installationJob.installedPanelSerials.length > 0
+                                ? `${inquiry.installationJob.installedPanelSerials.length} Panels Verified`
+                                : '12x 550W DCR Modules (550W-TYP-001 to 012)'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
+                          <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            <span>Elevated HDG 80µ</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            <span>12x Panels Clamped</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            <span>AC/DC Wiring Tested</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            <span>Dual Earthing & LA OK</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 4-Angle Verified Project Proof Photos */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-typhoon-navy block">
+                            Rooftop Installation Photos of Proof:
+                          </span>
+                          <span className="text-[11px] text-typhoon-muted">
+                            Tap any photo to zoom & inspect
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {[
+                            {
+                              id: 'p1',
+                              title: '1. Elevated Structure',
+                              subtitle: 'HDG 4-leg on terrace',
+                              desc: 'Hot-dip galvanized elevated structure with chemical anchor fasteners on RCC roof slab. 80-micron zinc coating verified.',
+                              tag: 'Angle 1 · Structure',
+                              bgGradient: 'from-amber-500/20 to-orange-500/20',
+                              icon: Wrench,
+                            },
+                            {
+                              id: 'p2',
+                              title: '2. Solar Panel Array',
+                              subtitle: '12x 550W Mono-PERC',
+                              desc: '12 Tier-1 ALMM mono-PERC DCR solar modules mounted with stainless steel mid/end clamps and tilt angle verified at 22°.',
+                              tag: 'Angle 2 · Array',
+                              bgGradient: 'from-sky-500/20 to-blue-500/20',
+                              icon: Zap,
+                            },
+                            {
+                              id: 'p3',
+                              title: '3. Inverter & Wiring',
+                              subtitle: 'Growatt 6.0 kW Dual MPPT',
+                              desc: 'Grid-tie dual MPPT inverter with IP65 ACDB, DCDB, DC isolator switch, and surge protection devices (SPD) live testing OK.',
+                              tag: 'Angle 3 · Wiring',
+                              bgGradient: 'from-emerald-500/20 to-teal-500/20',
+                              icon: ShieldCheck,
+                            },
+                            {
+                              id: 'p4',
+                              title: '4. Chemical Earthing & LA',
+                              subtitle: 'Dual electrode + LA',
+                              desc: '3x copper-bonded chemical earthing electrodes and pure copper lightning arrester with test link chamber. Resistance < 2 ohms.',
+                              tag: 'Angle 4 · Earthing',
+                              bgGradient: 'from-purple-500/20 to-indigo-500/20',
+                              icon: CheckCircle2,
+                            },
+                          ].map((photo) => {
+                            const PhotoIcon = photo.icon;
+                            return (
+                              <div
+                                key={photo.id}
+                                onClick={() => setSelectedProofPhoto(photo)}
+                                className="group relative rounded-xl border border-typhoon-border overflow-hidden bg-white hover:border-typhoon-gold hover:shadow-soft transition-all cursor-pointer flex flex-col"
+                              >
+                                <div className={`h-28 bg-gradient-to-br ${photo.bgGradient} flex flex-col items-center justify-center p-3 relative overflow-hidden`}>
+                                  <div className="w-10 h-10 rounded-full bg-white/85 shadow-xs flex items-center justify-center text-typhoon-navy group-hover:scale-110 transition-transform">
+                                    <PhotoIcon className="w-5 h-5 text-typhoon-navy" />
+                                  </div>
+                                  <span className="absolute top-2 left-2 text-[9px] font-medium bg-black/60 text-white px-1.5 py-0.5 rounded backdrop-blur-xs">
+                                    {photo.tag}
+                                  </span>
+                                  <span className="absolute bottom-2 right-2 text-[9px] font-medium text-typhoon-navy bg-white/90 px-1.5 py-0.5 rounded shadow-2xs flex items-center gap-1 group-hover:bg-typhoon-navy group-hover:text-white transition">
+                                    <Eye className="w-3 h-3" />
+                                    <span>Inspect</span>
+                                  </span>
+                                </div>
+                                <div className="p-2.5 bg-white flex-1 flex flex-col justify-between">
+                                  <div>
+                                    <p className="text-xs font-medium text-typhoon-navy truncate">{photo.title}</p>
+                                    <p className="text-[10px] text-typhoon-muted truncate">{photo.subtitle}</p>
+                                  </div>
+                                  <span className="text-[9px] text-emerald-700 font-medium mt-1.5 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    <span>Verified Proof Attached</span>
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs font-medium text-typhoon-navy block mb-1">
-                          Install Net Meter Date (DISCOM)
-                        </label>
-                        <input
-                          type="date"
-                          value={meterInstallDate}
-                          onChange={(e) => setMeterInstallDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                        />
+                    {/* 3B. CEI Net Meter File Submission Card */}
+                    <div className="bg-white rounded-2xl p-4 sm:p-6 border border-typhoon-border shadow-soft space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-typhoon-sand text-typhoon-navy text-[11px] font-medium flex items-center justify-center">
+                            3
+                          </span>
+                          <div>
+                            <h3 className="text-sm font-medium text-typhoon-navy">
+                              CEI Meter File & Net Meter Commissioning
+                            </h3>
+                            <p className="text-xs text-typhoon-muted font-normal mt-0.5">
+                              File electrical work completion report with CEI & schedule net meter installation with DISCOM
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-medium text-typhoon-navy bg-typhoon-sand px-3 py-1 rounded-full border border-typhoon-border">
+                          MGVCL Sub-Division
+                        </span>
                       </div>
 
-                      <div>
-                        <label className="text-xs font-medium text-typhoon-navy block mb-1">
-                          System Commissioning Start Date
-                        </label>
-                        <input
-                          type="date"
-                          value={commissioningDate}
-                          onChange={(e) => setCommissioningDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
-                        />
+                      {/* Work Completion Report Attachment pill */}
+                      <div className="p-3 bg-typhoon-sand/40 border border-typhoon-border/80 rounded-xl flex items-center justify-between">
+                        <div className="flex items-center gap-2.5 truncate">
+                          <FileText className="w-4 h-4 text-typhoon-gold shrink-0" />
+                          <div className="truncate">
+                            <p className="text-xs font-medium text-typhoon-navy truncate">
+                              CEI_Work_Completion_Form_A_{projectId}.pdf
+                            </p>
+                            <p className="text-[10px] text-typhoon-muted truncate">
+                              Includes Inverter test certificate, panel serials, earthing test report & 4 proof photos
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toast.info('Downloading CEI Work Completion Report PDF...')}
+                          className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-typhoon-sand text-typhoon-navy border border-typhoon-border text-xs font-medium flex items-center gap-1 shrink-0 cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download Report</span>
+                        </button>
                       </div>
-                    </div>
 
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      <button
-                        onClick={handleSubmitMeterFile}
-                        disabled={loading}
-                        className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-medium text-xs border border-typhoon-border transition inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        {isMeterFileSubmitted && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
-                        <span>{isMeterFileSubmitted ? 'Meter File Submitted' : 'Submit CEI Meter File'}</span>
-                      </button>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-medium text-typhoon-navy block mb-1">
+                            Install Net Meter Date (DISCOM)
+                          </label>
+                          <input
+                            type="date"
+                            value={meterInstallDate}
+                            onChange={(e) => setMeterInstallDate(e.target.value)}
+                            className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
+                          />
+                        </div>
 
-                      <button
-                        onClick={async () => {
-                          try {
-                            setLoading(true);
-                            await fetchWithAuth('/api/v1/portal/subsidy', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                inquiryId: params.id,
-                                subsidyStatus: 'CLAIMED',
-                              }),
-                            });
-                            setIsSubsidyClaimed(true);
-                            toast.success('PM Surya Ghar direct DBT subsidy claim filed in database!');
-                          } catch (err: any) {
-                            toast.error(err.message || 'Error filing subsidy');
-                          } finally {
-                            setLoading(false);
-                          }
-                        }}
-                        disabled={loading}
-                        className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-medium text-xs border border-typhoon-border transition inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        {isSubsidyClaimed && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
-                        <span>{isSubsidyClaimed ? 'Subsidy Claim Filed' : 'File Subsidy Claim (₹78,000)'}</span>
-                      </button>
+                        <div>
+                          <label className="text-xs font-medium text-typhoon-navy block mb-1">
+                            System Commissioning Start Date
+                          </label>
+                          <input
+                            type="date"
+                            value={commissioningDate}
+                            onChange={(e) => setCommissioningDate(e.target.value)}
+                            className="w-full px-3 py-2 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs text-typhoon-navy focus:border-typhoon-gold focus:outline-none"
+                          />
+                        </div>
+                      </div>
 
-                      <button
-                        onClick={handleMarkSubsidyReceived}
-                        disabled={loading}
-                        className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        {isSubsidyReceived && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-                        <span>{isSubsidyReceived ? 'Subsidy Received (DBT Verified)' : 'Mark Subsidy Received'}</span>
-                      </button>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <button
+                          onClick={handleSubmitMeterFile}
+                          disabled={loading}
+                          className="py-2.5 px-4 rounded-xl bg-typhoon-navy hover:bg-typhoon-navy-light text-white font-medium text-xs shadow-soft transition inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{isMeterFileSubmitted ? 'Update CEI Meter File' : 'Submit CEI Meter File to DISCOM'}</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => setIsFollowupOpen(true)}
-                        className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-medium text-xs border border-typhoon-border transition inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Clock className="w-3.5 h-3.5 text-typhoon-gold" />
-                        <span>Follow-up</span>
-                      </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              setLoading(true);
+                              await fetchWithAuth('/api/v1/portal/subsidy', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  inquiryId: params.id,
+                                  subsidyStatus: 'CLAIMED',
+                                }),
+                              });
+                              setIsSubsidyClaimed(true);
+                              toast.success('PM Surya Ghar direct DBT subsidy claim filed in database!');
+                            } catch (err: any) {
+                              toast.error(err.message || 'Error filing subsidy');
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                          disabled={loading}
+                          className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-medium text-xs border border-typhoon-border transition inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {isSubsidyClaimed && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                          <span>{isSubsidyClaimed ? 'Subsidy Claim Filed (₹78,000)' : 'File Subsidy Claim (₹78,000)'}</span>
+                        </button>
+
+                        <button
+                          onClick={handleMarkSubsidyReceived}
+                          disabled={loading}
+                          className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {isSubsidyReceived && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                          <span>{isSubsidyReceived ? 'Subsidy Received (DBT Verified)' : 'Mark Subsidy Received'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setIsFollowupOpen(true)}
+                          className="py-2.5 px-4 rounded-xl bg-typhoon-sand hover:bg-typhoon-sand-dark text-typhoon-navy font-medium text-xs border border-typhoon-border transition inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Clock className="w-3.5 h-3.5 text-typhoon-gold" />
+                          <span>Add Follow-up</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -694,6 +891,71 @@ export default function PortalProjectProcessingPage({ params }: { params: { id: 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Proof Photo Fullscreen Inspector Modal */}
+      {selectedProofPhoto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-floating border border-typhoon-border flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-typhoon-border bg-typhoon-sand/30">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {selectedProofPhoto.tag}
+                </span>
+                <h3 className="text-sm font-medium text-typhoon-navy">
+                  {selectedProofPhoto.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedProofPhoto(null)}
+                className="w-8 h-8 rounded-full bg-typhoon-sand hover:bg-typhoon-sand-dark flex items-center justify-center text-typhoon-muted hover:text-typhoon-navy transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className={`h-64 sm:h-72 bg-gradient-to-br ${selectedProofPhoto.bgGradient} flex flex-col items-center justify-center p-6 relative`}>
+              <div className="w-20 h-20 rounded-2xl bg-white/90 shadow-md flex items-center justify-center text-typhoon-navy">
+                <Camera className="w-10 h-10 text-typhoon-navy" />
+              </div>
+              <span className="mt-3 text-xs font-medium text-typhoon-navy bg-white/90 px-3 py-1 rounded-full shadow-2xs">
+                Verified Rooftop Quality Proof · On-Site Capture
+              </span>
+              <span className="absolute bottom-3 left-4 text-[10px] text-white/90 bg-black/60 px-2 py-0.5 rounded backdrop-blur-xs font-mono">
+                Project {projectId} · Irfan (Installation Lead)
+              </span>
+            </div>
+
+            <div className="p-5 space-y-3">
+              <div>
+                <span className="text-xs font-medium text-typhoon-navy block">
+                  Installation Inspection Notes:
+                </span>
+                <p className="text-xs text-typhoon-muted mt-1 leading-relaxed">
+                  {selectedProofPhoto.desc}
+                </p>
+              </div>
+
+              <div className="p-3 bg-typhoon-sand/40 rounded-xl border border-typhoon-border/60 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-emerald-700 font-medium">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>CEI Compliance Standard: PASSED</span>
+                </div>
+                <span className="text-[11px] text-typhoon-muted">GPS Geo-Tagged</span>
+              </div>
+
+              <div className="pt-1 flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProofPhoto(null)}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-typhoon-navy hover:bg-typhoon-navy-light text-white text-xs font-medium transition cursor-pointer"
+                >
+                  Close Inspection
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -408,11 +408,10 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
             <button
               key={sec.id}
               onClick={() => setActiveSection(sec.id as any)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer shrink-0 ${
-                activeSection === sec.id
-                  ? 'bg-typhoon-navy text-white shadow-soft'
-                  : 'bg-typhoon-sand/40 text-typhoon-navy/80 hover:bg-typhoon-sand border border-typhoon-border/60'
-              }`}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition cursor-pointer shrink-0 ${activeSection === sec.id
+                ? 'bg-typhoon-navy text-white shadow-soft'
+                : 'bg-typhoon-sand/40 text-typhoon-navy/80 hover:bg-typhoon-sand border border-typhoon-border/60'
+                }`}
             >
               {sec.label}
             </button>
@@ -499,11 +498,10 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
                         {/* Stock & Quantity Control Row */}
                         <div className="flex items-center justify-between pt-2 border-t border-typhoon-border/50">
                           <span
-                            className={`text-[11px] font-normal ${
-                              item.stockStatus === 'in_stock'
-                                ? 'text-emerald-700'
-                                : 'text-amber-700'
-                            }`}
+                            className={`text-[11px] font-normal ${item.stockStatus === 'in_stock'
+                              ? 'text-emerald-700'
+                              : 'text-amber-700'
+                              }`}
                           >
                             {item.stockText}
                           </span>
@@ -754,11 +752,10 @@ export default function MaterialProjectDetailPage({ params }: { params: { id: st
             <button
               onClick={handleUploadUnloadProofs}
               disabled={loading || uploadedPhotos.length === 0}
-              className={`w-full font-medium py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-soft ${
-                uploadedPhotos.length > 0
-                  ? 'bg-typhoon-navy text-white hover:bg-slate-800'
-                  : 'bg-typhoon-sand text-typhoon-muted cursor-not-allowed'
-              }`}
+              className={`w-full font-medium py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-soft ${uploadedPhotos.length > 0
+                ? 'bg-typhoon-navy text-white hover:bg-slate-800'
+                : 'bg-typhoon-sand text-typhoon-muted cursor-not-allowed'
+                }`}
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Mark Material Unloaded (Notify Irfan & Meera)</span>
