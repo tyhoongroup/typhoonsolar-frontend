@@ -53,11 +53,11 @@ export default function DashboardPage() {
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => {
           const list = Array.isArray(data) ? data : (data?.data || []);
-          if (Array.isArray(list) && list.length > 0) {
-            setLiveInquiries(list);
-          }
+          setLiveInquiries(Array.isArray(list) ? list : []);
         })
-        .catch(() => {});
+        .catch(() => {
+          setLiveInquiries([]);
+        });
     }
   }, []);
 
@@ -67,36 +67,7 @@ export default function DashboardPage() {
   // 1. OPERATIONS MANAGER / ADMIN
   // =========================================================================
   if (user.role === 'OPS_MANAGER' || user.role === 'ADMIN') {
-    // Default Mobile Up Next Items (Exact from role_home_screens_all_palettes.html)
-    const defaultMobileUpNext: UpNextItem[] = [
-      {
-        id: '1',
-        icon: <Phone className="w-4 h-4" />,
-        title: 'F-1024 · Ramesh Patel',
-        subtitle: '6 kW · Vadodara · Approve quote',
-        badgeText: 'Urgent',
-        badgeType: 'urgent',
-        onClick: () => router.push('/inquiries/F-1024'),
-      },
-      {
-        id: '2',
-        icon: <FileText className="w-4 h-4" />,
-        title: 'F-1026 · Test User',
-        subtitle: '7 kW · Vadodara · Assign team',
-        badgeText: 'New',
-        badgeType: 'bn',
-        onClick: () => router.push('/inquiries/F-1026'),
-      },
-      {
-        id: '3',
-        icon: <FileText className="w-4 h-4" />,
-        title: 'F-1025 · Qureshi Mohammed Zahid',
-        subtitle: '6 kW · Vadodara · Schedule install',
-        badgeText: 'New',
-        badgeType: 'bn',
-        onClick: () => router.push('/inquiries/F-1025'),
-      },
-    ];
+    const defaultMobileUpNext: UpNextItem[] = [];
 
     const liveMobileUpNext: UpNextItem[] = liveInquiries.slice(0, 3).map((inq: any, idx: number) => ({
       id: String(idx + 1),
@@ -119,52 +90,10 @@ export default function DashboardPage() {
         ),
     }));
 
-    const mobileUpNext: UpNextItem[] =
-      liveMobileUpNext.length > 0 ? liveMobileUpNext : defaultMobileUpNext;
+    const mobileUpNext: UpNextItem[] = liveMobileUpNext;
 
-    // Desktop Data Table Rows (Web Screen Layout #5)
-    const defaultDesktopTableRows: DataRowItem[] = [
-      {
-        id: 'F-1024',
-        icon: <PhoneCall className="w-4 h-4 text-rose-600" />,
-        title: 'F-1024 · Ramesh Patel',
-        subtitle: '6.0 kW · Single Phase · B-42 Shivalik, Anand · Assigned to Amit',
-        badgeText: 'Overdue (2h)',
-        badgeStyle: 'bg-rose-50 text-rose-700 border-rose-200',
-      },
-      {
-        id: 'F-1021',
-        icon: <FileText className="w-4 h-4 text-emerald-600" />,
-        title: 'F-1021 · Nilesh Desai',
-        subtitle: '6.0 kW · Three Phase · Gotri, Vadodara · Assigned to Amit',
-        badgeText: 'Quote Sent',
-        badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      },
-      {
-        id: 'F-1018',
-        icon: <Users className="w-4 h-4 text-amber-600" />,
-        title: 'F-1018 · Bhavna Joshi',
-        subtitle: '3.24 kW · Single Phase · Nadiad · Collect Customer Documents',
-        badgeText: 'Docs Pending',
-        badgeStyle: 'bg-amber-50 text-amber-700 border-amber-200',
-      },
-      {
-        id: 'F-1015',
-        icon: <Package className="w-4 h-4 text-sky-600" />,
-        title: 'F-1015 · Diwan Zakirbhai',
-        subtitle: '10.0 kW · Three Phase · Anand · Material Ready for Dispatch',
-        badgeText: 'Dispatch Queue',
-        badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200',
-      },
-      {
-        id: 'F-1012',
-        icon: <CheckCircle2 className="w-4 h-4 text-indigo-600" />,
-        title: 'F-1012 · Harishbhai Shah',
-        subtitle: '4.5 kW · Three Phase · Vasna, Vadodara · Fabrication Completed',
-        badgeText: 'Installation',
-        badgeStyle: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      },
-    ];
+    // Desktop Data Table Rows
+    const defaultDesktopTableRows: DataRowItem[] = [];
 
     const liveDesktopRows: DataRowItem[] = liveInquiries.map((inq: any) => ({
       id: inq.followupId || inq.id,
@@ -181,15 +110,10 @@ export default function DashboardPage() {
         : 'bg-emerald-50 text-emerald-700 border-emerald-200',
     }));
 
-    const desktopTableRows: DataRowItem[] =
-      liveDesktopRows.length > 0 ? liveDesktopRows : defaultDesktopTableRows;
+    const desktopTableRows: DataRowItem[] = liveDesktopRows;
 
     const filterChips = [
-      { id: 'all', label: 'All Inquiries (14)' },
-      { id: 'survey', label: 'Site Survey (3)' },
-      { id: 'docs', label: 'KYC Docs (2)' },
-      { id: 'material', label: 'Material Unload (4)' },
-      { id: 'meter', label: 'Net Meter (5)' },
+      { id: 'all', label: `All Inquiries (${liveInquiries.length})` },
     ];
 
     const filteredRows = activeFilter === 'all' 

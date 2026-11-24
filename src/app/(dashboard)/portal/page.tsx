@@ -57,63 +57,7 @@ export default function PortalQueuePage() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
-  const [projects, setProjects] = useState<PortalProjectItem[]>([
-    {
-      id: 'TYP-2026-1024',
-      inquiryCode: 'F-1024',
-      customerName: 'Ramesh Patel',
-      phone: '+91 98250 12345',
-      capacityKw: 6.0,
-      city: 'Anand',
-      consumerNo: 'MGVCL-88491029',
-      stage: 'DOCS_UPLOADED',
-      stageLabel: 'Docs Ready for Portal',
-      stageBadgeStyle: 'bg-amber-50 text-amber-700 border-amber-200',
-      docsCount: '4/4 Collected',
-    },
-    {
-      id: 'TYP-2026-1021',
-      inquiryCode: 'F-1021',
-      customerName: 'Nilesh Desai',
-      phone: '+91 98250 99881',
-      capacityKw: 6.0,
-      city: 'Vadodara',
-      consumerNo: 'MGVCL-33291044',
-      stage: 'SR_PENDING',
-      stageLabel: 'Verification & SR Pending',
-      stageBadgeStyle: 'bg-blue-50 text-blue-700 border-blue-200',
-      docsCount: '4/4 Verified',
-      queryPending: false,
-    },
-    {
-      id: 'TYP-2026-1015',
-      inquiryCode: 'F-1015',
-      customerName: 'Diwan Zakirbhai',
-      phone: '+91 98250 44332',
-      capacityKw: 10.0,
-      city: 'Anand',
-      consumerNo: 'MGVCL-77291022',
-      stage: 'METER_FILE_DUE',
-      stageLabel: 'Meter File Required',
-      stageBadgeStyle: 'bg-purple-50 text-purple-700 border-purple-200',
-      docsCount: '4/4 Verified',
-      srNumber: 'SR-2026-MGVCL-4821',
-    },
-    {
-      id: 'TYP-2026-1012',
-      inquiryCode: 'F-1012',
-      customerName: 'Harishbhai Shah',
-      phone: '+91 98250 77665',
-      capacityKw: 4.5,
-      city: 'Vadodara',
-      consumerNo: 'MGVCL-99281011',
-      stage: 'SUBSIDY_CLAIM',
-      stageLabel: 'Subsidy Claim Queue',
-      stageBadgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      docsCount: 'All Complete',
-      srNumber: 'SR-2026-MGVCL-3109',
-    },
-  ]);
+  const [projects, setProjects] = useState<PortalProjectItem[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -125,7 +69,7 @@ export default function PortalQueuePage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const list = Array.isArray(data) ? data : (data?.data || []);
-        if (Array.isArray(list) && list.length > 0) {
+        if (Array.isArray(list)) {
           setProjects(
             list.map((inq: any) => {
               let stage: PortalProjectItem['stage'] = 'DOCS_UPLOADED';
@@ -169,7 +113,9 @@ export default function PortalQueuePage() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setProjects([]);
+      });
   }, []);
 
   const filtered = projects.filter((p) => {

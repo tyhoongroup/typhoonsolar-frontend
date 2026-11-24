@@ -47,79 +47,8 @@ export default function InquiriesPage() {
   ]);
   const [loading, setLoading] = useState(true);
 
-  // Fallback default inquiries matching Screen 1 from PDF
-  const defaultInquiries = [
-    {
-      id: 'f-1024',
-      followupId: 'F-1024',
-      customerName: 'Ramesh Patel',
-      customerPhone: '9825012345',
-      requestedKw: '6.0',
-      meterPhase: 'single phase',
-      currentStage: 'SITE_VISIT_PLANNED',
-      isUrgent: true,
-      assignedSalesperson: { fullName: 'Amit' },
-      statusBadge: 'Urgent',
-      statusType: 'urgent',
-      subtitle: '6 kW single phase · with Amit',
-    },
-    {
-      id: 'f-1023',
-      followupId: 'F-1023',
-      customerName: 'Hetal Shah',
-      customerPhone: '9825023456',
-      requestedKw: '4.0',
-      meterPhase: 'single phase',
-      currentStage: 'QUOTATION_SENT',
-      isUrgent: false,
-      assignedSalesperson: { fullName: 'Kunal' },
-      statusBadge: 'Quotation',
-      statusType: 'quotation',
-      subtitle: 'Quotation sent · due in 2 days',
-    },
-    {
-      id: 'f-1022',
-      followupId: 'F-1022',
-      customerName: 'Nilesh Desai',
-      customerPhone: '9825034567',
-      requestedKw: '6.0',
-      meterPhase: 'three phase',
-      currentStage: 'INQUIRY_RECEIVED',
-      isUrgent: false,
-      assignedSalesperson: null,
-      statusBadge: 'New',
-      statusType: 'new',
-      subtitle: 'Not assigned yet',
-    },
-    {
-      id: 'f-1021',
-      followupId: 'F-1021',
-      customerName: 'Kiran Mehta',
-      customerPhone: '9825045678',
-      requestedKw: '5.0',
-      meterPhase: 'single phase',
-      currentStage: 'QUOTATION_SENT',
-      isUrgent: false,
-      assignedSalesperson: { fullName: 'Amit' },
-      statusBadge: 'Today',
-      statusType: 'today',
-      subtitle: 'Negotiation · follow-up today',
-    },
-    {
-      id: 'f-1018',
-      followupId: 'F-1018',
-      customerName: 'Bhavna Joshi',
-      customerPhone: '9825056789',
-      requestedKw: '3.24',
-      meterPhase: 'single phase',
-      currentStage: 'DEAL_CLOSED',
-      isUrgent: false,
-      assignedSalesperson: { fullName: 'Priya' },
-      statusBadge: 'Closed',
-      statusType: 'closed',
-      subtitle: 'Deal closed · documents pending',
-    },
-  ];
+  // Fallback default inquiries (Removed - pure live DB only)
+  const defaultInquiries: any[] = [];
 
   // Load live data
   useEffect(() => {
@@ -137,14 +66,10 @@ export default function InquiriesPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const list = Array.isArray(data) ? data : (data?.data || []);
-        if (Array.isArray(list) && list.length > 0) {
-          setInquiries(list);
-        } else {
-          setInquiries(defaultInquiries);
-        }
+        setInquiries(Array.isArray(list) ? list : []);
       })
       .catch(() => {
-        setInquiries(defaultInquiries);
+        setInquiries([]);
       })
       .finally(() => setLoading(false));
 

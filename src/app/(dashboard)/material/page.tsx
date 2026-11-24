@@ -55,52 +55,7 @@ export default function MaterialQueuePage() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
-  const [projects, setProjects] = useState<MaterialProjectItem[]>([
-    {
-      id: 'TYP-2026-1024',
-      inquiryCode: 'F-1024',
-      customerName: 'Ramesh Patel',
-      phone: '+91 98250 12345',
-      capacityKw: 6.0,
-      city: 'Anand',
-      srNumber: 'SR-GUJ-2026-98124',
-      stage: 'PLANNING_PENDING',
-      stageLabel: 'Planning & Call Left',
-      stageBadgeStyle: 'bg-amber-50 text-amber-700 border-amber-200',
-      panelsCount: 12,
-      inverterModel: '6 kW Growatt Dual MPPT',
-    },
-    {
-      id: 'TYP-2026-1021',
-      inquiryCode: 'F-1021',
-      customerName: 'Nilesh Desai',
-      phone: '+91 98250 99881',
-      capacityKw: 6.0,
-      city: 'Vadodara',
-      srNumber: 'SR-GUJ-2026-97641',
-      stage: 'DELIVERY_SCHEDULED',
-      stageLabel: 'Unloading Scheduled',
-      stageBadgeStyle: 'bg-blue-50 text-blue-700 border-blue-200',
-      deliveryDate: 'Tomorrow 10:00 AM',
-      panelsCount: 12,
-      inverterModel: '6 kW Solis Three Phase',
-    },
-    {
-      id: 'TYP-2026-1015',
-      inquiryCode: 'F-1015',
-      customerName: 'Diwan Zakirbhai',
-      phone: '+91 98250 44332',
-      capacityKw: 10.0,
-      city: 'Anand',
-      srNumber: 'SR-GUJ-2026-95321',
-      stage: 'UNLOADED',
-      stageLabel: 'Material Unloaded on Site',
-      stageBadgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      deliveryDate: 'Delivered Yesterday',
-      panelsCount: 18,
-      inverterModel: '10 kW Growatt On-Grid',
-    },
-  ]);
+  const [projects, setProjects] = useState<MaterialProjectItem[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -112,7 +67,7 @@ export default function MaterialQueuePage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const list = Array.isArray(data) ? data : (data?.data || []);
-        if (Array.isArray(list) && list.length > 0) {
+        if (Array.isArray(list)) {
           setProjects(
             list.map((inq: any) => {
               let stage: MaterialProjectItem['stage'] = 'PLANNING_PENDING';
@@ -153,7 +108,9 @@ export default function MaterialQueuePage() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setProjects([]);
+      });
   }, []);
 
   const pendingCount = projects.filter((p) => p.stage === 'PLANNING_PENDING').length;

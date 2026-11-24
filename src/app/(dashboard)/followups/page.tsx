@@ -75,76 +75,7 @@ export default function FollowupsControlTowerPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const list = Array.isArray(data) ? data : (data?.data || []);
-        if (Array.isArray(list) && list.length > 0) {
-          setFollowups(list);
-        } else {
-          // Fallback initial follow-ups for demonstration
-          setFollowups([
-            {
-              id: 'fu-1',
-              stage: 'SITE_VISIT_PLANNED',
-              status: 'PENDING',
-              description: 'Customer confirmed roof survey at 3:00 PM.',
-              committedDate: new Date().toISOString(),
-              isOverdue: true,
-              inquiry: {
-                id: 'f-1024',
-                followupId: 'F-1024',
-                customerName: 'Ramesh Patel',
-                customerPhone: '9825012345',
-                city: 'Anand',
-                currentStage: 'SITE_VISIT_PLANNED',
-              },
-              createdBy: {
-                id: '9000000002',
-                fullName: 'Amit Patel',
-                role: 'SALESPERSON',
-              },
-            },
-            {
-              id: 'fu-2',
-              stage: 'QUOTATION_SENT',
-              status: 'CALL_DONE',
-              description: 'Sent 6 kW quotation via WhatsApp. Customer reviewing subsidy details.',
-              committedDate: new Date(Date.now() + 86400000).toISOString(),
-              isOverdue: false,
-              inquiry: {
-                id: 'f-1023',
-                followupId: 'F-1023',
-                customerName: 'Hetal Shah',
-                customerPhone: '9825023456',
-                city: 'Vadodara',
-                currentStage: 'QUOTATION_SENT',
-              },
-              createdBy: {
-                id: '9000000007',
-                fullName: 'Kunal Joshi',
-                role: 'SALESPERSON',
-              },
-            },
-            {
-              id: 'fu-3',
-              stage: 'MATERIAL_PLANNED',
-              status: 'CALL_DONE',
-              description: 'Discussed unloading time. Customer asked for morning delivery.',
-              committedDate: new Date().toISOString(),
-              isOverdue: false,
-              inquiry: {
-                id: 'f-1015',
-                followupId: 'F-1015',
-                customerName: 'Diwan Zakirbhai',
-                customerPhone: '9825044332',
-                city: 'Anand',
-                currentStage: 'MATERIAL_PLANNED',
-              },
-              createdBy: {
-                id: '9000000004',
-                fullName: 'Sohail Mansuri',
-                role: 'MATERIAL_MANAGER',
-              },
-            },
-          ]);
-        }
+        setFollowups(Array.isArray(list) ? list : []);
       })
       .catch(() => {
         setFollowups([]);

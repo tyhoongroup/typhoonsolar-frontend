@@ -56,53 +56,7 @@ export default function PaymentsLedgerPage() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
-  const [projects, setProjects] = useState<PaymentProjectItem[]>([
-    {
-      id: 'TYP-2026-1024',
-      inquiryCode: 'F-1024',
-      customerName: 'Ramesh Patel',
-      phone: '+91 98250 12345',
-      capacityKw: 6.0,
-      city: 'Anand',
-      totalDealAmount: 275000,
-      firstMilestoneAmount: 220000,
-      firstMilestoneStatus: 'DUE',
-      finalMilestoneAmount: 55000,
-      finalMilestoneStatus: 'PENDING',
-      subsidyAmount: 78000,
-      lastFollowupNote: 'Called customer. Promised HDFC cheque on delivery tomorrow.',
-    },
-    {
-      id: 'TYP-2026-1015',
-      inquiryCode: 'F-1015',
-      customerName: 'Diwan Zakirbhai',
-      phone: '+91 98250 44332',
-      capacityKw: 10.0,
-      city: 'Anand',
-      totalDealAmount: 480000,
-      firstMilestoneAmount: 384000,
-      firstMilestoneStatus: 'PAID',
-      finalMilestoneAmount: 96000,
-      finalMilestoneStatus: 'PENDING',
-      subsidyAmount: 78000,
-      lastFollowupNote: '80% NEFT received. Installation underway.',
-    },
-    {
-      id: 'TYP-2026-1012',
-      inquiryCode: 'F-1012',
-      customerName: 'Harishbhai Shah',
-      phone: '+91 98250 77665',
-      capacityKw: 4.5,
-      city: 'Vadodara',
-      totalDealAmount: 215000,
-      firstMilestoneAmount: 172000,
-      firstMilestoneStatus: 'PAID',
-      finalMilestoneAmount: 43000,
-      finalMilestoneStatus: 'PAID',
-      subsidyAmount: 78000,
-      lastFollowupNote: 'Full payment cleared. Net meter live.',
-    },
-  ]);
+  const [projects, setProjects] = useState<PaymentProjectItem[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -128,36 +82,36 @@ export default function PaymentsLedgerPage() {
             ].includes(i.currentStage)
           );
 
-          if (converted.length > 0) {
-            setProjects(
-              converted.map((inq: any) => {
-                const total = Number(inq.dealAmount) || (Number(inq.requestedKw) || 6) * 45000;
-                const m1 = inq.payments?.[0]?.amount ? Number(inq.payments[0].amount) : Math.round(total * 0.8);
-                const m2 = total - m1;
-                const m1Paid = inq.payments?.[0]?.status === 'PAID';
-                const m2Paid = inq.payments?.[1]?.status === 'PAID';
+          setProjects(
+            converted.map((inq: any) => {
+              const total = Number(inq.dealAmount) || (Number(inq.requestedKw) || 6) * 45000;
+              const m1 = inq.payments?.[0]?.amount ? Number(inq.payments[0].amount) : Math.round(total * 0.8);
+              const m2 = total - m1;
+              const m1Paid = inq.payments?.[0]?.status === 'PAID';
+              const m2Paid = inq.payments?.[1]?.status === 'PAID';
 
-                return {
-                  id: inq.id.startsWith('TYP-') ? inq.id : `TYP-2026-${(inq.followupId || inq.id).replace('F-', '')}`,
-                  inquiryCode: inq.followupId || inq.id,
-                  customerName: inq.customerName,
-                  phone: inq.customerPhone,
-                  capacityKw: Number(inq.requestedKw) || 6,
-                  city: inq.city || 'Gujarat',
-                  totalDealAmount: total,
-                  firstMilestoneAmount: m1,
-                  firstMilestoneStatus: m1Paid ? 'PAID' : 'DUE',
-                  finalMilestoneAmount: m2,
-                  finalMilestoneStatus: m2Paid ? 'PAID' : 'PENDING',
-                  subsidyAmount: 78000,
-                  lastFollowupNote: inq.followups?.[0]?.description || 'Milestone tracking active',
-                };
-              })
-            );
-          }
+              return {
+                id: inq.id.startsWith('TYP-') ? inq.id : `TYP-2026-${(inq.followupId || inq.id).replace('F-', '')}`,
+                inquiryCode: inq.followupId || inq.id,
+                customerName: inq.customerName,
+                phone: inq.customerPhone,
+                capacityKw: Number(inq.requestedKw) || 6,
+                city: inq.city || 'Gujarat',
+                totalDealAmount: total,
+                firstMilestoneAmount: m1,
+                firstMilestoneStatus: m1Paid ? 'PAID' : 'DUE',
+                finalMilestoneAmount: m2,
+                finalMilestoneStatus: m2Paid ? 'PAID' : 'PENDING',
+                subsidyAmount: 78000,
+                lastFollowupNote: inq.followups?.[0]?.description || 'Milestone tracking active',
+              };
+            })
+          );
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setProjects([]);
+      });
   }, []);
 
   const dueCount = projects.filter((p) => p.firstMilestoneStatus === 'DUE').length;
