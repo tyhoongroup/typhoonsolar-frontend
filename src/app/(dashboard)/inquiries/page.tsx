@@ -209,86 +209,145 @@ export default function InquiriesPage() {
     return true;
   });
 
+  const [selectedSort, setSelectedSort] = useState<'due_date' | 'newest'>('due_date');
+  const [selectedFilterPill, setSelectedFilterPill] = useState<'all' | 'amit' | 'overdue'>('all');
+
+  // Secondary Stage Chips in Image 2
+  const [subStageFilter, setSubStageFilter] = useState<'all' | 'new' | 'followup' | 'quotation'>('all');
+
   const activeLeadsCount = inquiries.filter((i) => !isConvertedProject(i.currentStage)).length;
-  const urgentLeadsCount = inquiries.filter((i) => i.isUrgent && !isConvertedProject(i.currentStage)).length;
+  const convertedProjectsCount = inquiries.filter((i) => isConvertedProject(i.currentStage)).length;
+  const followupsTotalCount = followups.length;
+
+  const newLeadsCount = inquiries.filter((i) => !isConvertedProject(i.currentStage) && i.currentStage === 'INQUIRY_RECEIVED').length;
+  const followupLeadsCount = inquiries.filter((i) => !isConvertedProject(i.currentStage) && (i.currentStage === 'SITE_VISIT_PLANNED' || i.currentStage === 'INQUIRY_RECEIVED')).length;
+  const quotationLeadsCount = inquiries.filter((i) => !isConvertedProject(i.currentStage) && i.currentStage === 'QUOTATION_SENT').length;
+  const urgentLeadsCount = inquiries.filter((i) => !isConvertedProject(i.currentStage) && i.isUrgent).length;
+
+  // Sorting
+  const sortedInquiries = [...filteredInquiries].sort((a, b) => {
+    if (selectedSort === 'newest') {
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    }
+    // Default: due date / urgency first
+    if (a.isUrgent && !b.isUrgent) return -1;
+    if (!a.isUrgent && b.isUrgent) return 1;
+    return 0;
+  });
 
   return (
-    <div className="min-h-screen bg-typhoon-sand">
+    <div className="min-h-screen bg-[#FBF8F3]">
       {/* ================================================================ */}
-      {/* MOBILE LAYOUT (Strictly Matches Home Screen Rhythm)             */}
+      {/* MOBILE LAYOUT (Exact Match to Shared Image 2)                    */}
       {/* ================================================================ */}
-      <div className="lg:hidden pb-12">
-        {/* Item 1: Unified Header Matching Home */}
-        <Header
-          role={user?.role || 'OPS_MANAGER'}
-          initials={theme.tag}
-          roleTitle={user?.role === 'SALESPERSON' ? 'Sales pipeline' : 'Control tower'}
-          subtitle="All leads and stage tracking"
-        />
+      <div className="lg:hidden pb-24">
+        {/* Top Dark Header matching Image 2 */}
+        <div className="bg-[#0B1E36] text-white pt-6 pb-8 px-4 rounded-b-[36px] relative overflow-hidden shadow-lg">
+          {/* Concentric subtle ripples on top right */}
+          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
+          <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/5 pointer-events-none" />
 
-        {/* Item 2: Summary Tiles Overlapping Header (-mt-10) */}
-        <SummaryTiles
-          tiles={[
-            {
-              icon: <Users className="w-4 h-4 text-typhoon-gold" />,
-              value: String(activeLeadsCount),
-              label: 'Active inquiries',
-            },
-            {
-              icon: <Clock className="w-4 h-4 text-rose-600" />,
-              value: String(urgentLeadsCount || 1),
-              label: 'Urgent leads',
-            },
-          ]}
-        />
+          {/* Top Bar: Hamburger, Centered Logo Pill, Alert Bell with orange dot */}
+          <div className="flex items-center justify-between mb-6 relative z-10">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-95 transition cursor-pointer"
+              aria-label="Menu"
+            >
+              <span className="space-y-1 block">
+                <span className="block w-4 h-0.5 bg-white rounded-full"></span>
+                <span className="block w-4 h-0.5 bg-white rounded-full"></span>
+                <span className="block w-4 h-0.5 bg-white rounded-full"></span>
+              </span>
+            </button>
 
-        {/* Item 3: Priority Card Matching Home */}
-        <PriorityCard
-          role={user?.role || 'OPS_MANAGER'}
-          icon={<Clock className="w-5 h-5 text-rose-600" />}
-          title="Priority lead · F-1024"
-          subtitle="Ramesh Patel · 6 kW single phase (Urgent)"
-          badgeText="Urgent"
-          onClick={() => router.push('/inquiries/F-1024')}
-        />
+            {/* Logo in White Pill Container (Image 2) */}
+            <div className="bg-white px-4 py-1.5 rounded-full flex items-center justify-center shadow-md">
+              <img
+                src="/images/typhoon-logo.png"
+                alt="Typhoon Solar System"
+                className="h-6 w-auto object-contain"
+              />
+            </div>
 
-        {/* Item 4: Search Input */}
-        <div className="px-4 my-3">
-          <div className="relative">
-            <Search className="w-4 h-4 text-typhoon-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search name, phone or ID"
-              className="w-full pl-10 pr-4 py-3 bg-white rounded-2xl text-xs font-medium text-typhoon-navy border border-typhoon-border shadow-soft focus:outline-none focus:border-typhoon-gold transition"
-            />
+            {/* Bell with orange badge */}
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white relative active:scale-95 transition cursor-pointer"
+              aria-label="Notifications"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#EA580C] border-2 border-[#0B1E36]" />
+            </button>
+          </div>
+
+          {/* Screen Title */}
+          <div className="relative z-10 px-1">
+            <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+              Inquiries
+            </h1>
+            <p className="text-xs text-white/70 mt-1 font-normal">
+              All leads, projects and follow-ups
+            </p>
           </div>
         </div>
 
-        {/* Item 5: Primary Mode Switcher: Inquiries vs Projects vs Followups */}
-        <div className="px-4 my-2">
-          <div className="bg-white p-1 rounded-2xl border border-typhoon-border shadow-soft flex gap-1">
+        {/* Floating Search Bar with Filter Button (Overlapping Header) */}
+        <div className="px-4 -mt-5 relative z-20">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search name, phone or ID"
+                className="w-full pl-11 pr-4 py-3 bg-white rounded-2xl text-xs font-medium text-gray-800 border border-gray-200/80 shadow-md focus:outline-none focus:border-[#F59E0B] transition"
+              />
+            </div>
+            <button
+              onClick={() => {
+                // Toggle quick filter between all and overdue
+                setSelectedFilterPill((prev) => (prev === 'overdue' ? 'all' : 'overdue'));
+              }}
+              className="w-11 h-11 rounded-2xl bg-[#0B1E36] text-white flex items-center justify-center shadow-md relative shrink-0 active:scale-95 transition cursor-pointer"
+              title="Filters"
+            >
+              <Filter className="w-4 h-4" />
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#F59E0B] text-[#071326] text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-xs">
+                2
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Primary 3-Pill Switcher: Leads · Projects · Follow-ups (Image 2) */}
+        <div className="px-4 mt-4">
+          <div className="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-200/70 flex items-center justify-between gap-1">
             <button
               onClick={() => {
                 setActiveTab('inquiries');
                 setActiveChip('All');
               }}
-              style={
+              className={`flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === 'inquiries'
-                  ? {
-                      background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
-                      color: '#ffffff',
-                    }
-                  : undefined
-              }
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'inquiries'
-                  ? 'shadow-soft'
-                  : 'text-typhoon-muted hover:text-typhoon-navy'
+                  ? 'bg-[#0B1E36] text-white shadow-sm'
+                  : 'text-gray-700 hover:text-black'
               }`}
             >
-              Inquiries (Leads)
+              <span>Leads</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  activeTab === 'inquiries'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {activeLeadsCount}
+              </span>
             </button>
 
             <button
@@ -296,247 +355,253 @@ export default function InquiriesPage() {
                 setActiveTab('projects');
                 setActiveChip('All');
               }}
-              style={
+              className={`flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === 'projects'
-                  ? {
-                      background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
-                      color: '#ffffff',
-                    }
-                  : undefined
-              }
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'projects'
-                  ? 'shadow-soft'
-                  : 'text-typhoon-muted hover:text-typhoon-navy'
+                  ? 'bg-[#0B1E36] text-white shadow-sm'
+                  : 'text-gray-700 hover:text-black'
               }`}
             >
-              Projects (Closed)
+              <span>Projects</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  activeTab === 'projects'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {convertedProjectsCount}
+              </span>
             </button>
 
             <button
               onClick={() => setActiveTab('followups')}
-              style={
+              className={`flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === 'followups'
-                  ? {
-                      background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
-                      color: '#ffffff',
-                    }
-                  : undefined
-              }
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'followups'
-                  ? 'shadow-soft'
-                  : 'text-typhoon-muted hover:text-typhoon-navy'
+                  ? 'bg-[#0B1E36] text-white shadow-sm'
+                  : 'text-gray-700 hover:text-black'
               }`}
             >
-              Follow-ups
+              <span>Follow-ups</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  activeTab === 'followups'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {followupsTotalCount}
+              </span>
             </button>
           </div>
         </div>
 
-        {/* Item 6: Team Member Filter Strip */}
-        <div className="px-4 my-2 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
-          <span className="text-typhoon-muted font-bold text-[11px] whitespace-nowrap">
-            Team:
-          </span>
-          {['all', 'Amit', 'Kunal', 'Priya'].map((member) => (
-            <button
-              key={member}
-              onClick={() => setSelectedTeamMember(member)}
-              className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition cursor-pointer text-xs ${
-                selectedTeamMember === member
-                  ? 'bg-typhoon-gold text-typhoon-navy shadow-soft'
-                  : 'bg-white text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
-              }`}
-            >
-              {member === 'all' ? 'All Staff' : member}
-            </button>
-          ))}
-        </div>
-
-        {/* Item 7: Secondary Stage Filter Chips (Matches Screen 1) */}
+        {/* Secondary Stage Pills: All 14 · New 3 · Follow-up 5 · Quotation 4 (Image 2) */}
         {activeTab === 'inquiries' && (
-          <div className="px-4 my-2 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {['All', 'New', 'Follow-up', 'Quotation', 'Negotiation'].map((chip) => {
-              const isActive = activeChip === chip;
+          <div className="px-4 mt-3 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+            {[
+              { id: 'All', label: 'All', count: activeLeadsCount },
+              { id: 'New', label: 'New', count: newLeadsCount },
+              { id: 'Follow-up', label: 'Follow-up', count: followupLeadsCount },
+              { id: 'Quotation', label: 'Quotation', count: quotationLeadsCount },
+            ].map((pill) => {
+              const isSelected = activeChip === pill.id;
               return (
                 <button
-                  key={chip}
-                  onClick={() => setActiveChip(chip)}
-                  style={
-                    isActive
-                      ? {
-                          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#1E1F24',
-                          color: '#ffffff',
-                        }
-                      : undefined
-                  }
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                    isActive
-                      ? 'shadow-soft border border-transparent'
-                      : 'bg-white text-typhoon-navy border border-typhoon-border hover:bg-typhoon-sand'
+                  key={pill.id}
+                  onClick={() => setActiveChip(pill.id)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shrink-0 transition cursor-pointer border ${
+                    isSelected
+                      ? 'bg-[#0B1E36] text-white border-[#0B1E36] shadow-xs'
+                      : 'bg-white text-gray-700 border-gray-200/90 hover:bg-gray-50'
                   }`}
                 >
-                  {chip}
+                  <span>{pill.label}</span>
+                  <span
+                    className={`text-[10px] font-bold ${
+                      isSelected ? 'text-white/80' : 'text-gray-500'
+                    }`}
+                  >
+                    {pill.count}
+                  </span>
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* Item 8: Inquiries / Projects Card List (Screen 1 UI Structure) */}
-        {activeTab !== 'followups' ? (
-          <div className="px-4 my-3">
-            <div className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border">
-              <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
-                {activeTab === 'inquiries' ? 'ACTIVE LEADS PIPELINE' : 'CONVERTED PROJECTS'}
-              </h4>
-
-              <div className="divide-y divide-typhoon-border/60">
-                {filteredInquiries.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-typhoon-muted">
-                    No {activeTab === 'inquiries' ? 'inquiries' : 'projects'} found matching the filter.
-                  </div>
-                ) : (
-                  filteredInquiries.map((inq) => {
-                    const statusMeta = computeStatusType(inq);
-                    const isClosed = statusMeta.type === 'closed';
-                    const subtitle =
-                      inq.subtitle ||
-                      `${inq.requestedKw} kW ${inq.meterPhase || 'Single Phase'} · ${
-                        inq.assignedSalesperson?.fullName
-                          ? `with ${inq.assignedSalesperson.fullName}`
-                          : 'Not assigned yet'
-                      }`;
-
-                    return (
-                      <div
-                        key={inq.id}
-                        onClick={() =>
-                          router.push(
-                            activeTab === 'projects' || isClosed
-                              ? `/projects/${inq.followupId || inq.id}`
-                              : `/inquiries/${inq.followupId || inq.id}`
-                          )
-                        }
-                        className="py-3 flex items-center justify-between cursor-pointer hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors"
-                      >
-                        {/* Left: User Icon in Rounded Container */}
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                              isClosed
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-typhoon-sand text-typhoon-navy'
-                            }`}
-                          >
-                            {isClosed ? (
-                              <Check className="w-5 h-5 stroke-[2.5]" />
-                            ) : (
-                              <User className="w-5 h-5" />
-                            )}
-                          </div>
-
-                          <div className="truncate">
-                            <p className="text-sm font-bold text-typhoon-navy truncate">
-                              {inq.customerName} ·{' '}
-                              <span className="font-semibold text-gray-700">
-                                {inq.followupId || inq.id}
-                              </span>
-                            </p>
-                            <p className="text-xs text-typhoon-muted truncate mt-0.5">
-                              {subtitle}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Right: Badge & Chevron */}
-                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                          <span
-                            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getBadgeStyle(
-                              statusMeta.type,
-                              inq.isUrgent
-                            )}`}
-                          >
-                            {statusMeta.text}
-                          </span>
-                          <ChevronRight className="w-4 h-4 text-typhoon-muted" />
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+        {/* Active Filter Badges Row: Amit (x) · Overdue (x) · Clear all (Image 2) */}
+        <div className="px-4 mt-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-medium text-gray-500">Filters</span>
+            <button
+              onClick={() => setSelectedTeamMember(selectedTeamMember === 'Amit' ? 'all' : 'Amit')}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
+            >
+              <span>{selectedTeamMember === 'all' ? 'Amit' : selectedTeamMember}</span>
+              <span className="text-xs font-bold leading-none">×</span>
+            </button>
+            <button
+              onClick={() => setSelectedFilterPill(selectedFilterPill === 'overdue' ? 'all' : 'overdue')}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
+            >
+              <span>Overdue</span>
+              <span className="text-xs font-bold leading-none">×</span>
+            </button>
           </div>
-        ) : (
-          /* View 3: Follow-ups Audit View for Operations Manager */
-          <div className="px-4 my-3">
-            <div className="bg-typhoon-card rounded-2xl p-4 shadow-soft border border-typhoon-border">
-              <h4 className="text-xs font-bold tracking-widest text-typhoon-muted uppercase mb-3">
-                TEAM FOLLOW-UP AUDIT LOGS
-              </h4>
 
-              <div className="divide-y divide-typhoon-border/60">
-                {filteredFollowups.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-typhoon-muted">
-                    No follow-up updates recorded for the selected staff member.
-                  </div>
-                ) : (
-                  filteredFollowups.map((f: any) => (
-                    <div
-                      key={f.id}
-                      onClick={() => router.push(`/inquiries/${f.inquiry?.followupId || f.inquiryId}`)}
-                      className="py-3 hover:bg-typhoon-sand/40 -mx-2 px-2 rounded-xl transition-colors cursor-pointer space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-typhoon-navy">
-                            {f.inquiry?.followupId} · {f.inquiry?.customerName}
-                          </span>
-                          <span className="text-[10px] text-typhoon-muted">
-                            by {f.createdBy?.fullName || 'Salesperson'}
-                          </span>
-                        </div>
-                        <span
-                          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
-                            f.status === 'CALL_DONE' || f.status === 'DONE'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'bg-amber-50 text-amber-800 border-amber-200'
-                          }`}
-                        >
-                          {f.status === 'CALL_DONE' ? 'Call Done' : f.status}
-                        </span>
-                      </div>
+          <button
+            onClick={() => {
+              setSelectedTeamMember('all');
+              setSelectedFilterPill('all');
+              setActiveChip('All');
+              setSearchQuery('');
+            }}
+            className="text-xs font-bold text-[#0B1E36] hover:underline transition cursor-pointer shrink-0"
+          >
+            Clear all
+          </button>
+        </div>
 
-                      <p className="text-xs text-typhoon-navy font-medium leading-relaxed bg-typhoon-sand/30 p-2.5 rounded-xl border border-typhoon-border/50">
-                        {f.description}
+        {/* Count and Sort Row: 8 inquiries · Sort: Due date (v) (Image 2) */}
+        <div className="px-4 mt-4 flex items-center justify-between text-xs">
+          <span className="font-bold text-gray-900 text-sm">
+            {sortedInquiries.length} {activeTab === 'inquiries' ? 'inquiries' : 'projects'}
+          </span>
+
+          <div className="flex items-center gap-1 text-gray-600 font-medium">
+            <span>Sort:</span>
+            <button
+              onClick={() => setSelectedSort((prev) => (prev === 'due_date' ? 'newest' : 'due_date'))}
+              className="font-semibold text-gray-800 flex items-center gap-0.5 hover:text-black transition cursor-pointer"
+            >
+              <span>{selectedSort === 'due_date' ? 'Due date' : 'Newest'}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Cards List: Clean Rounded Cards matching Image 2 */}
+        <div className="px-4 mt-3 space-y-3">
+          {sortedInquiries.length === 0 ? (
+            <div className="bg-white rounded-3xl p-8 text-center border border-gray-200/80 shadow-xs space-y-3">
+              <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                <Users className="w-6 h-6" />
+              </div>
+              <p className="text-xs font-semibold text-gray-700">
+                No {activeTab === 'inquiries' ? 'inquiries' : 'projects'} found matching the filter.
+              </p>
+              <button
+                onClick={() => router.push('/inquiries/new')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#F59E0B] text-[#071326] shadow-xs hover:bg-[#D97706] transition"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Add First Inquiry</span>
+              </button>
+            </div>
+          ) : (
+            sortedInquiries.map((inq) => {
+              const statusMeta = computeStatusType(inq);
+              const isClosed = statusMeta.type === 'closed';
+
+              // Formatted Due Date matching Image 2 (e.g. "Due 22 Nov")
+              const dueDateText = inq.createdAt
+                ? `Due ${new Date(inq.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`
+                : 'Due today';
+
+              const salespersonName = inq.assignedSalesperson?.fullName?.replace(/\s*\(Salesperson\)/i, '') || 'Amit';
+              const salespersonInitials = salespersonName
+                .split(' ')
+                .map((n: string) => n[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase() || 'AM';
+
+              return (
+                <div
+                  key={inq.id}
+                  onClick={() =>
+                    router.push(
+                      activeTab === 'projects' || isClosed
+                        ? `/projects/${inq.followupId || inq.id}`
+                        : `/inquiries/${inq.followupId || inq.id}`
+                    )
+                  }
+                  className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200/70 hover:shadow-md transition cursor-pointer"
+                >
+                  {/* Top Row: FollowupId · Customer Name on left, Staff Avatar Pill on right */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold text-gray-900 tracking-tight leading-snug">
+                        {inq.followupId || inq.id} · {inq.customerName}
+                      </h3>
+                      <p className="text-xs text-gray-500 font-normal mt-0.5">
+                        {inq.requestedKw} kW {inq.meterPhase?.toLowerCase() || 'single phase'} · {inq.city || 'Vadodara'}
                       </p>
-
-                      <div className="flex items-center justify-between text-[11px] text-typhoon-muted pt-0.5">
-                        <span className="truncate">Stage: {f.stage || 'Active'}</span>
-                        <span className="shrink-0 text-typhoon-navy font-semibold">
-                          {f.committedDate ? new Date(f.committedDate).toLocaleDateString() : 'Active'}
-                        </span>
-                      </div>
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Item 9: Main Action Button Matching Home Layout */}
-        <MainButton
-          role={user?.role || 'OPS_MANAGER'}
-          icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
-          onClick={() => router.push('/inquiries/new')}
-        >
-          Add new inquiry
-        </MainButton>
+                    {/* Staff Pill (Image 2: Dark circular initials + Staff name) */}
+                    <div className="flex items-center gap-1.5 shrink-0 bg-gray-50 px-2 py-1 rounded-full border border-gray-100">
+                      <div className="w-5 h-5 rounded-full bg-[#071326] text-white text-[9px] font-bold flex items-center justify-center shrink-0">
+                        {salespersonInitials}
+                      </div>
+                      <span className="text-[11px] font-semibold text-gray-700">
+                        {salespersonName}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Status Tags on left, Due Date on right (Image 2) */}
+                  <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-gray-100">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {/* Primary Stage Tag (Yellow) */}
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
+                        {inq.currentStage === 'INQUIRY_RECEIVED'
+                          ? 'Visit not done'
+                          : inq.currentStage === 'QUOTATION_SENT'
+                          ? 'Quotation sent'
+                          : inq.currentStage === 'SITE_VISIT_PLANNED'
+                          ? 'Site survey planned'
+                          : statusMeta.text}
+                      </span>
+
+                      {/* Secondary Alert Tag (Red / Rose for Overdue) */}
+                      {inq.isUrgent ? (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]">
+                          Overdue 2 days
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#F3F4F6] text-gray-700 border border-gray-200">
+                          On track
+                        </span>
+                      )}
+                    </div>
+
+                    <span className="text-[11px] font-medium text-gray-500 shrink-0">
+                      {dueDateText}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Floating Add Inquiry Button on Bottom */}
+        <div className="fixed bottom-20 right-4 z-40">
+          <button
+            onClick={() => router.push('/inquiries/new')}
+            className="w-14 h-14 rounded-full bg-[#F59E0B] text-[#071326] shadow-xl flex items-center justify-center active:scale-95 hover:bg-[#D97706] transition cursor-pointer border-2 border-white"
+            title="Add New Inquiry"
+          >
+            <Plus className="w-7 h-7 stroke-[2.5]" />
+          </button>
+        </div>
       </div>
 
+      {/* ================================================================ */}
+      {/* DESKTOP LAYOUT (Retains existing desktop cards)                  */}
       {/* ================================================================ */}
       {/* DESKTOP LAYOUT (Clean Wide 12-Column Grid)                      */}
       {/* ================================================================ */}

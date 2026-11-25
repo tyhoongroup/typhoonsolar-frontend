@@ -482,38 +482,32 @@ export default function LoginPage() {
 
             {/* Floating Saved Profile Card */}
             <div className="px-5 -mt-10 relative z-20">
-              <div className="bg-white rounded-[32px] p-6 sm:p-8 shadow-xl border border-gray-100/80 text-center">
-                {/* Avatar with Role Initials & Theme Colors */}
-                <div
-                  style={{
-                    borderColor: '#F5A623',
-                    color: '#F5A623',
-                  }}
-                  className="w-18 h-22 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-normal shadow-md border-[2.5px] bg-[#0B192C]"
-                >
+              <div className="bg-white rounded-[32px] p-6 sm:p-8 shadow-xl border border-gray-100/80 text-center flex flex-col items-center">
+                {/* Avatar with Role Initials: Perfect Circle with gold border matching Image 1 */}
+                <div className="w-24 h-24 aspect-square rounded-full flex items-center justify-center font-serif text-3xl font-bold shadow-md border-[3px] border-[#F59E0B] bg-[#071326] text-[#F59E0B] shrink-0">
                   {savedProfile.role === 'OPS_MANAGER' ? 'AK' : activeTheme.tag}
                 </div>
 
-                <h3 className="text-2xl font-serif font-normal text-typhoon-navy mt-4 tracking-tight">
+                <h3 className="text-2xl font-serif font-bold text-typhoon-navy mt-4 tracking-tight leading-tight">
                   {savedProfile.fullName}
                 </h3>
 
-                <div className="mt-1.5">
-                  <span className="inline-block px-3.5 py-1 rounded-full text-xs font-semibold bg-[#FFF8E7] text-[#D97706] border border-[#FDE68A]">
+                <div className="mt-2">
+                  <span className="inline-block px-3.5 py-1 rounded-full text-xs font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]/80">
                     {activeTheme.roleName}
                   </span>
                 </div>
 
-                <p className="text-sm font-semibold text-gray-700 mt-2.5 tracking-wide">
+                <p className="text-sm font-semibold text-gray-700 mt-3 tracking-wide">
                   {formatMaskedPhone(savedProfile.phone)}
                 </p>
 
-                <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mt-1">
+                <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mt-1.5">
                   <Clock className="w-3.5 h-3.5" />
                   <span>Last login: {savedProfile.lastLoginText}</span>
                 </div>
 
-                <div className="border-t border-gray-100 my-4" />
+                <div className="border-t border-gray-100 w-full my-4" />
 
                 <button
                   type="button"
@@ -537,7 +531,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleSavedProfileLogin}
                   disabled={loading}
-                  className="w-full py-4 px-6 rounded-2xl font-bold text-base tracking-wide shadow-soft flex items-center justify-center gap-2 bg-[#F59E0B] text-[#0B192C] hover:bg-[#D97706] active:scale-[0.98] disabled:opacity-50 transition cursor-pointer"
+                  className="w-full py-4 px-6 rounded-2xl font-bold text-base tracking-wide shadow-soft flex items-center justify-center gap-2 bg-[#F59E0B] text-[#071326] hover:bg-[#D97706] active:scale-[0.98] disabled:opacity-50 transition cursor-pointer"
                 >
                   <Lock className="w-4 h-4 stroke-[2.5]" />
                   <span>{loading ? 'Logging in...' : 'Login'}</span>
@@ -546,7 +540,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setIsSwitchingProfile(true)}
-                  className="w-full py-3.5 px-6 rounded-2xl font-semibold text-sm text-[#0B192C] border border-[#0B192C]/25 bg-transparent hover:bg-black/5 active:scale-[0.98] transition cursor-pointer text-center"
+                  className="w-full py-3.5 px-6 rounded-2xl font-semibold text-sm text-[#071326] border border-[#071326]/40 bg-transparent hover:bg-black/5 active:scale-[0.98] transition cursor-pointer text-center"
                 >
                   Use another number
                 </button>
