@@ -68,15 +68,18 @@ export default function AssignSalespersonPage() {
       .catch(() => {})
       .finally(() => setFetching(false));
 
-    // 2. Fetch all inquiries so Ops Manager can switch between public inquiries
+    // 2. Fetch all inquiries so Ops Manager can always pick and switch inquiries
     fetch('/api/v1/inquiries', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const list = Array.isArray(data) ? data : (data?.data || []);
-        if (Array.isArray(list)) {
+        if (Array.isArray(list) && list.length > 0) {
           setAvailableInquiries(list);
+        } else {
+          // If empty list, at least include current inquiry
+          setAvailableInquiries((prev) => (prev.length > 0 ? prev : inquiry ? [inquiry] : []));
         }
       })
       .catch(() => {});
@@ -215,26 +218,36 @@ export default function AssignSalespersonPage() {
 
       {/* 2. Body Container (Positive Margin - Completely Clear of Header Curve) */}
       <div className="max-w-md mx-auto px-4 pt-4 space-y-4">
-        {/* Public Inquiry Switcher (Ops Manager can pick any inquiry) */}
-        {availableInquiries.length > 1 && (
-          <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-2">
+        {/* Public Inquiry Switcher (Ops Manager selects public inquiry / lead) */}
+        <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-2.5">
+          <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-typhoon-navy block">
               Select Public Inquiry / Lead
             </span>
-            <select
-              value={inquiry?.followupId || inquiry?.id || inquiryId}
-              onChange={(e) => handleSelectDifferentInquiry(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-bold text-typhoon-navy focus:outline-none focus:border-[#6366F1]"
-            >
-              {availableInquiries.map((inqItem) => (
-                <option key={inqItem.id} value={inqItem.followupId || inqItem.id}>
-                  {inqItem.followupId || inqItem.id} · {inqItem.customerName} ({inqItem.requestedKw} kW · {inqItem.city || 'Vadodara'})
-                  {!inqItem.assignedSalespersonId ? ' [Unassigned]' : ''}
-                </option>
-              ))}
-            </select>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              {availableInquiries.length > 0 ? `${availableInquiries.length} leads` : 'Current Lead'}
+            </span>
           </div>
-        )}
+
+          <select
+            value={inquiry?.followupId || inquiry?.id || inquiryId}
+            onChange={(e) => handleSelectDifferentInquiry(e.target.value)}
+            className="w-full px-3.5 py-3 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-bold text-typhoon-navy focus:outline-none focus:border-[#6366F1] shadow-xs cursor-pointer"
+          >
+            {availableInquiries.length > 0 ? (
+              availableInquiries.map((inqItem) => (
+                <option key={inqItem.id} value={inqItem.followupId || inqItem.id}>
+                  {inqItem.followupId || inqItem.id} · {inqItem.customerName} ({inqItem.requestedKw} kW · {inqItem.city || inqItem.address || 'Vadodara'})
+                  {!inqItem.assignedSalespersonId ? ' [Unassigned]' : ` [Assigned: ${inqItem.assignedSalesperson?.fullName || 'Sales'}]`}
+                </option>
+              ))
+            ) : (
+              <option value={inquiry?.followupId || inquiryId}>
+                {inquiry?.followupId || inquiryId} · {inquiry?.customerName || 'Selected Lead'} ({inquiry?.requestedKw || 6} kW)
+              </option>
+            )}
+          </select>
+        </div>
 
         {/* 3 Structure Type Buttons (Residential, Commercial, Common) */}
         <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-2">
