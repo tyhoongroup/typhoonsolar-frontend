@@ -74,6 +74,8 @@ export default function DashboardLayout({
       }
     } else if (pathname === '/projects' || pathname.startsWith('/projects/')) {
       setActiveTab('projects');
+    } else if (pathname === '/followups' || pathname.startsWith('/followups')) {
+      setActiveTab('followups');
     } else if (pathname === '/inquiries') {
       setActiveTab('inquiries');
     } else if (pathname.includes('/inquiries')) {
@@ -133,8 +135,9 @@ export default function DashboardLayout({
       return {
         mobile: [
           { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-          { id: 'inquiries', label: 'Inquiries', iconName: 'inquiries', href: '/inquiries' },
-          { id: 'projects', label: 'Projects & Docs', iconName: 'docs', href: '/projects' },
+          { id: 'inquiries', label: 'Leads', iconName: 'inquiries', href: '/inquiries' },
+          { id: 'followups', label: 'Follow-ups', iconName: 'visits', href: '/followups' },
+          { id: 'projects', label: 'Projects', iconName: 'docs', href: '/projects' },
           { id: 'more', label: 'More', iconName: 'more', href: '#more' },
         ],
         desktop: [

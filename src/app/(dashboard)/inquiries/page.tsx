@@ -268,29 +268,45 @@ export default function InquiriesPage() {
     return 0;
   });
 
+  const headerBg = theme.hex.headerGradient || theme.hex.headerBg || '#0B1E36';
+  const headerTextColor = theme.hex.headerTextColor || '#ffffff';
+  const headerSubtextColor = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
+  const isLightHeader = headerTextColor !== '#ffffff';
+  const accentColor = theme.hex.accentBg || '#F59E0B';
+
   return (
     <div className="min-h-screen bg-[#FBF8F3]">
       {/* ================================================================ */}
-      {/* MOBILE LAYOUT (Exact Match to Shared Image 2)                    */}
+      {/* MOBILE LAYOUT (Adaptive Role Theme)                              */}
       {/* ================================================================ */}
       <div className="lg:hidden pb-24">
-        {/* Top Dark Header matching Image 2 */}
-        <div className="bg-[#0B1E36] text-white pt-6 pb-8 px-4 rounded-b-[36px] relative overflow-hidden shadow-lg">
+        {/* Top Header styled according to active role theme */}
+        <div
+          style={{
+            background: headerBg,
+            color: headerTextColor,
+          }}
+          className="pt-6 pb-8 px-4 rounded-b-[36px] relative overflow-hidden shadow-lg transition-colors duration-300"
+        >
           {/* Concentric subtle ripples on top right */}
-          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
-          <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/5 pointer-events-none" />
+          <div className={`absolute -top-12 -right-12 w-48 h-48 rounded-full border pointer-events-none ${isLightHeader ? 'border-black/5' : 'border-white/5'}`} />
+          <div className={`absolute -top-6 -right-6 w-36 h-36 rounded-full border pointer-events-none ${isLightHeader ? 'border-black/10' : 'border-white/10'}`} />
 
           {/* Top Bar: Hamburger, Centered Logo Pill, Alert Bell with orange dot */}
           <div className="flex items-center justify-between mb-6 relative z-10">
             <button
               onClick={() => router.push('/dashboard')}
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-95 transition cursor-pointer"
+              style={{
+                backgroundColor: isLightHeader ? 'rgba(0, 0, 0, 0.07)' : 'rgba(255, 255, 255, 0.1)',
+                color: headerTextColor,
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition cursor-pointer"
               aria-label="Menu"
             >
               <span className="space-y-1 block">
-                <span className="block w-4 h-0.5 bg-white rounded-full"></span>
-                <span className="block w-4 h-0.5 bg-white rounded-full"></span>
-                <span className="block w-4 h-0.5 bg-white rounded-full"></span>
+                <span style={{ backgroundColor: headerTextColor }} className="block w-4 h-0.5 rounded-full"></span>
+                <span style={{ backgroundColor: headerTextColor }} className="block w-4 h-0.5 rounded-full"></span>
+                <span style={{ backgroundColor: headerTextColor }} className="block w-4 h-0.5 rounded-full"></span>
               </span>
             </button>
 
@@ -306,23 +322,27 @@ export default function InquiriesPage() {
             {/* Bell with orange badge */}
             <button
               onClick={() => router.push('/dashboard')}
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white relative active:scale-95 transition cursor-pointer"
+              style={{
+                backgroundColor: isLightHeader ? 'rgba(0, 0, 0, 0.07)' : 'rgba(255, 255, 255, 0.1)',
+                color: headerTextColor,
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center relative active:scale-95 transition cursor-pointer"
               aria-label="Notifications"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#EA580C] border-2 border-[#0B1E36]" />
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#EA580C] border-2 border-white" />
             </button>
           </div>
 
           {/* Screen Title */}
           <div className="relative z-10 px-1">
-            <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+            <h1 style={{ color: headerTextColor }} className="text-3xl font-serif font-bold tracking-tight">
               Inquiries
             </h1>
-            <p className="text-xs text-white/70 mt-1 font-normal">
+            <p style={{ color: headerSubtextColor }} className="text-xs mt-1 font-normal">
               All leads, projects and follow-ups
             </p>
           </div>

@@ -438,20 +438,35 @@ export default function ProjectDetailPage() {
     );
   }
 
+  const headerBg = theme.hex.headerGradient || theme.hex.headerBg || '#0B1E36';
+  const headerTextColor = theme.hex.headerTextColor || '#ffffff';
+  const headerSubtextColor = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
+  const isLightHeader = headerTextColor !== '#ffffff';
+
   return (
     <div className="min-h-screen bg-[#FBF8F3] pb-28 font-sans">
-      {/* 1. Header with Dark Theme, Real Logo Capsule, and Parabolic Curve */}
-      <div className="bg-[#0B1E36] text-white pt-5 pb-9 px-5 rounded-b-[34px] shadow-soft border-b border-white/10 relative overflow-hidden">
+      {/* 1. Header with Role Theme Colors, Real Logo Capsule, and Parabolic Curve */}
+      <div
+        style={{
+          background: headerBg,
+          color: headerTextColor,
+        }}
+        className="pt-5 pb-9 px-5 rounded-b-[34px] shadow-soft border-b border-black/5 relative overflow-hidden transition-colors duration-300"
+      >
         {/* Subtle background decorative concentric curves */}
-        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
-        <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/5 pointer-events-none" />
+        <div className={`absolute -top-12 -right-12 w-48 h-48 rounded-full border pointer-events-none ${isLightHeader ? 'border-black/5' : 'border-white/5'}`} />
+        <div className={`absolute -top-6 -right-6 w-36 h-36 rounded-full border pointer-events-none ${isLightHeader ? 'border-black/10' : 'border-white/10'}`} />
 
         <div className="max-w-md mx-auto relative z-10">
           {/* Top Bar: Back Button & Real Logo Capsule */}
           <div className="flex items-center justify-between mb-3.5">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition active:scale-95 cursor-pointer"
+              style={{
+                backgroundColor: isLightHeader ? 'rgba(0, 0, 0, 0.07)' : 'rgba(255, 255, 255, 0.1)',
+                color: headerTextColor,
+              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition active:scale-95 cursor-pointer"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -475,19 +490,19 @@ export default function ProjectDetailPage() {
             >
               {isProjectTag ? 'PROJECT' : 'LEAD / INQUIRY'}
             </span>
-            <span className="text-xs text-white/80 font-normal">
+            <span style={{ color: headerSubtextColor }} className="text-xs font-normal">
               Assigned to {salespersonName} (Salesperson)
             </span>
           </div>
 
           {/* Title & Project Identification */}
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+          <h1 style={{ color: headerTextColor }} className="text-2xl sm:text-3xl font-serif font-bold tracking-tight">
             Project detail
           </h1>
-          <p className="text-xs text-white/90 font-semibold mt-1">
+          <p style={{ color: headerTextColor }} className="text-xs font-semibold mt-1">
             {displayId} · {customerName}
           </p>
-          <p className="text-xs text-white/70 font-normal mt-0.5">
+          <p style={{ color: headerSubtextColor }} className="text-xs font-normal mt-0.5">
             {requestedKw} kW {meterPhase} · {address ? `${address}, ` : ''}{city}
           </p>
         </div>

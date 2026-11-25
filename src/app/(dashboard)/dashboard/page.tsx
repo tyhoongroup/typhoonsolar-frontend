@@ -104,9 +104,8 @@ export default function DashboardPage() {
         <FileText className="w-4 h-4 text-amber-600" />
       ),
       title: `${inq.followupId || inq.id} · ${inq.customerName}`,
-      subtitle: `${inq.requestedKw} kW · ${inq.city || 'Vadodara'} · ${
-        inq.assignedSalesperson?.fullName ? `Assigned to ${inq.assignedSalesperson.fullName}` : 'Public Inquiry (Unassigned)'
-      }`,
+      subtitle: `${inq.requestedKw} kW · ${inq.city || 'Vadodara'} · ${inq.assignedSalesperson?.fullName ? `Assigned to ${inq.assignedSalesperson.fullName}` : 'Public Inquiry (Unassigned)'
+        }`,
       badgeText: inq.isUrgent ? 'Urgent' : !inq.assignedSalespersonId ? 'New Public Lead' : (inq.currentStage?.replace(/_/g, ' ') || 'New Lead'),
       badgeType: inq.isUrgent ? 'due' : !inq.assignedSalespersonId ? 'active' : 'active',
       onClick: () =>
@@ -143,8 +142,8 @@ export default function DashboardPage() {
       { id: 'all', label: `All Inquiries (${liveInquiries.length})` },
     ];
 
-    const filteredRows = activeFilter === 'all' 
-      ? desktopTableRows 
+    const filteredRows = activeFilter === 'all'
+      ? desktopTableRows
       : desktopTableRows.filter(r => r.badgeText.toLowerCase().includes(activeFilter));
 
     return (
@@ -350,7 +349,7 @@ export default function DashboardPage() {
               className="w-full bg-[#6366F1] hover:bg-indigo-600 text-white font-semibold py-3.5 px-4 rounded-2xl text-xs sm:text-sm shadow-soft transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>+ Assign job</span>
+              <span>Assign job</span>
             </button>
 
             <button
@@ -358,7 +357,7 @@ export default function DashboardPage() {
               className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-gray-50 border border-gray-200 text-[#111827] font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
             >
               <Plus className="w-4 h-4 text-[#6366F1]" />
-              <span>+ Add New Solar Inquiry</span>
+              <span>Add New Solar Inquiry</span>
             </button>
           </div>
         </div>

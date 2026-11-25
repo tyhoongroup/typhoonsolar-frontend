@@ -217,16 +217,33 @@ export default function NewQuotationPage() {
     );
   };
 
+  const headerBg = theme.hex.headerGradient || theme.hex.headerBg || '#0B1E36';
+  const headerTextColor = theme.hex.headerTextColor || '#ffffff';
+  const headerSubtextColor = theme.hex.headerSubtextColor || 'rgba(255, 255, 255, 0.7)';
+  const isLightHeader = headerTextColor !== '#ffffff';
+  const accentColor = theme.hex.accentBg || '#F59E0B';
+  const accentTextColor = theme.hex.accentTextColor || '#0B1E36';
+
   return (
     <div className="min-h-screen bg-[#FBF8F3] pb-28">
       {/* 1. Top Header */}
-      <div className="bg-[#0B1E36] text-white pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden">
+      <div
+        style={{
+          background: headerBg,
+          color: headerTextColor,
+        }}
+        className="pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden transition-colors duration-300"
+      >
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition cursor-pointer hover:bg-white/20 text-white"
+              style={{
+                backgroundColor: isLightHeader ? 'rgba(0, 0, 0, 0.07)' : 'rgba(255, 255, 255, 0.1)',
+                color: headerTextColor,
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center transition cursor-pointer hover:opacity-80"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -239,22 +256,30 @@ export default function NewQuotationPage() {
             </div>
           </div>
 
-          <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+          <h1 style={{ color: headerTextColor }} className="text-3xl font-serif font-bold tracking-tight">
             Quotation engine
           </h1>
-          <p className="text-xs text-white/70 mt-1 font-medium">
+          <p style={{ color: headerSubtextColor }} className="text-xs mt-1 font-medium">
             {inquiry?.followupId || queryInquiryId} · {inquiry?.customerName || 'Customer Lead'} · PM Surya Ghar Subsidy
           </p>
 
           {/* 2-Step Nav Switcher */}
-          <div className="grid grid-cols-2 gap-2 mt-4 bg-white/10 p-1 rounded-2xl">
+          <div
+            style={{
+              backgroundColor: isLightHeader ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.1)',
+            }}
+            className="grid grid-cols-2 gap-2 mt-4 p-1 rounded-2xl"
+          >
             <button
               type="button"
               onClick={() => setActiveStep(1)}
-              className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              style={
                 activeStep === 1
-                  ? 'bg-[#F59E0B] text-[#0B1E36] shadow-sm'
-                  : 'text-white/80 hover:text-white'
+                  ? { backgroundColor: accentColor, color: accentTextColor }
+                  : { color: headerTextColor }
+              }
+              className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeStep === 1 ? 'shadow-sm' : 'opacity-70 hover:opacity-100'
               }`}
             >
               <Calculator className="w-4 h-4" />
@@ -264,10 +289,13 @@ export default function NewQuotationPage() {
             <button
               type="button"
               onClick={() => setActiveStep(2)}
-              className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              style={
                 activeStep === 2
-                  ? 'bg-[#F59E0B] text-[#0B1E36] shadow-sm'
-                  : 'text-white/80 hover:text-white'
+                  ? { backgroundColor: accentColor, color: accentTextColor }
+                  : { color: headerTextColor }
+              }
+              className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                activeStep === 2 ? 'shadow-sm' : 'opacity-70 hover:opacity-100'
               }`}
             >
               <Package className="w-4 h-4" />
