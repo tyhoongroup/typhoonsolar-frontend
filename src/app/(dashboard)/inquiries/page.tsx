@@ -37,6 +37,10 @@ export default function InquiriesPage() {
   const [activeChip, setActiveChip] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeamMember, setSelectedTeamMember] = useState('all');
+  const [isOverdueOnly, setIsOverdueOnly] = useState(false);
+  const [capacityFilter, setCapacityFilter] = useState<'all' | '<5' | '5-10' | '>10'>('all');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<'due_date' | 'newest'>('due_date');
 
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [followups, setFollowups] = useState<any[]>([]);
@@ -158,6 +162,19 @@ export default function InquiriesPage() {
     if (activeTab === 'inquiries' && isProj) return false;
     if (activeTab === 'projects' && !isProj) return false;
 
+    // Overdue filter
+    if (isOverdueOnly && !inq.isUrgent) {
+      return false;
+    }
+
+    // Capacity filter
+    if (capacityFilter !== 'all') {
+      const kw = Number(inq.requestedKw) || 0;
+      if (capacityFilter === '<5' && kw >= 5) return false;
+      if (capacityFilter === '5-10' && (kw < 5 || kw > 10)) return false;
+      if (capacityFilter === '>10' && kw <= 10) return false;
+    }
+
     // Team member filter
     if (selectedTeamMember !== 'all') {
       const spName = inq.assignedSalesperson?.fullName || '';
@@ -209,11 +226,27 @@ export default function InquiriesPage() {
     return true;
   });
 
-  const [selectedSort, setSelectedSort] = useState<'due_date' | 'newest'>('due_date');
-  const [selectedFilterPill, setSelectedFilterPill] = useState<'all' | 'amit' | 'overdue'>('all');
+  const activeFiltersCount =
+    (selectedTeamMember !== 'all' ? 1 : 0) +
+    (isOverdueOnly ? 1 : 0) +
+    (capacityFilter !== 'all' ? 1 : 0) +
+    (activeChip !== 'All' ? 1 : 0) +
+    (searchQuery.trim() ? 1 : 0);
 
-  // Secondary Stage Chips in Image 2
-  const [subStageFilter, setSubStageFilter] = useState<'all' | 'new' | 'followup' | 'quotation'>('all');
+  const hasAnyActiveFilters =
+    selectedTeamMember !== 'all' ||
+    isOverdueOnly ||
+    capacityFilter !== 'all' ||
+    activeChip !== 'All' ||
+    Boolean(searchQuery.trim());
+
+  const handleClearAllFilters = () => {
+    setSelectedTeamMember('all');
+    setIsOverdueOnly(false);
+    setCapacityFilter('all');
+    setActiveChip('All');
+    setSearchQuery('');
+  };
 
   const activeLeadsCount = inquiries.filter((i) => !isConvertedProject(i.currentStage)).length;
   const convertedProjectsCount = inquiries.filter((i) => isConvertedProject(i.currentStage)).length;
@@ -309,17 +342,16 @@ export default function InquiriesPage() {
               />
             </div>
             <button
-              onClick={() => {
-                // Toggle quick filter between all and overdue
-                setSelectedFilterPill((prev) => (prev === 'overdue' ? 'all' : 'overdue'));
-              }}
+              onClick={() => setIsFilterModalOpen(true)}
               className="w-11 h-11 rounded-2xl bg-[#0B1E36] text-white flex items-center justify-center shadow-md relative shrink-0 active:scale-95 transition cursor-pointer"
               title="Filters"
             >
               <Filter className="w-4 h-4" />
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#F59E0B] text-[#071326] text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-xs">
-                2
-              </span>
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#F59E0B] text-[#071326] text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-xs">
+                  {activeFiltersCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -429,43 +461,78 @@ export default function InquiriesPage() {
           </div>
         )}
 
-        {/* Active Filter Badges Row: Amit (x) · Overdue (x) · Clear all (Image 2) */}
-        <div className="px-4 mt-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-medium text-gray-500">Filters</span>
+        {/* Active Filter Badges Row: Only shown when filters are genuinely active */}
+        {hasAnyActiveFilters && (
+          <div className="px-4 mt-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-medium text-gray-500">Filters</span>
+
+              {selectedTeamMember !== 'all' && (
+                <button
+                  onClick={() => setSelectedTeamMember('all')}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
+                >
+                  <span>{selectedTeamMember}</span>
+                  <span className="text-xs font-bold leading-none">×</span>
+                </button>
+              )}
+
+              {isOverdueOnly && (
+                <button
+                  onClick={() => setIsOverdueOnly(false)}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
+                >
+                  <span>Overdue</span>
+                  <span className="text-xs font-bold leading-none">×</span>
+                </button>
+              )}
+
+              {capacityFilter !== 'all' && (
+                <button
+                  onClick={() => setCapacityFilter('all')}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
+                >
+                  <span>{capacityFilter === '<5' ? '< 5 kW' : capacityFilter === '5-10' ? '5-10 kW' : '> 10 kW'}</span>
+                  <span className="text-xs font-bold leading-none">×</span>
+                </button>
+              )}
+
+              {activeChip !== 'All' && (
+                <button
+                  onClick={() => setActiveChip('All')}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
+                >
+                  <span>{activeChip}</span>
+                  <span className="text-xs font-bold leading-none">×</span>
+                </button>
+              )}
+
+              {searchQuery.trim() && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer max-w-[150px] truncate"
+                >
+                  <span className="truncate">&quot;{searchQuery}&quot;</span>
+                  <span className="text-xs font-bold leading-none">×</span>
+                </button>
+              )}
+            </div>
+
             <button
-              onClick={() => setSelectedTeamMember(selectedTeamMember === 'Amit' ? 'all' : 'Amit')}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
+              onClick={handleClearAllFilters}
+              className="text-xs font-bold text-[#0B1E36] hover:underline transition cursor-pointer shrink-0"
             >
-              <span>{selectedTeamMember === 'all' ? 'Amit' : selectedTeamMember}</span>
-              <span className="text-xs font-bold leading-none">×</span>
-            </button>
-            <button
-              onClick={() => setSelectedFilterPill(selectedFilterPill === 'overdue' ? 'all' : 'overdue')}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] transition cursor-pointer"
-            >
-              <span>Overdue</span>
-              <span className="text-xs font-bold leading-none">×</span>
+              Clear all
             </button>
           </div>
-
-          <button
-            onClick={() => {
-              setSelectedTeamMember('all');
-              setSelectedFilterPill('all');
-              setActiveChip('All');
-              setSearchQuery('');
-            }}
-            className="text-xs font-bold text-[#0B1E36] hover:underline transition cursor-pointer shrink-0"
-          >
-            Clear all
-          </button>
-        </div>
+        )}
 
         {/* Count and Sort Row: 8 inquiries · Sort: Due date (v) (Image 2) */}
         <div className="px-4 mt-4 flex items-center justify-between text-xs">
           <span className="font-bold text-gray-900 text-sm">
-            {sortedInquiries.length} {activeTab === 'inquiries' ? 'inquiries' : 'projects'}
+            {activeTab === 'followups'
+              ? `${filteredFollowups.length} follow-ups`
+              : `${sortedInquiries.length} ${activeTab === 'inquiries' ? 'inquiries' : 'projects'}`}
           </span>
 
           <div className="flex items-center gap-1 text-gray-600 font-medium">
@@ -484,21 +551,77 @@ export default function InquiriesPage() {
 
         {/* Cards List: Clean Rounded Cards matching Image 2 */}
         <div className="px-4 mt-3 space-y-3">
-          {sortedInquiries.length === 0 ? (
+          {activeTab === 'followups' ? (
+            filteredFollowups.length === 0 ? (
+              <div className="bg-white rounded-3xl p-8 text-center border border-gray-200/80 shadow-xs space-y-3">
+                <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <p className="text-xs font-semibold text-gray-700">
+                  No follow-up logs recorded yet.
+                </p>
+              </div>
+            ) : (
+              filteredFollowups.map((f: any) => (
+                <div
+                  key={f.id}
+                  onClick={() => router.push(`/inquiries/${f.inquiry?.followupId || f.inquiryId}`)}
+                  className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200/70 hover:shadow-md transition cursor-pointer space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#0B1E36]">
+                      {f.inquiry?.followupId || 'Lead'} · {f.inquiry?.customerName || 'Customer'}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-medium">
+                      {f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Recent'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-800 leading-relaxed">{f.description}</p>
+                  <div className="flex items-center justify-between text-[11px] pt-1 text-gray-500 border-t border-gray-100">
+                    <span>Logged by: <strong className="text-gray-700">{f.createdBy?.fullName || 'Salesperson'}</strong></span>
+                    <span className="text-[#0B1E36] font-semibold flex items-center gap-0.5">
+                      View Lead <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </div>
+              ))
+            )
+          ) : sortedInquiries.length === 0 ? (
             <div className="bg-white rounded-3xl p-8 text-center border border-gray-200/80 shadow-xs space-y-3">
               <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
                 <Users className="w-6 h-6" />
               </div>
               <p className="text-xs font-semibold text-gray-700">
-                No {activeTab === 'inquiries' ? 'inquiries' : 'projects'} found matching the filter.
+                {activeTab === 'inquiries' && activeLeadsCount === 0 && convertedProjectsCount > 0
+                  ? `0 active leads. You have ${convertedProjectsCount} converted project(s) in pipeline.`
+                  : `No ${activeTab === 'inquiries' ? 'inquiries' : 'projects'} found matching the filter.`}
               </p>
-              <button
-                onClick={() => router.push('/inquiries/new')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#F59E0B] text-[#071326] shadow-xs hover:bg-[#D97706] transition"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Add First Inquiry</span>
-              </button>
+              {activeTab === 'inquiries' && activeLeadsCount === 0 && convertedProjectsCount > 0 ? (
+                <div className="flex items-center justify-center gap-2 pt-1">
+                  <button
+                    onClick={() => setActiveTab('projects')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#0B1E36] text-white shadow-xs hover:bg-[#132d4e] transition"
+                  >
+                    <span>View Projects ({convertedProjectsCount})</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => router.push('/inquiries/new')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#F59E0B] text-[#071326] shadow-xs hover:bg-[#D97706] transition"
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Add New Lead</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => router.push('/inquiries/new')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#F59E0B] text-[#071326] shadow-xs hover:bg-[#D97706] transition"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Add First Inquiry</span>
+                </button>
+              )}
             </div>
           ) : (
             sortedInquiries.map((inq) => {
@@ -599,6 +722,200 @@ export default function InquiriesPage() {
           </button>
         </div>
       </div>
+
+      {/* ================================================================ */}
+      {/* FILTER BOTTOM SHEET / MODAL                                     */}
+      {/* ================================================================ */}
+      {isFilterModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 transition-all">
+          <div
+            className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-200 overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#0B1E36]/5 text-[#0B1E36] flex items-center justify-center">
+                  <Filter className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-serif font-bold text-gray-900">Filter Inquiries</h3>
+                  <p className="text-[11px] text-gray-500">Refine by staff, stage, priority, and capacity</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsFilterModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition text-sm font-bold cursor-pointer"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="p-6 overflow-y-auto space-y-5 text-xs text-gray-700">
+              {/* 1. Filter by Staff / Salesperson */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2">
+                  Assigned Staff
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'all', label: 'All Team Members' },
+                    { id: 'Amit', label: 'Amit' },
+                    { id: 'Kunal', label: 'Kunal' },
+                    { id: 'Priya', label: 'Priya' },
+                  ].map((sp) => (
+                    <button
+                      key={sp.id}
+                      onClick={() => setSelectedTeamMember(sp.id)}
+                      className={`px-3.5 py-2 rounded-xl font-semibold border transition cursor-pointer ${
+                        selectedTeamMember === sp.id
+                          ? 'bg-[#0B1E36] text-white border-[#0B1E36] shadow-xs'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      {sp.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Filter by Stage / Chip */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2">
+                  Inquiry Stage
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'All', label: 'All Stages' },
+                    { id: 'New', label: 'New Inquiries' },
+                    { id: 'Follow-up', label: 'Site Visit / Follow-up' },
+                    { id: 'Quotation', label: 'Quotation Sent' },
+                    { id: 'Negotiation', label: 'Negotiation' },
+                  ].map((stg) => (
+                    <button
+                      key={stg.id}
+                      onClick={() => setActiveChip(stg.id)}
+                      className={`px-3.5 py-2 rounded-xl font-semibold border transition cursor-pointer ${
+                        activeChip === stg.id
+                          ? 'bg-[#0B1E36] text-white border-[#0B1E36] shadow-xs'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      {stg.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Priority & SLA */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2">
+                  Priority & SLA
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsOverdueOnly(false)}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold border text-center transition cursor-pointer ${
+                      !isOverdueOnly
+                        ? 'bg-[#0B1E36] text-white border-[#0B1E36]'
+                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    All Inquiries
+                  </button>
+                  <button
+                    onClick={() => setIsOverdueOnly(true)}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold border text-center transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                      isOverdueOnly
+                        ? 'bg-[#B91C1C] text-white border-[#B91C1C]'
+                        : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                    }`}
+                  >
+                    <span>Overdue Only</span>
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                  </button>
+                </div>
+              </div>
+
+              {/* 4. Solar System Capacity */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2">
+                  System Capacity
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: '<5', label: '< 5 kW' },
+                    { id: '5-10', label: '5-10 kW' },
+                    { id: '>10', label: '> 10 kW' },
+                  ].map((cap) => (
+                    <button
+                      key={cap.id}
+                      onClick={() => setCapacityFilter(cap.id as any)}
+                      className={`py-2 rounded-xl font-semibold border text-center transition cursor-pointer ${
+                        capacityFilter === cap.id
+                          ? 'bg-[#0B1E36] text-white border-[#0B1E36]'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      {cap.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. Sort Order */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2">
+                  Sort Order
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setSelectedSort('due_date')}
+                    className={`py-2 rounded-xl font-semibold border text-center transition cursor-pointer ${
+                      selectedSort === 'due_date'
+                        ? 'bg-[#0B1E36] text-white border-[#0B1E36]'
+                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    Due Date / Urgency
+                  </button>
+                  <button
+                    onClick={() => setSelectedSort('newest')}
+                    className={`py-2 rounded-xl font-semibold border text-center transition cursor-pointer ${
+                      selectedSort === 'newest'
+                        ? 'bg-[#0B1E36] text-white border-[#0B1E36]'
+                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    Newest First
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-3">
+              <button
+                onClick={() => {
+                  handleClearAllFilters();
+                }}
+                className="text-xs font-bold text-gray-600 hover:text-black transition cursor-pointer py-2.5 px-3"
+              >
+                Reset All
+              </button>
+              <button
+                onClick={() => setIsFilterModalOpen(false)}
+                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-[#F59E0B] text-[#071326] shadow-md hover:bg-[#D97706] transition cursor-pointer"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================================================================ */}
       {/* DESKTOP LAYOUT (Retains existing desktop cards)                  */}
