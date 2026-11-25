@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   ChevronLeft,
@@ -17,317 +17,436 @@ import {
   AlertCircle,
   ExternalLink,
   ChevronRight,
+  Phone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/lib/use-current-user';
 import { FollowUpModal } from '@/components/FollowUpModal';
-import { fetchWithAuth } from '@/lib/api';
 
-interface StageMeta {
+interface StageConfig {
   index: number;
   id: string;
   num: number;
   label: string;
   name: string;
-  owner: string;
-  started: string;
-  committed: string;
-  followupsCount: number;
-  status: 'done' | 'in_progress' | 'pending';
-  whatWasDone: {
-    title: string;
-    dateMeta: string;
-    status: 'Done' | 'Pending';
-  }[];
-  workspaceUrl?: string;
+  defaultOwner: string;
+  workspaceUrl: string;
 }
+
+const STAGE_ORDER_MAP: Record<string, number> = {
+  INQUIRY_RECEIVED: 1,
+  SITE_VISIT_PLANNED: 2,
+  QUOTATION_SENT: 3,
+  DEAL_CLOSED: 4,
+  GOVT_DOCS_SUBMITTED: 5,
+  SR_NUMBER_ISSUED: 6,
+  MATERIAL_PLANNED: 7,
+  MATERIAL_UNLOADED: 8,
+  INSTALLATION_DONE: 9,
+  METER_FILE_SUBMITTED: 10,
+  METER_STARTED: 10,
+  SUBSIDY_CLAIMED: 10,
+  SUBSIDY_RECEIVED: 10,
+  COMPLETED: 10,
+};
+
+const STAGE_CONFIGS: StageConfig[] = [
+  {
+    index: 1,
+    id: 'INQUIRY_RECEIVED',
+    num: 1,
+    label: 'Inquiry',
+    name: 'Initial Solar Inquiry',
+    defaultOwner: 'Salesperson',
+    workspaceUrl: '/inquiries',
+  },
+  {
+    index: 2,
+    id: 'SITE_VISIT_PLANNED',
+    num: 2,
+    label: 'Visit',
+    name: 'Site Survey & Rooftop Visit',
+    defaultOwner: 'Salesperson',
+    workspaceUrl: '/site-visit',
+  },
+  {
+    index: 3,
+    id: 'QUOTATION_SENT',
+    num: 3,
+    label: 'Quote',
+    name: 'Quotation & Pricing Proposal',
+    defaultOwner: 'Salesperson',
+    workspaceUrl: '/quotations/new',
+  },
+  {
+    index: 4,
+    id: 'DEAL_CLOSED',
+    num: 4,
+    label: 'Closed',
+    name: 'Deal Closed & Terms',
+    defaultOwner: 'Salesperson',
+    workspaceUrl: '/deal-closed',
+  },
+  {
+    index: 5,
+    id: 'GOVT_DOCS_SUBMITTED',
+    num: 5,
+    label: 'Portal',
+    name: 'Surya Gujarat Portal Submission',
+    defaultOwner: 'Rahul Bhai (Liaison)',
+    workspaceUrl: '/portal',
+  },
+  {
+    index: 6,
+    id: 'SR_NUMBER_ISSUED',
+    num: 6,
+    label: 'SR No.',
+    name: 'DISCOM SR Number Issuance',
+    defaultOwner: 'Rahul Bhai (Liaison)',
+    workspaceUrl: '/portal',
+  },
+  {
+    index: 7,
+    id: 'MATERIAL_PLANNED',
+    num: 7,
+    label: 'Material',
+    name: 'Material Planning & Staging',
+    defaultOwner: 'Sohail Khan (Material)',
+    workspaceUrl: '/material',
+  },
+  {
+    index: 8,
+    id: 'MATERIAL_UNLOADED',
+    num: 8,
+    label: 'Unload',
+    name: 'Terrace Material Delivery & Unload',
+    defaultOwner: 'Sohail Khan (Material)',
+    workspaceUrl: '/material',
+  },
+  {
+    index: 9,
+    id: 'INSTALLATION_DONE',
+    num: 9,
+    label: 'Install',
+    name: 'Rooftop Structure & Wiring',
+    defaultOwner: 'Irfan (Lead)',
+    workspaceUrl: '/installation',
+  },
+  {
+    index: 10,
+    id: 'METER_STARTED',
+    num: 10,
+    label: 'Meter',
+    name: 'Net-Meter & Commissioning',
+    defaultOwner: 'Rahul Bhai & Meera',
+    workspaceUrl: '/portal',
+  },
+];
 
 export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const rawId = (params?.id as string) || 'F-1024';
+  const rawId = (params?.id as string) || 'F-1';
   const { user, theme } = useCurrentUser();
 
   const [inquiry, setInquiry] = useState<any>(null);
-  const [followups, setFollowups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFollowupOpen, setIsFollowupOpen] = useState(false);
   const [showChangeStageModal, setShowChangeStageModal] = useState(false);
-  const [selectedStageIndex, setSelectedStageIndex] = useState(7); // Default to Stage 7 (Material planning) as in image
+  const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(null);
 
-  // Normalize project ID format: TYP-2026-XXXX
-  const cleanNum = rawId.replace('TYP-2026-', '').replace('F-', '');
-  const projectId = rawId.startsWith('TYP-') ? rawId : `TYP-2026-${cleanNum}`;
-
-  // 10 Pipeline Stages definition matching shared image
-  const stages: StageMeta[] = [
-    {
-      index: 1,
-      id: 'INQUIRY_RECEIVED',
-      num: 1,
-      label: 'Inquiry',
-      name: 'Initial Solar Inquiry',
-      owner: inquiry?.assignedSalesperson?.fullName || 'Amit Patel',
-      started: '10 Nov',
-      committed: '12 Nov',
-      followupsCount: 0,
-      status: 'done',
-      whatWasDone: [
-        { title: 'Inquiry registered on portal', dateMeta: '10 Nov · Amit Patel', status: 'Done' },
-        { title: 'Customer requirements captured (6 kW)', dateMeta: '11 Nov · Call Done', status: 'Done' },
-      ],
-      workspaceUrl: `/inquiries/${rawId}`,
-    },
-    {
-      index: 2,
-      id: 'SITE_VISIT_PLANNED',
-      num: 2,
-      label: 'Visit',
-      name: 'Site Survey & Rooftop Visit',
-      owner: inquiry?.assignedSalesperson?.fullName || 'Amit Patel',
-      started: '12 Nov',
-      committed: '14 Nov',
-      followupsCount: 1,
-      status: 'done',
-      whatWasDone: [
-        { title: 'Rooftop dimension survey', dateMeta: '13 Nov · Amit Patel', status: 'Done' },
-        { title: 'RCC terrace shadow analysis', dateMeta: '13 Nov · 4 photos', status: 'Done' },
-      ],
-      workspaceUrl: `/inquiries/${rawId}/site-visit`,
-    },
-    {
-      index: 3,
-      id: 'QUOTATION_SENT',
-      num: 3,
-      label: 'Quote',
-      name: 'Quotation & Pricing Proposal',
-      owner: inquiry?.assignedSalesperson?.fullName || 'Amit Patel',
-      started: '14 Nov',
-      committed: '16 Nov',
-      followupsCount: 2,
-      status: 'done',
-      whatWasDone: [
-        { title: '6.0 kW Single Phase BOM quote created', dateMeta: '14 Nov · Amit Patel', status: 'Done' },
-        { title: 'PM Surya Ghar ₹78,000 subsidy applied', dateMeta: '15 Nov · WhatsApp PDF', status: 'Done' },
-      ],
-      workspaceUrl: `/quotations/new`,
-    },
-    {
-      index: 4,
-      id: 'DEAL_CLOSED',
-      num: 4,
-      label: 'Closed',
-      name: 'Deal Closed & Booking Token',
-      owner: inquiry?.assignedSalesperson?.fullName || 'Amit Patel',
-      started: '16 Nov',
-      committed: '18 Nov',
-      followupsCount: 1,
-      status: 'done',
-      whatWasDone: [
-        { title: 'Customer signed agreement', dateMeta: '16 Nov · ₹20,000 token', status: 'Done' },
-        { title: 'KYC light bill & Aadhaar collected', dateMeta: '17 Nov · 4/4 docs', status: 'Done' },
-      ],
-      workspaceUrl: `/inquiries/${rawId}`,
-    },
-    {
-      index: 5,
-      id: 'GOVT_DOCS_SUBMITTED',
-      num: 5,
-      label: 'Portal',
-      name: 'Surya Gujarat Portal Submission',
-      owner: 'Rahul Bhai (Liaison)',
-      started: '18 Nov',
-      committed: '20 Nov',
-      followupsCount: 3,
-      status: 'done',
-      whatWasDone: [
-        { title: 'Documents uploaded on National Portal', dateMeta: '18 Nov · Rahul Bhai', status: 'Done' },
-        { title: 'DISCOM consumer number verified', dateMeta: '19 Nov · MGVCL', status: 'Done' },
-      ],
-      workspaceUrl: `/portal/projects/${rawId}`,
-    },
-    {
-      index: 6,
-      id: 'SR_NUMBER_ISSUED',
-      num: 6,
-      label: 'SR No.',
-      name: 'DISCOM SR Number Issuance',
-      owner: 'Rahul Bhai (Liaison)',
-      started: '19 Nov',
-      committed: '21 Nov',
-      followupsCount: 1,
-      status: 'done',
-      whatWasDone: [
-        { title: 'Technical feasibility approved', dateMeta: '20 Nov · MGVCL Sub-division', status: 'Done' },
-        { title: 'SR Number generated: SR-GUJ-2026-98124', dateMeta: '20 Nov · Rahul Bhai', status: 'Done' },
-      ],
-      workspaceUrl: `/portal/projects/${rawId}`,
-    },
-    {
-      index: 7,
-      id: 'MATERIAL_PLANNED',
-      num: 7,
-      label: 'Material',
-      name: 'Material planning',
-      owner: 'Sohail Khan',
-      started: '20 Nov',
-      committed: '28 Nov',
-      followupsCount: 3,
-      status: 'in_progress',
-      whatWasDone: [
-        { title: 'BOM staged', dateMeta: '22 Nov · Sohail Khan', status: 'Done' },
-        { title: 'Delivery call with customer', dateMeta: '24 Nov · date confirmed', status: 'Done' },
-        { title: 'Truck booked', dateMeta: '24 Nov', status: 'Done' },
-        { title: 'Unloading proof', dateMeta: 'Waiting for unload', status: 'Pending' },
-      ],
-      workspaceUrl: `/material/projects/${rawId}`,
-    },
-    {
-      index: 8,
-      id: 'MATERIAL_UNLOADED',
-      num: 8,
-      label: 'Unload',
-      name: 'Terrace Material Unload',
-      owner: 'Sohail Khan',
-      started: '28 Nov',
-      committed: '29 Nov',
-      followupsCount: 0,
-      status: 'pending',
-      whatWasDone: [
-        { title: 'Site delivery & challan signed', dateMeta: 'Scheduled for 28 Nov', status: 'Pending' },
-        { title: '4 rooftop unload photo proofs', dateMeta: 'Awaiting unload', status: 'Pending' },
-      ],
-      workspaceUrl: `/material/projects/${rawId}`,
-    },
-    {
-      index: 9,
-      id: 'INSTALLATION_DONE',
-      num: 9,
-      label: 'Install',
-      name: 'Rooftop Structure & Wiring',
-      owner: 'Irfan (Lead)',
-      started: '29 Nov',
-      committed: '02 Dec',
-      followupsCount: 0,
-      status: 'pending',
-      whatWasDone: [
-        { title: 'HDG structure elevated fabrication', dateMeta: 'Scheduled', status: 'Pending' },
-        { title: 'Panel clamping & inverter wiring', dateMeta: 'Scheduled', status: 'Pending' },
-        { title: 'Earthing & SPD electrical sign-off', dateMeta: 'Scheduled', status: 'Pending' },
-      ],
-      workspaceUrl: `/installation/projects/${rawId}`,
-    },
-    {
-      index: 10,
-      id: 'METER_STARTED',
-      num: 10,
-      label: 'Meter',
-      name: 'Net-meter & Commissioning',
-      owner: 'Rahul Bhai & Meera',
-      started: '02 Dec',
-      committed: '08 Dec',
-      followupsCount: 0,
-      status: 'pending',
-      whatWasDone: [
-        { title: 'CEI electrical inspector file submission', dateMeta: 'Pending', status: 'Pending' },
-        { title: 'Bi-directional net meter installed', dateMeta: 'Pending', status: 'Pending' },
-        { title: 'Solar generation live & subsidy DBT credited', dateMeta: 'Pending', status: 'Pending' },
-      ],
-      workspaceUrl: `/portal/projects/${rawId}`,
-    },
-  ];
-
-  // Load Inquiry data & followups
-  useEffect(() => {
+  // Fetch real inquiry and followups
+  const loadInquiry = useCallback(async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       router.push('/');
       return;
     }
 
-    fetch(`/api/v1/inquiries/${rawId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        const item = data?.data || data;
-        if (item) {
-          setInquiry(item);
+    try {
+      const res = await fetch(`/api/v1/inquiries/${rawId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const data = json?.data || json;
+        if (data) {
+          setInquiry(data);
+          const activeNum = STAGE_ORDER_MAP[data.currentStage] || 1;
+          setSelectedStageIndex((prev) => (prev === null ? activeNum : prev));
         }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-
-    fetch(`/api/v1/followups/inquiry/${rawId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        const list = Array.isArray(data) ? data : (data?.data || []);
-        if (Array.isArray(list) && list.length > 0) {
-          setFollowups(
-            list.map((f: any, idx: number) => ({
-              id: f.id || `fu-${idx}`,
-              timestamp: new Date(f.createdAt || Date.now()).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
-              statusPill: f.status === 'CALL_DONE' || f.status === 'DONE' ? 'Done' : 'On track',
-              statusColor:
-                f.status === 'CALL_DONE' || f.status === 'DONE'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200',
-              author: f.createdBy?.fullName || 'Ops manager',
-              notes: f.description || 'Follow-up commitment logged',
-            }))
-          );
-        } else {
-          // Default initial follow-ups matching project initiation
-          setFollowups([
-            {
-              id: 'fu-1',
-              timestamp: 'Today · 11:30 AM',
-              statusPill: 'On track',
-              statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-              author: 'Ops manager — Sohail Khan',
-              notes: 'Asked for delivery status. BOM is staged and truck is booked.',
-            },
-            {
-              id: 'fu-2',
-              timestamp: 'Yesterday · 4:10 PM',
-              statusPill: 'Done',
-              statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-              author: 'Sohail Khan',
-              notes: 'BOM approved and items packed in the warehouse.',
-            },
-          ]);
-        }
-      })
-      .catch(() => {});
+      }
+    } catch (err) {
+      console.error('Failed to load project details:', err);
+    } finally {
+      setLoading(false);
+    }
   }, [rawId, router]);
 
-  const selectedStage = stages.find((s) => s.index === selectedStageIndex) || stages[6];
+  useEffect(() => {
+    loadInquiry();
+  }, [loadInquiry]);
 
-  const customerName = inquiry?.customerName || 'Ramesh Patel';
-  const customerPhone = inquiry?.customerPhone || '98250 12345';
-  const requestedKw = inquiry?.requestedKw || '6.0';
-  const meterPhase = inquiry?.meterPhase || 'single phase';
+  // Current real stage index from database
+  const currentStageNum = STAGE_ORDER_MAP[inquiry?.currentStage] || 1;
+  const activeSelectedStageIndex = selectedStageIndex ?? currentStageNum;
+
+  // Normalized IDs
+  const cleanNum = rawId.replace('TYP-2026-', '').replace('F-', '');
+  const isDealClosed = currentStageNum >= 4 || Boolean(inquiry?.dealAmount);
+  // User Requirement: if inquiry is closed, display project id (TYP-2026-X); if still lead, display follow-up ID (F-1)
+  const displayId = isDealClosed ? `TYP-2026-${cleanNum}` : (inquiry?.followupId || rawId);
+  const isProjectTag = isDealClosed;
+
+  const customerName = inquiry?.customerName || 'Test User';
+  const customerPhone = inquiry?.customerPhone || '9825012345';
+  const requestedKw = inquiry?.requestedKw || 6;
+  const meterPhase = inquiry?.meterPhase || 'Single Phase';
+  const address = inquiry?.address || '';
   const city = inquiry?.city || 'Vadodara';
-  const address = inquiry?.address || 'Dena';
-  const salespersonName = inquiry?.assignedSalesperson?.fullName || 'Amit';
+  const salespersonName =
+    inquiry?.assignedSalesperson?.fullName?.replace(/\s*\(Salesperson\)/i, '') || 'Amit';
+
+  const realFollowups = Array.isArray(inquiry?.followups) ? inquiry.followups : [];
+
+  // Helper date formatter
+  const formatDate = (dateInput?: string | Date) => {
+    if (!dateInput) return 'Today';
+    const d = new Date(dateInput);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  };
+
+  const formatDateTime = (dateInput?: string | Date) => {
+    if (!dateInput) return 'Today · Just now';
+    const d = new Date(dateInput);
+    return `${d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · ${d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+  };
+
+  // Build the 10 stages with real dynamic states
+  const stages = STAGE_CONFIGS.map((cfg) => {
+    const isDone = cfg.num < currentStageNum;
+    const isInProgress = cfg.num === currentStageNum;
+    const isPending = cfg.num > currentStageNum;
+
+    // Follow-ups matching this stage
+    const stageFollowups = realFollowups.filter((f: any) => f.stage === cfg.id);
+    const followupsCount = stageFollowups.length;
+
+    // Resolve owner
+    const owner =
+      cfg.num <= 4
+        ? `${salespersonName} (Salesperson)`
+        : cfg.defaultOwner;
+
+    // Resolve started and committed dates from real data
+    const started = isPending
+      ? 'Upcoming'
+      : formatDate(inquiry?.assignedAt || inquiry?.createdAt);
+
+    const latestFollowup = stageFollowups[0];
+    const committed = latestFollowup?.committedDate
+      ? formatDate(latestFollowup.committedDate)
+      : isDone
+      ? 'Completed'
+      : formatDate(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000));
+
+    // Construct REAL "whatWasDone" actions
+    const whatWasDone: Array<{ title: string; dateMeta: string; status: 'Done' | 'Pending' }> = [];
+
+    // Append recorded follow-ups as real actions first
+    stageFollowups.forEach((f: any) => {
+      whatWasDone.push({
+        title: f.description || `Follow-up in ${cfg.name}`,
+        dateMeta: `${formatDateTime(f.createdAt)} · ${f.createdBy?.fullName || 'Staff'}`,
+        status: f.status === 'CALL_DONE' || f.status === 'DONE' ? 'Done' : 'Done',
+      });
+    });
+
+    // Milestone-specific checks based on actual database relations
+    if (cfg.index === 1) {
+      // Stage 1: Inquiry
+      whatWasDone.unshift({
+        title: `Inquiry recorded for ${requestedKw} kW (${meterPhase})`,
+        dateMeta: `${formatDate(inquiry?.createdAt)} · ${city}`,
+        status: 'Done',
+      });
+      if (inquiry?.assignedSalesperson) {
+        whatWasDone.push({
+          title: `Salesperson assigned: ${salespersonName}`,
+          dateMeta: `${formatDate(inquiry.assignedAt || inquiry.createdAt)} · Dispatched`,
+          status: 'Done',
+        });
+      }
+    } else if (cfg.index === 2) {
+      // Stage 2: Site visit
+      if (inquiry?.siteVisit) {
+        whatWasDone.unshift({
+          title: `Rooftop survey completed (${inquiry.siteVisit.shadowFreeAreaSqFt || 'Area'} sq ft)`,
+          dateMeta: `${formatDate(inquiry.siteVisit.createdAt)} · Survey report uploaded`,
+          status: 'Done',
+        });
+      } else {
+        whatWasDone.push({
+          title: 'Schedule & log terrace inspection',
+          dateMeta: isDone ? 'Completed' : isInProgress ? 'In progress' : 'Scheduled',
+          status: isDone ? 'Done' : 'Pending',
+        });
+      }
+    } else if (cfg.index === 3) {
+      // Stage 3: Quotation
+      if (inquiry?.quotation) {
+        whatWasDone.unshift({
+          title: `${requestedKw} kW BOM quote prepared`,
+          dateMeta: `${formatDate(inquiry.quotation.createdAt)} · ₹${(inquiry.quotation.totalProjectCost || 300000).toLocaleString('en-IN')}`,
+          status: 'Done',
+        });
+        whatWasDone.push({
+          title: 'PM Surya Ghar subsidy calculation',
+          dateMeta: `Subsidy applied: ₹${(inquiry.quotation.subsidyAmount || 78000).toLocaleString('en-IN')}`,
+          status: 'Done',
+        });
+      } else {
+        whatWasDone.push({
+          title: 'Quotation preparation & pricing',
+          dateMeta: isDone ? 'Completed' : isInProgress ? 'Drafting quote' : 'Pending survey',
+          status: isDone ? 'Done' : 'Pending',
+        });
+      }
+    } else if (cfg.index === 4) {
+      // Stage 4: Deal closed
+      if (inquiry?.dealAmount) {
+        whatWasDone.unshift({
+          title: 'Customer agreement signed',
+          dateMeta: `Agreed deal amount: ₹${Number(inquiry.dealAmount).toLocaleString('en-IN')}`,
+          status: 'Done',
+        });
+      } else {
+        whatWasDone.push({
+          title: 'Agreement sign-off & token collection',
+          dateMeta: isDone ? 'Completed' : isInProgress ? 'Awaiting sign-off' : 'Pending quote',
+          status: isDone ? 'Done' : 'Pending',
+        });
+      }
+    } else if (cfg.index === 5) {
+      // Stage 5: Portal
+      whatWasDone.push({
+        title: 'National & Surya Gujarat portal filing',
+        dateMeta: isDone ? 'Uploaded & verified' : isInProgress ? 'Uploading files' : 'Awaiting KYC',
+        status: isDone ? 'Done' : 'Pending',
+      });
+    } else if (cfg.index === 6) {
+      // Stage 6: SR No.
+      whatWasDone.push({
+        title: 'DISCOM SR number generation',
+        dateMeta: isDone ? 'SR issued by DISCOM' : isInProgress ? 'DISCOM queue verification' : 'Pending portal',
+        status: isDone ? 'Done' : 'Pending',
+      });
+    } else if (cfg.index === 7) {
+      // Stage 7: Material
+      whatWasDone.push({
+        title: 'BOM material staging in warehouse',
+        dateMeta: isDone ? 'Staged & verified' : isInProgress ? 'Staging in warehouse' : 'Awaiting SR number',
+        status: isDone ? 'Done' : 'Pending',
+      });
+    } else if (cfg.index === 8) {
+      // Stage 8: Unload
+      whatWasDone.push({
+        title: 'Terrace unloading & photo proof',
+        dateMeta: isDone ? 'Delivered & verified' : isInProgress ? 'Truck dispatched' : 'Pending staging',
+        status: isDone ? 'Done' : 'Pending',
+      });
+    } else if (cfg.index === 9) {
+      // Stage 9: Installation
+      whatWasDone.push({
+        title: 'HDG structure fabrication & module wiring',
+        dateMeta: isDone ? 'Installation signed off' : isInProgress ? 'Work in progress' : 'Pending delivery',
+        status: isDone ? 'Done' : 'Pending',
+      });
+    } else if (cfg.index === 10) {
+      // Stage 10: Meter
+      whatWasDone.push({
+        title: 'Bi-directional net-meter & subsidy release',
+        dateMeta: isDone ? 'Commissioned' : isInProgress ? 'Meter testing scheduled' : 'Pending installation',
+        status: isDone ? 'Done' : 'Pending',
+      });
+    }
+
+    return {
+      ...cfg,
+      status: isDone ? ('done' as const) : isInProgress ? ('in_progress' as const) : ('pending' as const),
+      owner,
+      started,
+      committed,
+      followupsCount,
+      whatWasDone,
+      workspaceUrl:
+        cfg.index === 1
+          ? `/inquiries/${inquiry?.followupId || rawId}`
+          : cfg.index === 2
+          ? `/inquiries/${inquiry?.followupId || rawId}/site-visit`
+          : cfg.index === 3
+          ? `/quotations/new`
+          : cfg.index === 4
+          ? `/inquiries/${inquiry?.followupId || rawId}/deal-closed`
+          : `${cfg.workspaceUrl}/projects/${inquiry?.followupId || rawId}`,
+    };
+  });
+
+  const selectedStage =
+    stages.find((s) => s.num === activeSelectedStageIndex) || stages[0];
+
+  // Calculate real days elapsed in stage
+  const computeDaysInStage = () => {
+    const updatedTime = new Date(inquiry?.updatedAt || inquiry?.createdAt || Date.now()).getTime();
+    const diffDays = Math.max(1, Math.floor((Date.now() - updatedTime) / (1000 * 60 * 60 * 24)));
+    return diffDays;
+  };
+
+  // Change stage handler
+  const handleUpdateStage = async (newStageId: string, stageNum: number) => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+      const res = await fetch(`/api/v1/inquiries/${inquiry?.followupId || inquiry?.id || rawId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ currentStage: newStageId }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update stage');
+      }
+
+      toast.success(`Project moved to Stage ${stageNum}: ${newStageId.replace(/_/g, ' ')}`);
+      setShowChangeStageModal(false);
+      setSelectedStageIndex(stageNum);
+      loadInquiry();
+    } catch (err: any) {
+      toast.error(err.message || 'Error updating stage');
+    }
+  };
+
+  if (loading && !inquiry) {
+    return (
+      <div className="min-h-screen bg-typhoon-sand flex items-center justify-center text-xs text-typhoon-muted">
+        Loading real project details...
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-typhoon-sand pb-28 font-sans">
+    <div className="min-h-screen bg-[#FBF8F3] pb-28 font-sans">
       {/* 1. Header with Dark Theme, Real Logo Capsule, and Parabolic Curve */}
-      <div
-        style={{
-          background: theme.hex.cardDarkGradient || theme.hex.cardDarkBg || '#101B2B',
-        }}
-        className="text-white pt-5 pb-9 px-5 rounded-b-[34px] shadow-soft border-b border-white/10 relative overflow-hidden"
-      >
-        <div className="max-w-md mx-auto">
+      <div className="bg-[#0B1E36] text-white pt-5 pb-9 px-5 rounded-b-[34px] shadow-soft border-b border-white/10 relative overflow-hidden">
+        {/* Subtle background decorative concentric curves */}
+        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
+        <div className="absolute -top-6 -right-6 w-36 h-36 rounded-full border border-white/5 pointer-events-none" />
+
+        <div className="max-w-md mx-auto relative z-10">
           {/* Top Bar: Back Button & Real Logo Capsule */}
           <div className="flex items-center justify-between mb-3.5">
             <button
@@ -349,20 +468,24 @@ export default function ProjectDetailPage() {
 
           {/* Project Tag & Assignment */}
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="bg-[#D97706] text-white text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              PROJECT
+            <span
+              className={`text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                isProjectTag ? 'bg-[#D97706]' : 'bg-[#0284C7]'
+              }`}
+            >
+              {isProjectTag ? 'PROJECT' : 'LEAD / INQUIRY'}
             </span>
             <span className="text-xs text-white/80 font-normal">
-              Assigned to {salespersonName}
+              Assigned to {salespersonName} (Salesperson)
             </span>
           </div>
 
           {/* Title & Project Identification */}
-          <h1 className="text-2xl sm:text-3xl font-serif font-normal text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
             Project detail
           </h1>
-          <p className="text-xs text-white/90 font-medium mt-1">
-            {projectId} · {customerName}
+          <p className="text-xs text-white/90 font-semibold mt-1">
+            {displayId} · {customerName}
           </p>
           <p className="text-xs text-white/70 font-normal mt-0.5">
             {requestedKw} kW {meterPhase} · {address ? `${address}, ` : ''}{city}
@@ -373,10 +496,10 @@ export default function ProjectDetailPage() {
       {/* 2. Main Content Body */}
       <div className="max-w-md mx-auto px-4 -mt-4 space-y-4 relative z-10">
         {/* Card 1: All Stages */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-3.5">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-soft space-y-3.5">
           <div className="flex items-center justify-between">
-            <h3 className="font-serif text-lg font-normal text-typhoon-navy">All stages</h3>
-            <span className="text-[11px] text-typhoon-muted font-normal">
+            <h3 className="font-serif text-lg font-bold text-[#0B1E36]">All stages</h3>
+            <span className="text-[11px] text-gray-500 font-normal">
               Tap a stage · number = follow-ups
             </span>
           </div>
@@ -384,7 +507,7 @@ export default function ProjectDetailPage() {
           {/* 10-Stage Visual Grid (2 Rows of 5) */}
           <div className="grid grid-cols-5 gap-y-3.5 gap-x-1.5 items-start justify-items-center">
             {stages.map((stg) => {
-              const isSelected = selectedStageIndex === stg.index;
+              const isSelected = activeSelectedStageIndex === stg.index;
               const isDone = stg.status === 'done';
               const isInProgress = stg.status === 'in_progress';
 
@@ -395,8 +518,8 @@ export default function ProjectDetailPage() {
                   onClick={() => setSelectedStageIndex(stg.index)}
                   className={`flex flex-col items-center group cursor-pointer transition p-1 rounded-2xl ${
                     isSelected
-                      ? 'border-2 border-slate-900 bg-amber-50/50 shadow-sm'
-                      : 'hover:bg-typhoon-sand/40'
+                      ? 'border-2 border-[#0B1E36] bg-amber-50/60 shadow-xs'
+                      : 'hover:bg-gray-50'
                   }`}
                 >
                   <div className="relative">
@@ -404,10 +527,10 @@ export default function ProjectDetailPage() {
                     <div
                       className={`w-9 h-9 rounded-full flex items-center justify-center font-serif text-sm transition ${
                         isDone
-                          ? 'bg-[#E08A1E] text-white shadow-soft'
+                          ? 'bg-[#E08A1E] text-white shadow-xs'
                           : isInProgress
-                          ? 'bg-slate-900 text-white font-medium'
-                          : 'bg-slate-100 text-slate-500 border border-slate-200'
+                          ? 'bg-[#0B1E36] text-white font-bold'
+                          : 'bg-gray-100 text-gray-500 border border-gray-200'
                       }`}
                     >
                       {isDone ? (
@@ -419,7 +542,7 @@ export default function ProjectDetailPage() {
 
                     {/* Follow-up count badge if > 0 */}
                     {stg.followupsCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-slate-900 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-mono font-medium border border-white">
+                      <span className="absolute -top-1 -right-1 bg-[#0B1E36] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-mono font-bold border border-white">
                         {stg.followupsCount}
                       </span>
                     )}
@@ -428,8 +551,8 @@ export default function ProjectDetailPage() {
                   <span
                     className={`text-[10px] mt-1.5 text-center leading-tight truncate max-w-[54px] ${
                       isSelected
-                        ? 'font-medium text-typhoon-navy'
-                        : 'text-typhoon-muted font-normal'
+                        ? 'font-bold text-[#0B1E36]'
+                        : 'text-gray-500 font-normal'
                     }`}
                   >
                     {stg.label}
@@ -441,18 +564,18 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Card 2: SELECTED STAGE */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-soft space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-typhoon-muted font-medium">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 font-semibold">
               SELECTED STAGE
             </span>
             <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                 selectedStage.status === 'done'
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                   : selectedStage.status === 'in_progress'
-                  ? 'bg-amber-100 text-amber-800'
-                  : 'bg-slate-100 text-slate-600'
+                  ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                  : 'bg-gray-100 text-gray-600 border border-gray-200'
               }`}
             >
               {selectedStage.status === 'done'
@@ -463,8 +586,8 @@ export default function ProjectDetailPage() {
             </span>
           </div>
 
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl sm:text-2xl font-serif font-normal text-typhoon-navy">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#0B1E36]">
               {selectedStage.num} · {selectedStage.name}
             </h2>
 
@@ -472,7 +595,7 @@ export default function ProjectDetailPage() {
               <button
                 type="button"
                 onClick={() => router.push(selectedStage.workspaceUrl!)}
-                className="text-xs text-typhoon-gold font-medium hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+                className="text-xs text-[#E08A1E] font-bold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
               >
                 <span>Open screen</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -481,22 +604,22 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* Meta row: Owner, Started, Committed */}
-          <div className="grid grid-cols-3 gap-2 text-xs border-y border-typhoon-border/60 py-3">
+          <div className="grid grid-cols-3 gap-2 text-xs border-y border-gray-100 py-3">
             <div>
-              <span className="text-[10px] text-typhoon-muted block font-normal">Owner</span>
-              <span className="font-medium text-typhoon-navy block truncate mt-0.5">
+              <span className="text-[10px] text-gray-500 block font-normal">Owner</span>
+              <span className="font-bold text-[#0B1E36] block truncate mt-0.5">
                 {selectedStage.owner}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-typhoon-muted block font-normal">Started</span>
-              <span className="font-medium text-typhoon-navy block mt-0.5">
+              <span className="text-[10px] text-gray-500 block font-normal">Started</span>
+              <span className="font-semibold text-gray-800 block mt-0.5">
                 {selectedStage.started}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-typhoon-muted block font-normal">Committed</span>
-              <span className="font-medium text-typhoon-navy block mt-0.5">
+              <span className="text-[10px] text-gray-500 block font-normal">Committed</span>
+              <span className="font-semibold text-gray-800 block mt-0.5">
                 {selectedStage.committed}
               </span>
             </div>
@@ -504,29 +627,29 @@ export default function ProjectDetailPage() {
 
           {/* 3 Metric Tiles: Follow-ups done | Pending | Days in stage */}
           <div className="grid grid-cols-3 gap-2.5">
-            <div className="bg-[#FAF7F2] rounded-2xl p-3 text-center border border-typhoon-border/60">
-              <span className="text-2xl font-serif font-normal text-typhoon-navy block leading-none">
-                {selectedStage.followupsCount || 3}
+            <div className="bg-[#FAF7F2] rounded-2xl p-3 text-center border border-amber-100">
+              <span className="text-2xl font-serif font-bold text-[#0B1E36] block leading-none">
+                {selectedStage.followupsCount}
               </span>
-              <span className="text-[10px] text-typhoon-muted font-normal mt-1 block">
+              <span className="text-[10px] text-gray-500 font-medium mt-1 block">
                 Follow-ups done
               </span>
             </div>
 
-            <div className="bg-[#FAF7F2] rounded-2xl p-3 text-center border border-typhoon-border/60">
-              <span className="text-2xl font-serif font-normal text-typhoon-navy block leading-none">
-                1
+            <div className="bg-[#FAF7F2] rounded-2xl p-3 text-center border border-amber-100">
+              <span className="text-2xl font-serif font-bold text-[#0B1E36] block leading-none">
+                {selectedStage.status === 'in_progress' ? 1 : selectedStage.status === 'done' ? 0 : 1}
               </span>
-              <span className="text-[10px] text-typhoon-muted font-normal mt-1 block">
+              <span className="text-[10px] text-gray-500 font-medium mt-1 block">
                 Pending
               </span>
             </div>
 
-            <div className="bg-[#FAF7F2] rounded-2xl p-3 text-center border border-typhoon-border/60">
-              <span className="text-2xl font-serif font-normal text-typhoon-navy block leading-none">
-                4
+            <div className="bg-[#FAF7F2] rounded-2xl p-3 text-center border border-amber-100">
+              <span className="text-2xl font-serif font-bold text-[#0B1E36] block leading-none">
+                {computeDaysInStage()}
               </span>
-              <span className="text-[10px] text-typhoon-muted font-normal mt-1 block">
+              <span className="text-[10px] text-gray-500 font-medium mt-1 block">
                 Days in stage
               </span>
             </div>
@@ -534,10 +657,10 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Card 3: What was done */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-3">
-          <h3 className="font-serif text-lg font-normal text-typhoon-navy">What was done</h3>
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-soft space-y-3">
+          <h3 className="font-serif text-lg font-bold text-[#0B1E36]">What was done</h3>
 
-          <div className="divide-y divide-typhoon-border/60">
+          <div className="divide-y divide-gray-100">
             {selectedStage.whatWasDone.map((item, idx) => (
               <div key={idx} className="py-2.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -545,7 +668,7 @@ export default function ProjectDetailPage() {
                     className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
                       item.status === 'Done'
                         ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-slate-100 text-slate-500'
+                        : 'bg-gray-100 text-gray-400'
                     }`}
                   >
                     {item.status === 'Done' ? (
@@ -555,19 +678,19 @@ export default function ProjectDetailPage() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-medium text-typhoon-navy block truncate">
+                    <span className="text-xs font-semibold text-gray-900 block truncate">
                       {item.title}
                     </span>
-                    <span className="text-[11px] text-typhoon-muted font-normal block truncate">
+                    <span className="text-[11px] text-gray-500 font-normal block truncate">
                       {item.dateMeta}
                     </span>
                   </div>
                 </div>
 
                 <span
-                  className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                     item.status === 'Done'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                       : 'bg-amber-50 text-amber-800 border border-amber-200'
                   }`}
                 >
@@ -578,68 +701,108 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Card 4: Follow-up history */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-typhoon-border shadow-soft space-y-4">
+        {/* Card 4: Follow-up history (Real Timeline) */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-soft space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-serif text-lg font-normal text-typhoon-navy">Follow-up history</h3>
-            <span className="text-xs text-typhoon-muted font-normal">
-              {followups.length} follow-ups
+            <h3 className="font-serif text-lg font-bold text-[#0B1E36]">Follow-up history</h3>
+            <span className="text-xs text-gray-500 font-medium">
+              {realFollowups.length} follow-ups
             </span>
           </div>
 
-          {/* Timeline List */}
-          <div className="relative pl-5 space-y-4 border-l-2 border-amber-200 ml-1">
-            {followups.map((fu, idx) => (
-              <div key={fu.id || idx} className="relative group">
-                {/* Timeline Dot */}
-                <span className="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-[#E08A1E] ring-4 ring-white" />
+          {realFollowups.length === 0 ? (
+            <div className="text-center py-6 px-4 border border-dashed border-gray-200 rounded-xl space-y-2">
+              <Clock className="w-6 h-6 text-gray-400 mx-auto" />
+              <p className="text-xs text-gray-500 font-medium">
+                No follow-ups recorded yet for this project.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsFollowupOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#E08A1E] text-white"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add First Follow-up</span>
+              </button>
+            </div>
+          ) : (
+            <div className="relative pl-5 space-y-4 border-l-2 border-amber-200 ml-1">
+              {realFollowups.map((fu: any, idx: number) => {
+                const isCallDone = fu.status === 'CALL_DONE' || fu.status === 'DONE';
+                const isDelayed = fu.status === 'DELAYED' || fu.isOverdue;
 
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-typhoon-muted font-normal">
-                    {fu.timestamp || (fu.createdAt ? new Date(fu.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '24 Nov · 4:10 PM')}
-                  </span>
-                  <span
-                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
-                      fu.statusPill === 'Delayed'
-                        ? 'bg-rose-50 text-rose-700 border-rose-200'
-                        : fu.statusPill === 'Done'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    }`}
-                  >
-                    {fu.statusPill || (fu.status === 'DONE' ? 'Done' : fu.status === 'DELAYED' ? 'Delayed' : 'On track')}
-                  </span>
-                </div>
+                return (
+                  <div key={fu.id || idx} className="relative group">
+                    {/* Timeline Dot */}
+                    <span className="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-[#E08A1E] ring-4 ring-white" />
 
-                <span className="text-xs font-medium text-typhoon-navy block mt-1">
-                  {fu.author || (fu.createdBy?.fullName ? `Ops manager — ${fu.createdBy.fullName}` : 'Ops manager — Sohail Khan')}
-                </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-gray-500 font-normal">
+                        {formatDateTime(fu.createdAt)}
+                      </span>
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                          isDelayed
+                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                            : isCallDone
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-800 border border-amber-200'
+                        }`}
+                      >
+                        {isDelayed ? 'Overdue' : isCallDone ? 'Done' : 'On track'}
+                      </span>
+                    </div>
 
-                <p className="text-xs text-typhoon-muted font-normal mt-0.5 leading-relaxed">
-                  {fu.notes || fu.description || 'Asked for delivery status. BOM is staged and the truck is booked.'}
-                </p>
-              </div>
-            ))}
-          </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-bold text-[#0B1E36]">
+                        {fu.createdBy?.fullName || 'Ops Manager'}
+                      </span>
+                      {fu.stage && (
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-gray-100 text-gray-600 font-medium">
+                          {fu.stage.replace(/_/g, ' ')}
+                        </span>
+                      )}
+                    </div>
 
-          {/* Attached Files Pills */}
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-typhoon-border/60">
+                    <p className="text-xs text-gray-700 font-normal mt-0.5 leading-relaxed">
+                      {fu.description || 'Follow-up commitment logged'}
+                    </p>
+
+                    {fu.committedDate && (
+                      <span className="text-[10px] text-gray-400 mt-1 block">
+                        Committed: {formatDate(fu.committedDate)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Attached Files & Documents Quick Access */}
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
             <button
               type="button"
-              onClick={() => toast.success('BOM slip PDF opened!')}
-              className="px-3 py-2 bg-[#FAF7F2] hover:bg-typhoon-sand rounded-xl border border-typhoon-border text-xs text-typhoon-navy font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+              onClick={() => router.push(`/projects/${inquiry?.followupId || rawId}/documents`)}
+              className="px-3 py-2 bg-[#FAF7F2] hover:bg-typhoon-sand rounded-xl border border-gray-200 text-xs text-[#0B1E36] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
             >
-              <FileText className="w-3.5 h-3.5 text-typhoon-muted" />
-              <span>BOM slip.pdf</span>
+              <FileText className="w-3.5 h-3.5 text-gray-500" />
+              <span>KYC Documents</span>
             </button>
 
             <button
               type="button"
-              onClick={() => toast.success('Truck photo viewed!')}
-              className="px-3 py-2 bg-[#FAF7F2] hover:bg-typhoon-sand rounded-xl border border-typhoon-border text-xs text-typhoon-navy font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+              onClick={() => {
+                if (inquiry?.siteVisit) {
+                  router.push(`/inquiries/${inquiry?.followupId || rawId}/site-visit`);
+                } else {
+                  toast.info('No site visit photos recorded yet.');
+                }
+              }}
+              className="px-3 py-2 bg-[#FAF7F2] hover:bg-typhoon-sand rounded-xl border border-gray-200 text-xs text-[#0B1E36] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
             >
-              <Camera className="w-3.5 h-3.5 text-typhoon-muted" />
-              <span>Truck photo</span>
+              <Camera className="w-3.5 h-3.5 text-gray-500" />
+              <span>Survey Photos</span>
             </button>
           </div>
         </div>
@@ -649,18 +812,18 @@ export default function ProjectDetailPage() {
           <button
             type="button"
             onClick={() => setIsFollowupOpen(true)}
-            className="w-full bg-[#E08A1E] hover:bg-[#C97715] text-white font-medium py-3 rounded-2xl text-xs sm:text-sm shadow-soft transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+            className="w-full bg-[#E08A1E] hover:bg-[#C97715] text-white font-bold py-3.5 rounded-2xl text-xs sm:text-sm shadow-soft transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>+ Add follow-up</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowChangeStageModal(true)}
-            className="w-full bg-white hover:bg-typhoon-sand/40 text-typhoon-navy border border-typhoon-border font-medium py-3 rounded-2xl text-xs sm:text-sm shadow-soft transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+            className="w-full bg-white hover:bg-gray-50 text-[#0B1E36] border border-gray-200 font-bold py-3.5 rounded-2xl text-xs sm:text-sm shadow-soft transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
           >
-            <Layers className="w-4 h-4 text-typhoon-muted" />
+            <Layers className="w-4 h-4 text-gray-500" />
             <span>Change stage</span>
           </button>
         </div>
@@ -670,52 +833,52 @@ export default function ProjectDetailPage() {
       <FollowUpModal
         isOpen={isFollowupOpen}
         onClose={() => setIsFollowupOpen(false)}
-        inquiryId={inquiry?.id || rawId}
+        inquiryId={inquiry?.followupId || rawId}
         onSuccess={() => {
           toast.success('Follow-up recorded successfully!');
           setIsFollowupOpen(false);
+          loadInquiry();
         }}
       />
 
       {/* Change Stage Dialog Modal */}
       {showChangeStageModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-typhoon-border space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-gray-200 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between">
-              <h3 className="font-serif text-lg font-normal text-typhoon-navy">Change project stage</h3>
+              <h3 className="font-serif text-lg font-bold text-[#0B1E36]">Change project stage</h3>
               <button
                 onClick={() => setShowChangeStageModal(false)}
-                className="w-8 h-8 rounded-full bg-typhoon-sand flex items-center justify-center text-typhoon-muted hover:text-typhoon-navy"
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-black cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-typhoon-muted">
+            <p className="text-xs text-gray-500">
               Select the active operational milestone for {customerName}:
             </p>
 
-            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-              {stages.map((stg) => (
-                <button
-                  key={stg.index}
-                  onClick={() => {
-                    setSelectedStageIndex(stg.index);
-                    setShowChangeStageModal(false);
-                    toast.success(`Project moved to Stage ${stg.num}: ${stg.name}`);
-                  }}
-                  className={`w-full text-left p-2.5 rounded-xl text-xs font-medium flex items-center justify-between transition ${
-                    selectedStageIndex === stg.index
-                      ? 'bg-typhoon-navy text-white'
-                      : 'hover:bg-typhoon-sand/60 text-typhoon-navy border border-typhoon-border/60'
-                  }`}
-                >
-                  <span>
-                    {stg.num}. {stg.name}
-                  </span>
-                  <span className="text-[10px] opacity-70">{stg.owner}</span>
-                </button>
-              ))}
+            <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+              {stages.map((stg) => {
+                const isCurrent = stg.num === currentStageNum;
+                return (
+                  <button
+                    key={stg.index}
+                    onClick={() => handleUpdateStage(stg.id, stg.num)}
+                    className={`w-full text-left p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition cursor-pointer ${
+                      isCurrent
+                        ? 'bg-[#0B1E36] text-white shadow-xs'
+                        : 'hover:bg-gray-100 text-gray-800 border border-gray-200'
+                    }`}
+                  >
+                    <span>
+                      {stg.num}. {stg.name}
+                    </span>
+                    <span className="text-[10px] opacity-80">{stg.owner}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
