@@ -335,7 +335,7 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={() => router.push(`/inquiries/${targetAssignId}/assign`)}
-                className="px-3 py-1.5 bg-[#F59E0B] text-[#0B1E36] font-bold text-xs rounded-xl shadow-xs hover:bg-amber-500 transition cursor-pointer"
+                className="px-3 py-1.5 bg-[#6366F1] text-white font-bold text-xs rounded-xl shadow-xs hover:bg-indigo-600 transition cursor-pointer"
               >
                 Assign now
               </button>
@@ -344,20 +344,20 @@ export default function DashboardPage() {
 
           <UpNextList role="OPS_MANAGER" items={mobileUpNext} />
 
-          <div className="px-4 pt-2 space-y-2">
-            <MainButton
-              role="OPS_MANAGER"
-              icon={<Plus className="w-4 h-4" />}
+          <div className="px-3.5 mt-3 space-y-2 mb-20">
+            <button
               onClick={() => router.push(`/inquiries/${targetAssignId}/assign`)}
+              className="w-full bg-[#6366F1] hover:bg-indigo-600 text-white font-semibold py-3.5 px-4 rounded-2xl text-xs sm:text-sm shadow-soft transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
             >
-              Assign job
-            </MainButton>
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>+ Assign job</span>
+            </button>
 
             <button
               onClick={() => router.push('/inquiries/new')}
-              className="w-full py-3.5 px-4 rounded-full bg-white hover:bg-[#FBF8F3] border border-[#E5E7EB] text-[#0B1E36] font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
+              className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-gray-50 border border-gray-200 text-[#111827] font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
             >
-              <Plus className="w-4 h-4 text-[#F59E0B]" />
+              <Plus className="w-4 h-4 text-[#6366F1]" />
               <span>+ Add New Solar Inquiry</span>
             </button>
           </div>

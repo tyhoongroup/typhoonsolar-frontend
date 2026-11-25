@@ -396,7 +396,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
                     }}
                     className={`py-2 px-3 rounded-xl text-xs font-bold transition text-center border cursor-pointer ${
                       structureType === type
-                        ? 'bg-[#0B1E36] text-[#F59E0B] border-[#0B1E36] shadow-xs'
+                        ? 'bg-[#6366F1] text-white border-[#6366F1] shadow-xs'
                         : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                     }`}
                   >
@@ -416,7 +416,7 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
               </div>
               <button
                 onClick={() => router.push(`/inquiries/${followupId}/assign`)}
-                className="px-3.5 py-2 bg-[#F59E0B] text-[#0B1E36] font-bold text-xs rounded-xl shadow-xs hover:bg-amber-500 transition cursor-pointer"
+                className="px-3.5 py-2 bg-[#6366F1] text-white font-bold text-xs rounded-xl shadow-xs hover:bg-indigo-600 transition cursor-pointer"
               >
                 Assign now
               </button>

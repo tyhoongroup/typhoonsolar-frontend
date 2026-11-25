@@ -224,7 +224,7 @@ export default function AssignSalespersonPage() {
             <select
               value={inquiry?.followupId || inquiry?.id || inquiryId}
               onChange={(e) => handleSelectDifferentInquiry(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-bold text-typhoon-navy focus:outline-none focus:border-[#F59E0B]"
+              className="w-full px-3.5 py-2.5 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-bold text-typhoon-navy focus:outline-none focus:border-[#6366F1]"
             >
               {availableInquiries.map((inqItem) => (
                 <option key={inqItem.id} value={inqItem.followupId || inqItem.id}>
@@ -249,7 +249,7 @@ export default function AssignSalespersonPage() {
                 onClick={() => setStructureType(type)}
                 className={`py-2 px-3 rounded-xl text-xs font-bold transition text-center border cursor-pointer ${
                   structureType === type
-                    ? 'bg-[#0B1E36] text-[#F59E0B] border-[#0B1E36] shadow-xs'
+                    ? 'bg-[#6366F1] text-white border-[#6366F1] shadow-xs'
                     : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                 }`}
               >
