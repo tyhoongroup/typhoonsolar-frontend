@@ -265,33 +265,42 @@ export default function ProjectDetailPage() {
       .then((data) => {
         const list = Array.isArray(data) ? data : (data?.data || []);
         if (Array.isArray(list) && list.length > 0) {
-          setFollowups(list);
+          setFollowups(
+            list.map((f: any, idx: number) => ({
+              id: f.id || `fu-${idx}`,
+              timestamp: new Date(f.createdAt || Date.now()).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              statusPill: f.status === 'CALL_DONE' || f.status === 'DONE' ? 'Done' : 'On track',
+              statusColor:
+                f.status === 'CALL_DONE' || f.status === 'DONE'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-amber-50 text-amber-700 border-amber-200',
+              author: f.createdBy?.fullName || 'Ops manager',
+              notes: f.description || 'Follow-up commitment logged',
+            }))
+          );
         } else {
-          // Mock initial follow-ups matching the user's shared image
+          // Default initial follow-ups matching project initiation
           setFollowups([
             {
               id: 'fu-1',
-              timestamp: '24 Nov · 4:10 PM',
+              timestamp: 'Today · 11:30 AM',
               statusPill: 'On track',
               statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
               author: 'Ops manager — Sohail Khan',
-              notes: 'Asked for delivery status. BOM is staged and the truck is booked.',
+              notes: 'Asked for delivery status. BOM is staged and truck is booked.',
             },
             {
               id: 'fu-2',
-              timestamp: '22 Nov · 11:30 AM',
+              timestamp: 'Yesterday · 4:10 PM',
               statusPill: 'Done',
               statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
               author: 'Sohail Khan',
               notes: 'BOM approved and items packed in the warehouse.',
-            },
-            {
-              id: 'fu-3',
-              timestamp: '21 Nov · 5:00 PM',
-              statusPill: 'Delayed',
-              statusColor: 'bg-rose-50 text-rose-700 border-rose-200',
-              author: 'Ops manager — Sohail Khan',
-              notes: 'Material not planned yet. Asked to finish by Saturday.',
             },
           ]);
         }

@@ -22,6 +22,7 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
   role,
   onSuccess,
 }) => {
+  const [selectedStage, setSelectedStage] = useState(stage || 'INQUIRY_RECEIVED');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDays, setDueDays] = useState<number>(2);
@@ -29,6 +30,13 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
+
+  const stageOptions = [
+    { id: 'INQUIRY_RECEIVED', label: 'Calling / Discovery' },
+    { id: 'SITE_VISIT_PLANNED', label: 'Site Inspection / Survey' },
+    { id: 'QUOTATION_SENT', label: 'Quotation' },
+    { id: 'DEAL_CLOSED', label: 'Closing & KYC' },
+  ];
 
   const theme = getRoleTheme(role);
   const sColor = theme.hex.cardDarkBg || '#111827';
@@ -67,7 +75,7 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
     try {
       const payload = {
         inquiryId,
-        stage,
+        stage: selectedStage,
         status: 'ON_TRACK',
         description: description.trim() ? `${title.trim()} - ${description.trim()}` : title.trim(),
         committedDate: new Date(selectedDate).toISOString(),
@@ -149,6 +157,32 @@ export const FollowUpModal: React.FC<FollowUpModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+          {/* Target Stage Selector */}
+          <div>
+            <label
+              style={{ color: sColor }}
+              className="block text-xs font-bold uppercase tracking-wider mb-1.5"
+            >
+              Follow-up Stage *
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {stageOptions.map((opt) => (
+                <button
+                  type="button"
+                  key={opt.id}
+                  onClick={() => setSelectedStage(opt.id)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition text-left border cursor-pointer ${
+                    selectedStage === opt.id
+                      ? 'bg-[#0B1E36] text-[#F59E0B] border-[#0B1E36] shadow-xs'
+                      : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Title */}
           <div>
             <label

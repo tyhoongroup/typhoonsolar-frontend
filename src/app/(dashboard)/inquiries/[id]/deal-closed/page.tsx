@@ -14,10 +14,13 @@ import {
   Trash2,
   ShieldCheck,
   CheckCircle2,
+  AlertCircle,
+  Building,
+  CreditCard,
+  Banknote,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getRoleTheme } from '@/lib/role-theme';
-import { BrandLogo } from '@/components/BrandLogo';
 import { FollowUpModal } from '@/components/FollowUpModal';
 
 interface PaymentTerm {
@@ -33,16 +36,15 @@ export default function DealClosedPage() {
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [inquiry, setInquiry] = useState<any>(null);
-  const [dealAmount, setDealAmount] = useState('275000');
+  const [dealAmount, setDealAmount] = useState('300000');
+  const [paymentMode, setPaymentMode] = useState<'cash' | 'loan'>('cash');
   const [loading, setLoading] = useState(false);
   const [isFollowupOpen, setIsFollowupOpen] = useState(false);
 
-  // Payment terms schedule with action dropdown triggers
+  // Default payment terms matching 80% / 20% milestone requirements
   const [paymentTerms, setPaymentTerms] = useState<PaymentTerm[]>([
-    { id: '1', amount: '25000', trigger: 'Booking Advance / Token' },
-    { id: '2', amount: '150000', trigger: 'After Material Unload at Terrace' },
-    { id: '3', amount: '75000', trigger: 'After Installation & Wiring' },
-    { id: '4', amount: '25000', trigger: 'After Meter Start & Subsidy Claim' },
+    { id: '1', amount: '240000', trigger: 'Upon dispatching materials to the site (80%)' },
+    { id: '2', amount: '60000', trigger: 'After installation & net meter inspection (20%)' },
   ]);
 
   useEffect(() => {
@@ -65,28 +67,38 @@ export default function DealClosedPage() {
         const item = data?.data || data;
         if (item) {
           setInquiry(item);
-          if (item.quotation?.grossCost) {
-            setDealAmount(String(item.quotation.grossCost));
-          } else if (item.dealAmount) {
-            setDealAmount(String(item.dealAmount));
-          }
+          const totalVal = item.quotation?.grossCost || item.dealAmount || (Number(item.requestedKw || 6) * 50000);
+          setDealAmount(String(totalVal));
+
+          // Set 80% / 20% default split based on real quotation
+          const p1 = Math.round(totalVal * 0.8);
+          const p2 = totalVal - p1;
+          setPaymentTerms([
+            { id: '1', amount: String(p1), trigger: 'Upon dispatching materials to the site (80%)' },
+            { id: '2', amount: String(p2), trigger: 'After installation & net meter inspection (20%)' },
+          ]);
         }
       })
       .catch(() => {});
   }, [inquiryId, router]);
 
-  const theme = getRoleTheme(currentUser?.role || 'SALESPERSON');
-  const sColor = theme.hex.cardDarkBg || '#111827';
-  const aColor = theme.hex.accentBg || '#FF6B4A';
-  const cColor = theme.hex.lightBg || '#FAF8F5';
-  const onColor = theme.hex.accentTextColor || '#FFFFFF';
+  const cleanAmount = Number(dealAmount.replace(/\D/g, '')) || 300000;
+
+  // Real GST calculation: Panels 5%, Inverter 5%, Balance of System & Installation 18%
+  const panelsBase = Math.round(cleanAmount * 0.58);
+  const inverterBase = Math.round(cleanAmount * 0.22);
+  const bosServicesBase = Math.max(0, cleanAmount - panelsBase - inverterBase);
+
+  const panelsGst = Math.round(panelsBase * 0.05);
+  const inverterGst = Math.round(inverterBase * 0.05);
+  const bosGst = Math.round(bosServicesBase * 0.18);
 
   const triggerOptions = [
     'Booking Advance / Token',
-    'After Material Unload at Terrace',
+    'Upon dispatching materials to the site (80%)',
     'After Installation & Wiring',
-    'After Meter Start & Grid Live',
-    'After Subsidy Claimed / Received',
+    'After installation & net meter inspection (20%)',
+    'After Subsidy Credit into Account',
   ];
 
   const handleAddTerm = () => {
@@ -94,7 +106,7 @@ export default function DealClosedPage() {
       ...paymentTerms,
       {
         id: String(Date.now()),
-        amount: '25000',
+        amount: '0',
         trigger: 'After Installation & Wiring',
       },
     ]);
@@ -111,6 +123,14 @@ export default function DealClosedPage() {
     );
   };
 
+  // Total split amount from all milestones
+  const totalTermsAmount = paymentTerms.reduce(
+    (sum, t) => sum + Number(t.amount.replace(/\D/g, '') || 0),
+    0
+  );
+
+  const isSplitValid = totalTermsAmount === cleanAmount;
+
   const handleMarkClosed = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem('accessToken');
@@ -120,9 +140,16 @@ export default function DealClosedPage() {
       return;
     }
 
-    const cleanAmount = Number(dealAmount.replace(/\D/g, ''));
     if (!cleanAmount || cleanAmount <= 0) {
       toast.error('Please enter a valid deal amount.');
+      return;
+    }
+
+    // STRICT VALIDATION: Payment terms must match total amount exactly
+    if (!isSplitValid) {
+      toast.error(
+        `Total payment terms (₹${totalTermsAmount.toLocaleString('en-IN')}) must equal the total deal amount (₹${cleanAmount.toLocaleString('en-IN')}) before saving.`
+      );
       return;
     }
 
@@ -137,6 +164,7 @@ export default function DealClosedPage() {
         },
         body: JSON.stringify({
           dealAmount: cleanAmount,
+          paymentMode,
           milestones: paymentTerms.map((term, idx) => ({
             title: `Term ${idx + 1} (${term.trigger})`,
             amount: Number(term.amount.replace(/\D/g, '')),
@@ -151,12 +179,12 @@ export default function DealClosedPage() {
       }
 
       toast.success(
-        `Deal closed for ${inquiry?.customerName || 'customer'} at ₹${cleanAmount.toLocaleString('en-IN')}! Opening Document Upload.`
+        `Deal closed for ${inquiry?.customerName || 'customer'} at ₹${cleanAmount.toLocaleString('en-IN')} via ${paymentMode.toUpperCase()}! Moving to KYC document locker.`
       );
 
-      // Redirect immediately to project documents upload page
+      // Redirect immediately to project documents upload page with mode param
       const targetId = inquiry?.followupId || inquiryId;
-      router.push(`/projects/${targetId}/documents`);
+      router.push(`/projects/${targetId}/documents?mode=${paymentMode}`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to mark deal closed.');
     } finally {
@@ -171,216 +199,233 @@ export default function DealClosedPage() {
   const followupId = inquiry?.followupId || inquiryId;
 
   return (
-    <div
-      style={{
-        backgroundColor: cColor,
-        color: sColor,
-      }}
-      className="min-h-screen pb-28 font-sans"
-    >
-      {/* 1. Curved Header with Role Theme Colors */}
-      <div
-        style={{
-          background: theme.hex.headerGradient || `linear-gradient(180deg, color-mix(in srgb, ${aColor} 38%, ${cColor}) 0%, color-mix(in srgb, ${aColor} 14%, ${cColor}) 100%)`,
-          borderRadius: '0 0 50% 50% / 0 0 34px 34px',
-          padding: '14px 16px 48px',
-          color: sColor,
-        }}
-        className="relative"
-      >
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.75)',
-              borderColor: `color-mix(in srgb, ${sColor} 15%, transparent)`,
-              color: sColor,
-            }}
-            className="w-9 h-9 rounded-full border flex items-center justify-center transition active:scale-95 cursor-pointer"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+    <div className="min-h-screen bg-[#FBF8F3] pb-28 font-sans">
+      {/* 1. Header */}
+      <div className="bg-[#0B1E36] text-white pt-6 pb-8 px-5 rounded-b-[32px] shadow-soft relative overflow-hidden">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition cursor-pointer hover:bg-white/20 text-white"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
 
-          <BrandLogo accentColor={aColor} textColor={sColor} size={24} />
+            <div className="bg-white px-4 py-1.5 rounded-full shadow-xs">
+              <img
+                src="/images/typhoon-logo.png"
+                alt="Typhoon Solar"
+                className="h-6 w-auto object-contain"
+              />
+            </div>
 
-          <button
-            onClick={() => setIsFollowupOpen(true)}
-            style={{
-              backgroundColor: aColor,
-              color: onColor,
-            }}
-            className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 active:scale-95 transition cursor-pointer shadow-sm"
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Follow-up</span>
-          </button>
-        </div>
+            <button
+              onClick={() => setIsFollowupOpen(true)}
+              className="px-3 py-1.5 rounded-full bg-[#F59E0B] text-[#0B1E36] text-xs font-bold flex items-center gap-1 active:scale-95 transition cursor-pointer shadow-sm"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Follow-up</span>
+            </button>
+          </div>
 
-        <div className="mt-3">
-          <span
-            style={{ color: aColor }}
-            className="text-[11px] font-extrabold uppercase tracking-wider block"
-          >
-            CONFIRM DEAL CLOSURE & TERMS
-          </span>
-          <h1
-            style={{ color: sColor }}
-            className="text-2xl font-extrabold tracking-tight mt-1"
-          >
-            {customerName}
+          <h1 className="text-3xl font-serif font-bold text-white tracking-tight">
+            Confirm deal closure
           </h1>
-          <p className="text-xs opacity-75 font-medium mt-0.5">
-            {followupId} · +91 {customerPhone} · {requestedKw} kW · {meterPhase}
+          <p className="text-xs text-white/70 mt-1 font-medium">
+            {followupId} · {customerName} · Stage 4: Closure &amp; Terms
           </p>
         </div>
       </div>
 
-      {/* 2. Form Body */}
-      <form onSubmit={handleMarkClosed} className="px-3.5 -mt-6 space-y-3 relative z-10">
-        {/* Deal Amount Card */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '18px',
-            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
-            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
-          }}
-          className="p-4"
-        >
-          <label
-            style={{ color: sColor }}
-            className="block text-xs font-extrabold uppercase tracking-wider mb-2"
-          >
-            Agreed Final Project Price (₹) *
-          </label>
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-extrabold text-gray-500">
-              ₹
+      {/* 2. Main Content */}
+      <div className="max-w-md mx-auto px-4 pt-4 space-y-4">
+        {/* Customer Summary Card */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-soft">
+          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+            <div>
+              <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase block">
+                CUSTOMER DETAILS
+              </span>
+              <h3 className="text-base font-bold text-[#0B1E36]">{customerName}</h3>
+              <p className="text-xs text-slate-500">+91 {customerPhone} · {requestedKw} kW, {meterPhase}</p>
+            </div>
+            <span className="text-xs font-bold px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full">
+              Deal Ready
             </span>
-            <input
-              type="text"
-              required
-              value={dealAmount}
-              onChange={(e) => setDealAmount(e.target.value.replace(/\D/g, ''))}
-              placeholder="e.g. 275000"
-              className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-300 text-lg font-extrabold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
           </div>
-          <p className="text-[11px] text-gray-500 mt-1.5">
-            Customer will also receive PM Surya Ghar direct bank subsidy of ₹78,000.
+
+          {/* Real Pricing & GST Breakdown Card */}
+          <div className="mt-3 pt-2 text-xs space-y-1.5">
+            <div className="flex justify-between text-slate-600">
+              <span>Solar PV Modules (5% GST):</span>
+              <span className="font-bold text-[#0B1E36]">₹ {panelsBase.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>Inverter &amp; Control Equipment (5% GST):</span>
+              <span className="font-bold text-[#0B1E36]">₹ {inverterBase.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>Structure, Wiring &amp; Installation (18% GST):</span>
+              <span className="font-bold text-[#0B1E36]">₹ {bosServicesBase.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between pt-1 border-t border-slate-200 font-bold text-sm text-[#0B1E36]">
+              <span>Agreed Total Deal Amount:</span>
+              <span className="text-[#F59E0B] font-serif text-base">₹ {cleanAmount.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Mode Selection: 2 Buttons (Cash vs Loan) */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-soft space-y-2">
+          <span className="text-xs font-bold text-[#0B1E36] block">
+            Select Financing / Payment Option *
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPaymentMode('cash')}
+              className={`py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border cursor-pointer ${
+                paymentMode === 'cash'
+                  ? 'bg-[#0B1E36] text-[#F59E0B] border-[#0B1E36] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              <Banknote className="w-4 h-4" />
+              <span>Cash / Self-Financed</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPaymentMode('loan')}
+              className={`py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border cursor-pointer ${
+                paymentMode === 'loan'
+                  ? 'bg-[#0B1E36] text-[#F59E0B] border-[#0B1E36] shadow-sm'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              <Building className="w-4 h-4" />
+              <span>Solar Bank Loan</span>
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-500">
+            {paymentMode === 'cash'
+              ? 'Required documents: Light bill, Aadhaar card, Bank details / passbook.'
+              : 'Required documents: Light bill, Aadhaar, Property tax/Index-2, GPS site photo, Co-applicant details & PAN.'}
           </p>
         </div>
 
-        {/* Milestone Payment Terms Builder */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '18px',
-            border: `0.5px solid color-mix(in srgb, ${sColor} 8%, transparent)`,
-            boxShadow: `0 6px 18px color-mix(in srgb, ${sColor} 8%, transparent)`,
-          }}
-          className="p-4"
-        >
-          <div className="flex items-center justify-between pb-2 border-b border-gray-100 mb-3">
+        {/* Payment Terms Milestones Editor */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-soft space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div>
-              <h3 style={{ color: sColor }} className="text-sm font-extrabold">
-                Milestone Payment Terms
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#0B1E36]">
+                Payment Terms Milestones
               </h3>
-              <p className="text-[11px] text-gray-500">
-                Action triggers when payments become due
-              </p>
+              <p className="text-[11px] text-slate-500">Sum must match deal amount (₹{cleanAmount.toLocaleString('en-IN')})</p>
             </div>
             <button
               type="button"
               onClick={handleAddTerm}
-              style={{ color: aColor }}
-              className="text-xs font-bold hover:underline cursor-pointer flex items-center gap-1"
+              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0B1E36] font-bold text-xs flex items-center gap-1 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Term</span>
+              <Plus className="w-3.5 h-3.5 text-amber-600" />
+              <span>Add Stage</span>
             </button>
           </div>
 
           <div className="space-y-2.5">
-            {paymentTerms.map((term, idx) => (
+            {paymentTerms.map((term, index) => (
               <div
                 key={term.id}
-                className="p-3 rounded-xl bg-gray-50 border border-gray-200/80 flex items-center gap-2"
+                className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2"
               >
-                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center font-extrabold text-xs text-gray-500 flex-none border">
-                  {idx + 1}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#0B1E36]">
+                    Milestone Stage {index + 1}
+                  </span>
+                  {paymentTerms.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTerm(term.id)}
+                      className="text-rose-500 hover:text-rose-700 p-1 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
-                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="relative">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
-                      ₹
-                    </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
+                      Amount (₹)
+                    </label>
                     <input
-                      type="text"
+                      type="number"
                       value={term.amount}
-                      onChange={(e) => handleTermChange(term.id, 'amount', e.target.value.replace(/\D/g, ''))}
-                      className="w-full pl-6 pr-2 py-1.5 rounded-lg border border-gray-300 text-xs font-bold text-gray-800"
+                      onChange={(e) => handleTermChange(term.id, 'amount', e.target.value)}
+                      className="w-full p-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-[#0B1E36] outline-none"
                     />
                   </div>
 
-                  <select
-                    value={term.trigger}
-                    onChange={(e) => handleTermChange(term.id, 'trigger', e.target.value)}
-                    className="w-full px-2 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-800 bg-white"
-                  >
-                    {triggerOptions.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
+                      Action Trigger
+                    </label>
+                    <select
+                      value={term.trigger}
+                      onChange={(e) => handleTermChange(term.id, 'trigger', e.target.value)}
+                      className="w-full p-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-[#0B1E36] outline-none"
+                    >
+                      {triggerOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-
-                {paymentTerms.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTerm(term.id)}
-                    className="p-1.5 text-gray-400 hover:text-rose-600 transition cursor-pointer flex-none"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
               </div>
             ))}
+          </div>
+
+          {/* Balance Validation Bar */}
+          <div className={`p-3 rounded-xl border flex items-center justify-between text-xs font-bold ${
+            isSplitValid
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}>
+            <span>Milestone Total: ₹{totalTermsAmount.toLocaleString('en-IN')}</span>
+            <span>
+              {isSplitValid
+                ? 'Matches 100% of deal amount'
+                : `Difference: ₹${Math.abs(cleanAmount - totalTermsAmount).toLocaleString('en-IN')}`}
+            </span>
           </div>
         </div>
 
         {/* Submit Button */}
         <button
-          type="submit"
-          disabled={loading}
-          style={{
-            backgroundColor: aColor,
-            color: onColor,
-            boxShadow: `0 8px 20px color-mix(in srgb, ${aColor} 35%, transparent)`,
-          }}
-          className="w-full py-4 rounded-[18px] font-extrabold text-sm flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.98] transition cursor-pointer disabled:opacity-50 mt-4"
+          type="button"
+          onClick={handleMarkClosed}
+          disabled={loading || !isSplitValid}
+          className={`w-full py-4 px-6 rounded-2xl font-bold text-xs shadow-soft flex items-center justify-center gap-2 transition cursor-pointer ${
+            isSplitValid
+              ? 'bg-[#F59E0B] hover:bg-amber-500 text-[#0B1E36]'
+              : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+          }`}
         >
-          {loading ? (
-            <span>Closing Deal & Creating Project...</span>
-          ) : (
-            <>
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Deal Close & Proceed to Document Upload</span>
-            </>
-          )}
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{loading ? 'Confirming Closure...' : 'Confirm Deal & Proceed to KYC Documents'}</span>
         </button>
-      </form>
+      </div>
 
-      {/* Universal Follow-up Modal */}
       <FollowUpModal
         isOpen={isFollowupOpen}
         onClose={() => setIsFollowupOpen(false)}
-        inquiryId={inquiry?.id || inquiryId}
+        inquiryId={followupId}
         stage="DEAL_CLOSED"
-        role="SALESPERSON"
+        role={currentUser?.role}
       />
     </div>
   );

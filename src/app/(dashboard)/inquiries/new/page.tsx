@@ -92,10 +92,15 @@ export default function AddInquiryPage() {
 
       const inq = resData.data || resData;
       const targetId = inq.followupId || inq.id;
-      toast.success(`Inquiry ${targetId} created! Moving to salesperson assignment.`);
+      const isOps = user?.role === 'OPS_MANAGER' || user?.role === 'ADMIN';
 
-      // Direct transition to Assign Salesperson page (Screen 3)
-      router.push(`/inquiries/${targetId}/assign`);
+      if (isOps) {
+        toast.success(`Inquiry ${targetId} created! Moving to salesperson assignment.`);
+        router.push(`/inquiries/${targetId}/assign`);
+      } else {
+        toast.success(`Inquiry ${targetId} created! Ops Manager notified.`);
+        router.push(`/inquiries/${targetId}`);
+      }
     } catch (err: any) {
       toast.error(err.message || 'Error saving inquiry.');
     } finally {

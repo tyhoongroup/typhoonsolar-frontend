@@ -232,18 +232,18 @@ export default function LoginPage() {
                   <p className="text-xs text-white/80 mt-1">Continue with your saved profile</p>
                 </div>
 
-                {/* Avatar with dynamic role ring */}
+                {/* Avatar with dynamic role ring matching Image 1 */}
                 <div className="pt-2">
                   <div
                     style={{
-                      borderColor: activeTheme.hex.accentBg,
-                      color: activeTheme.hex.accentBg,
+                      borderColor: '#F59E0B',
+                      color: '#F59E0B',
                     }}
-                    className="w-24 h-24 rounded-full mx-auto flex items-center justify-center font-serif text-3xl font-normal shadow-lg border-4 bg-[#0B192C]"
+                    className="w-[108px] h-[108px] min-w-[108px] min-h-[108px] max-w-[108px] max-h-[108px] rounded-full mx-auto flex items-center justify-center font-serif text-4xl font-bold shadow-lg border-[3px] bg-[#0B1E36] overflow-hidden shrink-0"
                   >
-                    {activeTheme.tag}
+                    {savedProfile.role === 'OPS_MANAGER' ? 'AK' : activeTheme.tag}
                   </div>
-                  <h3 className="text-2xl font-serif font-normal text-typhoon-navy mt-4 tracking-tight">
+                  <h3 className="text-2xl font-serif font-bold text-typhoon-navy mt-4 tracking-tight">
                     {savedProfile.fullName}
                   </h3>
                   <div className="mt-1.5">
@@ -460,19 +460,18 @@ export default function LoginPage() {
               <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full border border-white/10 pointer-events-none" />
               <div className="absolute 0 -right-0 w-32 h-32 rounded-full border border-white/5 pointer-events-none" />
 
-              {/* Brand logo row */}
+              {/* Brand logo row matching Image 1: Sun icon + TYPHOON SOLAR */}
               <div className="relative z-10 flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                  <img
-                    src="/images/typhoon-logo-white.png"
-                    alt="Typhoon Solar"
-                    className="h-7 w-auto object-contain"
-                  />
+                  <Sun className="w-5 h-5 text-[#F59E0B]" />
+                  <span className="text-xs font-bold tracking-widest text-[#F59E0B] uppercase">
+                    TYPHOON SOLAR
+                  </span>
                 </div>
                 <BackendStatusBadge />
               </div>
 
-              <h1 className="text-3xl font-serif font-normal text-white tracking-tight relative z-10">
+              <h1 className="text-3xl font-serif font-bold text-white tracking-tight relative z-10">
                 Welcome back
               </h1>
               <p className="text-xs text-white/80 mt-1 relative z-10 font-normal">
@@ -483,8 +482,8 @@ export default function LoginPage() {
             {/* Floating Saved Profile Card */}
             <div className="px-5 -mt-10 relative z-20">
               <div className="bg-white rounded-[32px] p-6 sm:p-8 shadow-xl border border-gray-100/80 text-center flex flex-col items-center">
-                {/* Avatar with Role Initials: Perfect Circle with gold border matching Image 1 */}
-                <div className="w-24 h-24 aspect-square rounded-full flex items-center justify-center font-serif text-3xl font-bold shadow-md border-[3px] border-[#F59E0B] bg-[#071326] text-[#F59E0B] shrink-0">
+                {/* Avatar with Role Initials: Exact circular radius with gold ring matching Image 1 */}
+                <div className="w-[104px] h-[104px] min-w-[104px] min-h-[104px] max-w-[104px] max-h-[104px] rounded-full flex items-center justify-center font-serif text-4xl font-bold shadow-md border-[3px] border-[#F59E0B] bg-[#0B1E36] text-[#F59E0B] shrink-0 overflow-hidden">
                   {savedProfile.role === 'OPS_MANAGER' ? 'AK' : activeTheme.tag}
                 </div>
 

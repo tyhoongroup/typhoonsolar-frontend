@@ -226,7 +226,8 @@ export default function DashboardLayout({
     return {
       mobile: [
         { id: 'home', label: 'Home', iconName: 'home', href: '/dashboard' },
-        { id: 'inquiries', label: 'Inquiries', iconName: 'inquiries', href: '/inquiries' },
+        { id: 'inquiries', label: 'Leads', iconName: 'inquiries', href: '/inquiries' },
+        { id: 'followups', label: 'Follow-ups', iconName: 'visits', href: '/followups' },
         { id: 'projects', label: 'Projects', iconName: 'jobs', href: '/projects' },
         { id: 'more', label: 'More', iconName: 'more', href: '#more' },
       ],
@@ -252,6 +253,7 @@ export default function DashboardLayout({
     setActiveTab(id);
     if (id === 'home' || id === 'dashboard') router.push('/dashboard');
     else if (id === 'pipeline' || id === 'inquiries') router.push('/inquiries');
+    else if (id === 'followups' || id === 'visits') router.push('/followups');
     else if (id === 'projects') router.push('/projects');
     else if (id === 'quotations') router.push('/quotations/new');
     else if (id === 'meter' || id === 'subsidy') router.push('/portal?tab=meter');

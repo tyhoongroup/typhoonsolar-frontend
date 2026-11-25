@@ -533,7 +533,7 @@ export function MoreMenuModal({
       {/* Modal / Bottom Sheet Card */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#FBF9F5] w-full max-w-md rounded-t-[32px] sm:rounded-[32px] overflow-hidden max-h-[92vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300 border border-[#E8E2D9]"
+        className="bg-[#FBF9F5] w-full max-w-md rounded-t-[32px] sm:rounded-[32px] overflow-hidden max-h-[80vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300 border border-[#E8E2D9]"
       >
         {/* Grab Handle Header */}
         <div className="pt-3 pb-1 flex flex-col items-center relative shrink-0">

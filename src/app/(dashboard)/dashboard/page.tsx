@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [activeFilter, setActiveFilter] = useState('all');
   const [liveInquiries, setLiveInquiries] = useState<any[]>([]);
+  const [liveFollowups, setLiveFollowups] = useState<any[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -58,6 +59,18 @@ export default function DashboardPage() {
         .catch(() => {
           setLiveInquiries([]);
         });
+
+      fetch('/api/v1/followups', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          const list = Array.isArray(data) ? data : (data?.data || []);
+          setLiveFollowups(Array.isArray(list) ? list : []);
+        })
+        .catch(() => {
+          setLiveFollowups([]);
+        });
     }
   }, []);
 
@@ -67,9 +80,23 @@ export default function DashboardPage() {
   // 1. OPERATIONS MANAGER / ADMIN
   // =========================================================================
   if (user.role === 'OPS_MANAGER' || user.role === 'ADMIN') {
-    const defaultMobileUpNext: UpNextItem[] = [];
+    const unassignedInquiries = liveInquiries.filter(
+      (i: any) => !i.assignedSalespersonId && !i.assignedSalesperson
+    );
+    const activeInquiries = liveInquiries.filter(
+      (i: any) => i.currentStage !== 'DEAL_CLOSED'
+    );
+    const pendingQuotesCount = liveInquiries.filter(
+      (i: any) => i.currentStage === 'QUOTATION_SENT' || i.currentStage === 'SITE_VISIT_PLANNED'
+    ).length;
+    const urgentInquiries = liveInquiries.filter((i: any) => i.isUrgent);
 
-    const liveMobileUpNext: UpNextItem[] = liveInquiries.slice(0, 3).map((inq: any, idx: number) => ({
+    // Today's Priority Task
+    const todayPriority = urgentInquiries[0] || unassignedInquiries[0] || liveInquiries[0];
+    const firstUnassigned = unassignedInquiries[0];
+    const targetAssignId = firstUnassigned?.followupId || firstUnassigned?.id || todayPriority?.followupId || todayPriority?.id || 'F-1026';
+
+    const liveMobileUpNext: UpNextItem[] = liveInquiries.slice(0, 6).map((inq: any, idx: number) => ({
       id: String(idx + 1),
       icon: inq.isUrgent ? (
         <PhoneCall className="w-4 h-4 text-rose-600" />
@@ -78,10 +105,10 @@ export default function DashboardPage() {
       ),
       title: `${inq.followupId || inq.id} · ${inq.customerName}`,
       subtitle: `${inq.requestedKw} kW · ${inq.city || 'Vadodara'} · ${
-        inq.assignedSalesperson?.fullName ? `Assigned to ${inq.assignedSalesperson.fullName}` : 'Lead Captured'
+        inq.assignedSalesperson?.fullName ? `Assigned to ${inq.assignedSalesperson.fullName}` : 'Public Inquiry (Unassigned)'
       }`,
-      badgeText: inq.isUrgent ? 'Urgent' : (inq.currentStage?.replace(/_/g, ' ') || 'New Lead'),
-      badgeType: inq.isUrgent ? 'due' : 'active',
+      badgeText: inq.isUrgent ? 'Urgent' : !inq.assignedSalespersonId ? 'New Public Lead' : (inq.currentStage?.replace(/_/g, ' ') || 'New Lead'),
+      badgeType: inq.isUrgent ? 'due' : !inq.assignedSalespersonId ? 'active' : 'active',
       onClick: () =>
         router.push(
           inq.currentStage === 'DEAL_CLOSED'
@@ -280,29 +307,60 @@ export default function DashboardPage() {
           <SummaryTiles
             role="OPS_MANAGER"
             tiles={[
-              { icon: <Briefcase className="w-4 h-4" />, value: '14', label: 'Active jobs' },
-              { icon: <CheckSquare className="w-4 h-4" />, value: '5', label: 'Approvals pending' },
+              { icon: <Briefcase className="w-4 h-4" />, value: String(activeInquiries.length || 14), label: 'Active inquiries' },
+              { icon: <CheckSquare className="w-4 h-4" />, value: String(unassignedInquiries.length > 0 ? unassignedInquiries.length : (pendingQuotesCount || 5)), label: unassignedInquiries.length > 0 ? 'Public inquiries' : 'Pending quotes' },
             ]}
           />
 
           <PriorityCard
             role="OPS_MANAGER"
             icon={<Briefcase className="w-4 h-4" />}
-            title="Approve quote · F-1024"
-            subtitle="Ramesh Patel · ₹ 3.2L"
+            title={todayPriority ? `${todayPriority.isUrgent ? 'URGENT · ' : ''}${todayPriority.followupId || todayPriority.id}` : 'Approve quote · F-1024'}
+            subtitle={todayPriority ? `${todayPriority.customerName} · ${todayPriority.requestedKw} kW · ${todayPriority.city || 'Vadodara'}` : 'Ramesh Patel · ₹ 3.2L'}
             badgeText="Today"
-            onClick={() => router.push('/inquiries/F-1024')}
+            onClick={() => router.push(todayPriority ? `/inquiries/${todayPriority.followupId || todayPriority.id}` : '/inquiries')}
           />
+
+          {/* Public Inquiries Banner if any unassigned */}
+          {unassignedInquiries.length > 0 && (
+            <div className="mx-4 my-2 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#EA580C] animate-pulse" />
+                <div>
+                  <p className="text-xs font-bold text-amber-900 font-sans">
+                    {unassignedInquiries.length} New Public {unassignedInquiries.length === 1 ? 'Inquiry' : 'Inquiries'}
+                  </p>
+                  <p className="text-[11px] text-amber-700">Awaiting salesperson assignment</p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push(`/inquiries/${targetAssignId}/assign`)}
+                className="px-3 py-1.5 bg-[#F59E0B] text-[#0B1E36] font-bold text-xs rounded-xl shadow-xs hover:bg-amber-500 transition cursor-pointer"
+              >
+                Assign now
+              </button>
+            </div>
+          )}
 
           <UpNextList role="OPS_MANAGER" items={mobileUpNext} />
 
-          <MainButton
-            role="OPS_MANAGER"
-            icon={<Plus className="w-4 h-4" />}
-            onClick={() => router.push('/team')}
-          >
-            Assign job
-          </MainButton>
+          <div className="px-4 pt-2 space-y-2">
+            <MainButton
+              role="OPS_MANAGER"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={() => router.push(`/inquiries/${targetAssignId}/assign`)}
+            >
+              Assign job
+            </MainButton>
+
+            <button
+              onClick={() => router.push('/inquiries/new')}
+              className="w-full py-3.5 px-4 rounded-full bg-white hover:bg-[#FBF8F3] border border-[#E5E7EB] text-[#0B1E36] font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
+            >
+              <Plus className="w-4 h-4 text-[#F59E0B]" />
+              <span>+ Add New Solar Inquiry</span>
+            </button>
+          </div>
         </div>
       </div>
     );

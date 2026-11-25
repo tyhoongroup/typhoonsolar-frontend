@@ -13,6 +13,8 @@ export default function AssignSalespersonPage() {
   const { user, theme } = useCurrentUser();
 
   const [inquiry, setInquiry] = useState<any>(null);
+  const [availableInquiries, setAvailableInquiries] = useState<any[]>([]);
+  const [structureType, setStructureType] = useState<'Residential' | 'Commercial' | 'Common'>('Residential');
   const [salespersons, setSalespersons] = useState<Array<{ id: string; fullName: string; phone: string; openLeads: number }>>([
     { id: '9000000002', fullName: 'Amit', phone: '+91 90000 00002', openLeads: 2 },
     { id: '9000000007', fullName: 'Kunal', phone: '+91 90000 00007', openLeads: 4 },
@@ -41,7 +43,7 @@ export default function AssignSalespersonPage() {
     setDueDateText(getFormattedDueDate(dueDays));
   }, [dueDays]);
 
-  // Load inquiry details and active salespersons
+  // Load inquiry details, all public inquiries and active salespersons
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -49,7 +51,7 @@ export default function AssignSalespersonPage() {
       return;
     }
 
-    // 1. Fetch inquiry
+    // 1. Fetch current target inquiry
     fetch(`/api/v1/inquiries/${inquiryId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -66,7 +68,20 @@ export default function AssignSalespersonPage() {
       .catch(() => {})
       .finally(() => setFetching(false));
 
-    // 2. Fetch salespersons
+    // 2. Fetch all inquiries so Ops Manager can switch between public inquiries
+    fetch('/api/v1/inquiries', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : (data?.data || []);
+        if (Array.isArray(list)) {
+          setAvailableInquiries(list);
+        }
+      })
+      .catch(() => {});
+
+    // 3. Fetch salespersons
     fetch('/api/v1/inquiries/salespersons', {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -86,6 +101,14 @@ export default function AssignSalespersonPage() {
       })
       .catch(() => {});
   }, [inquiryId, router]);
+
+  const handleSelectDifferentInquiry = (newId: string) => {
+    const found = availableInquiries.find((i) => (i.followupId || i.id) === newId);
+    if (found) {
+      setInquiry(found);
+      router.replace(`/inquiries/${found.followupId || found.id}/assign`);
+    }
+  };
 
   const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +131,7 @@ export default function AssignSalespersonPage() {
         body: JSON.stringify({
           salespersonId: selectedSalespersonId,
           dueDays: Number(dueDays) || 3,
+          structureType,
         }),
       });
 
@@ -191,9 +215,59 @@ export default function AssignSalespersonPage() {
 
       {/* 2. Body Container (Positive Margin - Completely Clear of Header Curve) */}
       <div className="max-w-md mx-auto px-4 pt-4 space-y-4">
+        {/* Public Inquiry Switcher (Ops Manager can pick any inquiry) */}
+        {availableInquiries.length > 1 && (
+          <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-2">
+            <span className="text-xs font-bold text-typhoon-navy block">
+              Select Public Inquiry / Lead
+            </span>
+            <select
+              value={inquiry?.followupId || inquiry?.id || inquiryId}
+              onChange={(e) => handleSelectDifferentInquiry(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-typhoon-sand/40 border border-typhoon-border rounded-xl text-xs font-bold text-typhoon-navy focus:outline-none focus:border-[#F59E0B]"
+            >
+              {availableInquiries.map((inqItem) => (
+                <option key={inqItem.id} value={inqItem.followupId || inqItem.id}>
+                  {inqItem.followupId || inqItem.id} · {inqItem.customerName} ({inqItem.requestedKw} kW · {inqItem.city || 'Vadodara'})
+                  {!inqItem.assignedSalespersonId ? ' [Unassigned]' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* 3 Structure Type Buttons (Residential, Commercial, Common) */}
+        <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-2">
+          <span className="text-xs font-bold text-typhoon-navy block">
+            Project Category / Structure Type
+          </span>
+          <div className="grid grid-cols-3 gap-2">
+            {(['Residential', 'Commercial', 'Common'] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setStructureType(type)}
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition text-center border cursor-pointer ${
+                  structureType === type
+                    ? 'bg-[#0B1E36] text-[#F59E0B] border-[#0B1E36] shadow-xs'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Requirement & Address Summary Card */}
         <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft space-y-3">
           <div className="flex justify-between items-center text-xs">
+            <span className="text-typhoon-muted font-medium">Customer</span>
+            <span className="font-bold text-typhoon-navy text-sm">
+              {inquiry?.customerName || 'Customer'}
+            </span>
+          </div>
+          <div className="border-t border-typhoon-border/60 pt-3 flex justify-between items-center text-xs">
             <span className="text-typhoon-muted font-medium">Requirement</span>
             <span className="font-bold text-typhoon-navy text-sm">
               {inquiry?.requestedKw || 6.0} kW, {inquiry?.meterPhase || 'Single Phase'}

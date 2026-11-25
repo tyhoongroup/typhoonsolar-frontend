@@ -112,7 +112,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   };
 
   return (
-    <div className="fixed bottom-3 left-3 right-3 z-50 max-w-[340px] sm:max-w-md mx-auto">
+    <div className="fixed bottom-3 left-3 right-3 z-50 max-w-[390px] sm:max-w-md mx-auto">
       <nav
         style={{
           backgroundColor: sColor,

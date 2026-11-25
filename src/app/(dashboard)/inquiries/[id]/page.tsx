@@ -133,12 +133,19 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
   const assignedSp = inquiry?.assignedSalesperson?.fullName || 'Amit';
   const quoteDueDays = inquiry?.quoteDueDays || 3;
 
-  // Pipeline 3 Core Stages computation
+  // Structure Type selection for Ops Manager
+  const [structureType, setStructureType] = useState<'Residential' | 'Commercial' | 'Common'>('Residential');
+  const isOpsOrAdmin = user?.role === 'OPS_MANAGER' || user?.role === 'ADMIN';
+  const isSalesperson = user?.role === 'SALESPERSON';
+  const canProgressPipeline = isOpsOrAdmin || isSalesperson;
+
+  // Pipeline 3 Core Stages computation:
+  // Stage 1 (Customer called) is ONLY done if an explicit call log exists or subsequent stages completed
   const hasLoggedCall = Boolean(
     inquiry?.followups?.some(
       (f: any) =>
         f.status === 'CALL_DONE' ||
-        (f.description && f.description.toLowerCase().includes('call'))
+        (f.description && f.description.toLowerCase().includes('call logged'))
     )
   );
 
@@ -146,28 +153,26 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
     hasLoggedCall ||
     inquiry?.siteVisit ||
     inquiry?.quotation ||
-    (inquiry?.currentStage &&
-      !['INQUIRY_RECEIVED', 'NEW', 'ASSIGNED'].includes(inquiry.currentStage)) ||
     inquiry?.dealAmount
   );
 
+  // Stage 2 (Site visit) is ONLY done if an actual site visit report exists
   const hasSiteVisit = Boolean(
     inquiry?.siteVisit ||
     inquiry?.followups?.some(
       (f: any) =>
         f.stage === 'SITE_VISIT_DONE' ||
-        (f.description && f.description.toLowerCase().includes('site visit'))
+        (f.description && f.description.toLowerCase().includes('site visit completed'))
     )
   );
 
   const isSiteVisitDone = Boolean(
     hasSiteVisit ||
     inquiry?.quotation ||
-    (inquiry?.currentStage &&
-      !['INQUIRY_RECEIVED', 'NEW', 'ASSIGNED', 'SITE_VISIT_PLANNED'].includes(inquiry.currentStage)) ||
     inquiry?.dealAmount
   );
 
+  // Stage 3 (Quotation sent) is ONLY done if a quotation record exists or currentStage is QUOTATION_SENT
   const isQuotationDone = Boolean(
     inquiry?.quotation ||
     ['QUOTATION_SENT', 'DEAL_CLOSED', 'COMPLETED'].includes(inquiry?.currentStage) ||
@@ -183,7 +188,13 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
     onClick: () => void;
   };
 
-  if (!isCallDone) {
+  if (!canProgressPipeline) {
+    primaryAction = {
+      label: 'View Project Details',
+      icon: <FileText className="w-5 h-5" />,
+      onClick: () => router.push(`/projects/${followupId}`),
+    };
+  } else if (!isCallDone) {
     primaryAction = {
       label: 'Log a call',
       icon: <Phone className="w-5 h-5" />,
@@ -368,6 +379,50 @@ export default function InquiryDetailPage({ params }: { params: { id: string } }
 
         {/* 2. Mobile Body Cards */}
         <div className="max-w-md mx-auto px-4 pt-4 space-y-4">
+          {/* Ops Manager Roof Structure / Project Category Selector */}
+          {isOpsOrAdmin && (
+            <div className="bg-white rounded-2xl p-4 border border-typhoon-border shadow-soft space-y-2">
+              <span className="text-xs font-bold text-typhoon-navy block">
+                Project Category / Structure Type
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                {(['Residential', 'Commercial', 'Common'] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => {
+                      setStructureType(type);
+                      toast.success(`Category set to ${type}`);
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition text-center border cursor-pointer ${
+                      structureType === type
+                        ? 'bg-[#0B1E36] text-[#F59E0B] border-[#0B1E36] shadow-xs'
+                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* If unassigned public inquiry, show prominent salesperson assignment section */}
+          {!inquiry?.assignedSalespersonId && (
+            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 shadow-soft flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-amber-900 font-sans">Public Inquiry - Unassigned</p>
+                <p className="text-[11px] text-amber-700">Assign salesperson to start site survey</p>
+              </div>
+              <button
+                onClick={() => router.push(`/inquiries/${followupId}/assign`)}
+                className="px-3.5 py-2 bg-[#F59E0B] text-[#0B1E36] font-bold text-xs rounded-xl shadow-xs hover:bg-amber-500 transition cursor-pointer"
+              >
+                Assign now
+              </button>
+            </div>
+          )}
+
           {/* Summary Card (Customer, Phone, Requirement, Assigned to) */}
           <div className="bg-white rounded-2xl p-5 border border-typhoon-border shadow-soft divide-y divide-typhoon-border/60">
             <div className="flex justify-between items-center py-2 text-xs first:pt-0">
